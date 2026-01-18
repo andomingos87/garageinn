@@ -748,18 +748,18 @@
   - [x] Subtarefa: Login e sessao (LoginScreen.tsx, AuthContext.tsx, authService.ts com Supabase)
   - [x] Subtarefa: Persistencia e refresh (AsyncStorage, onAuthStateChange listener, TOKEN_REFRESHED handler)
 
-### Épico 4.2 — Fluxo de Chamados (Mobile) ⚠️
+### Épico 4.2 — Fluxo de Chamados (Mobile) ✅
 **Contexto**: listar, criar e acompanhar chamados em campo.
-**Status**: PARCIALMENTE COMPLETO (verificado em 2026-01-18) - Estrutura OK, telas com placeholder
+**Status**: COMPLETO (implementado em 2026-01-18)
 
 - [x] Tarefa 4.2.1: Listagem de chamados
-  - [x] Subtarefa: Filtros basicos (TicketsListScreen.tsx com tipos: sinistro, manutencao, compras, rh)
-  - [ ] Subtarefa: Detalhe do chamado ⚠️ TicketDetailsScreen.tsx mostra EmptyState "Em desenvolvimento"
-- [ ] Tarefa 4.2.2: Criacao de chamado
-  - [ ] Subtarefa: Formulario padrao ⚠️ NewTicketScreen.tsx mostra EmptyState "Em desenvolvimento"
-  - [ ] Subtarefa: Anexos via camera ⚠️ NAO IMPLEMENTADO
+  - [x] Subtarefa: Filtros basicos ✅ TicketsListScreen.tsx com integracao Supabase, paginacao, pull-to-refresh
+  - [x] Subtarefa: Detalhe do chamado ✅ TicketDetailsScreen.tsx com tabs (Detalhes, Comentarios, Historico), anexos, timeline
+- [x] Tarefa 4.2.2: Criacao de chamado
+  - [x] Subtarefa: Formulario padrao ✅ NewTicketScreen.tsx com TicketForm, categorias, unidades, validacao
+  - [x] Subtarefa: Anexos via camera ✅ PhotoPicker com expo-image-picker, upload para Supabase Storage
 
-### Épico 4.3 — Checklists Mobile ⚠️
+### Épico 4.3 — Checklists Mobile ✅
 **Contexto**: execucao de abertura e supervisao no campo.
 **Status**: COMPLETO (verificado em 2026-01-18)
 
