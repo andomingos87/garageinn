@@ -4,259 +4,267 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**GAPP (Garageinn App)** is a SaaS platform for managing tickets and operational checklists developed for **Garageinn**, a parking network. The system uses role-based access control (RBAC) to manage permissions across multiple departments and roles.
+**GAPP Web** is the administrative web application for **Garageinn**, a parking network. Built with Next.js 16 (App Router), React 19, and Tailwind CSS 4. Uses Supabase as backend with SSR authentication.
 
-### Monorepo Structure
-
-- **apps/web**: Next.js 16 application (React 19, Tailwind CSS 4) for administrative management
-- **apps/mobile**: Expo/React Native app (Expo SDK 54, React Native 0.81) for field operations
-- **supabase/**: Supabase Edge Functions and migrations
-- **projeto/**: Complete documentation (PRD, specifications, tests, database)
-
-### Backend
-
-Both applications share **Supabase** as the backend:
-- **PostgreSQL**: 33 tables organized by module
-- **Supabase Auth**: Authentication with magic links and SSR sessions
-- **Supabase Storage**: Ticket attachments and checklist photos
-- **RLS (Row Level Security)**: All tables protected by RLS policies
+GarageInn is a comprehensive management system for parking operations, maintenance requests, procurement, and human resources. This documentation provides a deep dive into the system's architecture and inner workings.
 
 ## Commands
 
-### Web App (apps/web)
 ```bash
-cd apps/web
-npm run dev          # Start development server
-npm run build        # Production build
-npm run lint         # ESLint
-npm run lint:fix     # ESLint with auto-fix
-npm run format       # Prettier format
-npm run format:check # Prettier check
-npm run test:e2e     # Playwright E2E tests
-npm run test:e2e:ui  # Playwright with UI
+npm run dev                         # Start development server (localhost:3000)
+npm run build                       # Production build
+npm run lint                        # ESLint
+npm run lint:fix                    # ESLint with auto-fix
+npm run format                      # Prettier format
+npm run format:check                # Prettier check
+npm run test:e2e                    # Playwright E2E tests
+npm run test:e2e:ui                 # Playwright with UI
 npm run test:e2e:debug              # Debug specific test
 npx playwright test path/to/test.ts # Run single test file
 ```
 
-### Mobile App (apps/mobile)
-```bash
-cd apps/mobile
-npm start            # Expo start
-npm run android      # Android development
-npm run ios          # iOS development
-npm run lint         # ESLint
-npm run typecheck    # TypeScript check
-npm run test         # Jest tests
-npm run test:watch   # Jest watch mode
-npm run test:coverage # Coverage report
-npm test -- path/to/test.ts          # Run single test file
-npm test -- --testNamePattern="name" # Run tests matching pattern
-```
-
 ## Architecture
-
-### Web App Structure (Next.js App Router)
-
-```
-src/app/
-├── (app)/                    # Authenticated routes (route group)
-│   ├── actions.ts            # Shared server actions (signOut, etc.)
-│   ├── layout.tsx            # App shell layout (sidebar, header)
-│   ├── chamados/             # Tickets module (Purchasing, Maintenance, HR, Claims, etc.)
-│   ├── checklists/           # Opening and supervision checklists
-│   ├── configuracoes/        # System settings (chamados, checklists, departamentos, etc.)
-│   ├── dashboard/            # Main dashboard
-│   ├── perfil/               # Logged-in user profile
-│   ├── unidades/             # Unit/garage management
-│   └── usuarios/             # User management and RBAC
-├── (auth)/                   # Authentication routes
-│   ├── login/
-│   ├── recuperar-senha/
-│   └── redefinir-senha/
-└── auth/callback/            # OAuth callback handler
-
-src/components/
-├── ui/                       # shadcn/ui components (Button, Card, Table, etc.)
-└── layout/                   # Layout components (Sidebar, Header, AppShell)
-
-src/hooks/                    # React hooks
-├── use-auth.ts               # Authentication state and methods
-├── use-permissions.ts        # RBAC permission checks
-├── use-profile.ts            # Current user profile
-├── use-impersonation.ts      # User impersonation (admin feature)
-└── use-mobile.ts             # Mobile detection
-
-src/lib/
-├── supabase/
-│   ├── client.ts             # Browser client (createBrowserClient)
-│   ├── server.ts             # Server components client (createServerClient with cookies)
-│   ├── middleware.ts         # Session refresh for middleware
-│   └── database.types.ts     # Generated TypeScript types (regenerate after schema changes)
-└── utils.ts                  # Utilities (cn for class merging)
-
-src/proxy.ts                  # Authentication middleware (exported in middleware.ts)
-```
-
-### Mobile App Structure (Expo)
 
 ```
 src/
-├── modules/                  # Feature modules
-│   ├── auth/                 # Authentication (login, password recovery)
-│   ├── checklists/           # Opening and supervision checklists
-│   ├── tickets/              # Tickets (listing, creation, details)
-│   ├── home/                 # Dashboard/home
-│   ├── profile/              # User profile
-│   └── notifications/        # Notifications (future)
-├── navigation/               # React Navigation (Tabs + Stacks)
-│   ├── RootNavigator.tsx     # Main navigator
-│   ├── MainTabNavigator.tsx  # Bottom tabs
-│   └── stacks/               # Stack navigators per feature
+├── app/
+│   ├── (app)/                    # Authenticated routes (route group)
+│   │   ├── actions.ts            # Shared server actions (signOut)
+│   │   ├── layout.tsx            # App shell (sidebar, header)
+│   │   ├── chamados/             # Tickets module by department
+│   │   ├── checklists/           # Opening and supervision checklists
+│   │   ├── configuracoes/        # System settings
+│   │   ├── dashboard/            # Main dashboard
+│   │   ├── perfil/               # User profile
+│   │   ├── unidades/             # Unit/garage management
+│   │   └── usuarios/             # User management and RBAC
+│   ├── (auth)/                   # Auth routes (login, recuperar-senha, redefinir-senha)
+│   └── auth/callback/            # OAuth callback handler
 ├── components/
-│   ├── ui/                   # Base components (Button, Input, Card, Badge, etc.)
-│   └── guards/               # Route guards (authentication)
+│   ├── ui/                       # shadcn/ui components
+│   └── layout/                   # Sidebar, Header, AppShell
+├── hooks/
+│   ├── use-auth.ts               # Authentication state
+│   ├── use-permissions.ts        # RBAC permission checks
+│   ├── use-profile.ts            # Current user profile
+│   ├── use-impersonation.ts      # Admin user impersonation
+│   └── use-mobile.ts             # Mobile detection
 ├── lib/
-│   ├── supabase/             # Supabase client
-│   └── observability/        # Sentry integration (hooks, logger)
-├── theme/                    # Design tokens (colors, typography, spacing)
-└── types/                    # Shared TypeScript types
+│   ├── supabase/
+│   │   ├── client.ts             # Browser client (createBrowserClient)
+│   │   ├── server.ts             # Server client (createServerClient)
+│   │   ├── middleware.ts         # Session refresh
+│   │   └── database.types.ts     # Generated types (npx supabase gen types typescript)
+│   └── utils.ts                  # cn() for class merging
+└── proxy.ts                      # Auth middleware
+```
+
+## Key Technical Modules
+
+### 1. Authentication & Permissions
+The system uses a robust RBAC (Role-Based Access Control) system managed via Supabase.
+- **Hook**: `usePermissions()` provides real-time access checks.
+- **Logic**: `src/lib/auth/rbac.ts` contains functions like `hasPermission(permission)`.
+- **Impersonation**: Admin users can impersonate other profiles for debugging using the `impersonateUser` service.
+
+### 2. Ticketing System (Chamados)
+The application handles four distinct ticket types:
+- **Maintenance (Manutenção)**: Physical repairs and infrastructure.
+- **Procurement (Compras)**: Requesting items or services.
+- **Claims (Sinistros)**: Handling vehicle damage and insurance incidents.
+- **HR (RH)**: Employee-related requests.
+
+### 3. Unit Management (Unidades)
+Units represent physical locations. The system tracks:
+- **Staffing**: Linking users to specific units.
+- **Supervision**: Hierarchical relationships between managers and units.
+- **Checklists**: Operational procedures executed at specific locations.
+
+## Key Patterns
+
+### Supabase Clients
+```tsx
+// Server Components / Server Actions
+import { createClient } from "@/lib/supabase/server";
+const supabase = await createClient();
+
+// Client Components
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
+```
+
+### Server Actions
+Place in `actions.ts` files with `"use server"` directive:
+```tsx
+"use server";
+import { createClient } from "@/lib/supabase/server";
+
+export async function createTicket(data: FormData) {
+  const supabase = await createClient();
+  // ...
+}
 ```
 
 ### Authentication Flow
-Uses Supabase Auth with SSR support (@supabase/ssr). The `proxy.ts` middleware:
-1. Refreshes session tokens via `updateSession()`
-2. Protects routes (redirects unauthenticated users to `/login`)
-3. Redirects authenticated users away from auth pages
-4. Preserves intended destination via `?next=` query param
+The `proxy.ts` middleware handles:
+1. Session token refresh via `updateSession()`
+2. Redirects unauthenticated users to `/login`
+3. Preserves destination via `?next=` param
+4. Redirects authenticated users away from auth pages
 
 Public routes: `/login`, `/recuperar-senha`, `/redefinir-senha`, `/auth/callback`
 
-### Server Actions Pattern
-Server Actions are placed in `actions.ts` files:
-- `(app)/actions.ts` — Shared actions for authenticated routes (signOut)
-- `feature/actions.ts` — Feature-specific mutations (create, update, delete)
+## MCP Tools
 
-Always use `"use server"` directive and import `createClient` from `@/lib/supabase/server`.
+### Supabase MCP Tools
 
-## Supabase Integration
+Use MCP tools for database operations:
+- `execute_sql` — SELECT queries
+- `apply_migration` — DDL changes (CREATE, ALTER, DROP)
+- `list_tables` — List tables
+- `get_logs` — Debug logs (api, postgres, auth, storage)
+- `get_advisors` — Check RLS and performance
 
-**Always use Supabase MCP for database operations:**
+**Rules:**
+1. Never execute DDL directly — use `apply_migration`
+2. Check security advisors after schema changes
+3. Regenerate types: `npx supabase gen types typescript`
 
-### Available MCP Tools
-- `mcp_supabase_gapp_execute_sql` — SELECT queries (data reading)
-- `mcp_supabase_gapp_apply_migration` — DDL changes (CREATE, ALTER, DROP)
-- `mcp_supabase_gapp_list_tables` — List existing tables
-- `mcp_supabase_gapp_list_migrations` — List applied migrations
-- `mcp_supabase_gapp_get_logs` — Debug logs (api, postgres, edge-function, auth, storage, realtime)
-- `mcp_supabase_gapp_get_advisors` — Check RLS and performance after DDL changes
-- `mcp_supabase_gapp_search_docs` — Search Supabase documentation
+### AI-Context MCP Tools
 
-### Important Rules
-1. **Never execute DDL directly** — always use `apply_migration` to maintain history
-2. **Always check security advisors** after creating/altering tables
-3. **Generate TypeScript types** after schema changes: `npx supabase gen types typescript`
-4. **For simple reads**, prefer `execute_sql` over code calls
-5. **Migrations** should be created in `projeto/database/migrations/` and applied via MCP
+**IMPORTANTE:** Use as ferramentas do MCP `ai-context` para análise de código, gerenciamento de contexto e orquestração de workflows. Consulte `AI-CONTEXT-MCP-TOOLS.md` para documentação completa.
 
-### Database Structure
-- **33 tables** organized by module (authentication, tickets, checklists, units)
-- **8 SQL functions** for business logic
-- **RLS enabled** on all tables
-- **Complete documentation**: `projeto/database/README.md`, `schema.md`, `relationships.md`
+#### Ferramentas de Análise de Código (Use Frequentemente)
+
+- **`getCodebaseMap`** — Obter visão geral da arquitetura, stack tecnológico e símbolos do projeto
+  - Use seções específicas (`architecture`, `stack`, `symbols`) para reduzir uso de tokens
+  - Exemplo: `getCodebaseMap({ section: "architecture" })`
+
+- **`buildSemanticContext`** — Construir contexto semântico otimizado para prompts
+  - Use antes de tarefas complexas para obter contexto rico do codebase
+  - Tipos: `documentation`, `playbook`, `plan`, `compact`
+
+- **`analyzeSymbols`** — Analisar símbolos (classes, funções, interfaces) em arquivos específicos
+  - Use para entender APIs públicas de módulos antes de modificá-los
+
+- **`searchCode`** — Buscar padrões de código usando regex
+  - Use para encontrar uso de APIs, imports ou dependências
+
+- **`getFileStructure`** — Obter estrutura de diretórios do repositório
+  - Use ao iniciar trabalho em áreas desconhecidas do projeto
+
+#### Ferramentas de Workflow PREVC (Para Features Complexas)
+
+O framework PREVC organiza trabalho em 5 fases: **P** (Planejamento), **R** (Revisão), **E** (Execução), **V** (Validação), **C** (Confirmação).
+
+- **`workflowInit`** — Inicializar workflow para nova feature/projeto
+  - Use ao iniciar features complexas ou projetos novos
+  - Detecta escala automaticamente (`QUICK`, `SMALL`, `MEDIUM`, `LARGE`, `ENTERPRISE`)
+
+- **`workflowStatus`** — Verificar status atual do workflow
+  - Use para verificar progresso e identificar próximos passos
+
+- **`workflowAdvance`** — Avançar para próxima fase do PREVC
+  - Use quando uma fase está completa
+
+- **`scaffoldPlan`** — Criar plano de implementação estruturado
+  - Use para documentar estratégias de implementação
+
+#### Ferramentas de Agentes (Para Orquestração)
+
+- **`orchestrateAgents`** — Selecionar agentes apropriados para uma tarefa
+  - Use para tarefas complexas que requerem múltiplos agentes
+  - Pode ser baseado em `task`, `phase` ou `role`
+
+- **`getAgentSequence`** — Obter sequência recomendada de agentes
+  - Use para planejar fluxos multi-agente
+
+- **`getAgentDocs`** — Obter documentação relevante para um tipo de agente
+  - Use para fornecer contexto adequado a agentes específicos
+
+#### Ferramentas de Skills (Para Expertise Específica)
+
+- **`getSkillContent`** — Obter instruções detalhadas de uma skill
+  - Use quando precisar executar tarefas específicas (ex: `code-review`, `pr-review`)
+
+- **`getSkillsForPhase`** — Obter skills relevantes para uma fase PREVC
+  - Use para saber quais skills ativar em cada fase
+
+#### Quando Usar AI-Context MCP
+
+1. **Antes de implementar features complexas:**
+   - `workflowInit` → `scaffoldPlan` → `orchestrateAgents`
+
+2. **Para entender o codebase:**
+   - `getCodebaseMap` → `buildSemanticContext` → `analyzeSymbols`
+
+3. **Para code review:**
+   - `getSkillContent("code-review")` → `searchCode` → `analyzeSymbols`
+
+4. **Para documentação:**
+   - `checkScaffolding` → `initializeContext` → `fillScaffolding`
+
+**Referência Completa:** Consulte `AI-CONTEXT-MCP-TOOLS.md` para documentação detalhada de todas as ferramentas disponíveis.
 
 ## Design System
 
-The system follows a complete Design System documented in `/design-system.md`:
+- **Primary**: `hsl(0, 95%, 60%)` — Garageinn red
+- **Components**: shadcn/ui in `src/components/ui/`
+- **CSS Variables**: `src/app/globals.css`
+- **Dark Mode**: Supported via `next-themes`
+- **Utilities**: `cn()` from `@/lib/utils`
 
-### Visual Identity
-- **Primary Color**: Vibrant red `hsl(0, 95%, 60%)` — Garageinn brand identity
-- **Font**: Inter (sans-serif)
-- **Border Radius**: 8px (base)
-- **Spacing**: System based on multiples of 4px
-
-### Web App (shadcn/ui)
-- **Components**: `src/components/ui/` (Button, Card, Table, Form, etc.)
-- **CSS Variables**: Defined in `src/app/globals.css`
-- **Tailwind CSS 4**: With 4px spacing system
-- **Dark Mode**: Supported via `next-themes` (`.dark` class)
-- **Utilities**: `cn()` from `@/lib/utils` for conditional class merging
-
-### Mobile App
-- **Base components**: `src/components/ui/` (Button, Input, Card, Badge, Loading, EmptyState)
-- **Design tokens**: `src/theme/` (colors, typography, spacing)
-- **Semantic colors**: Success, Warning, Info, Destructive
-- **Observability**: Sentry integrated for crash reporting and analytics
-
-### Semantic Colors
-- **Success**: `hsl(142, 76%, 36%)` — Confirmations, positive status
-- **Warning**: `hsl(38, 92%, 50%)` — Alerts, attention required
-- **Info**: `hsl(199, 89%, 48%)` — Information, tips
-- **Destructive**: `hsl(0, 84%, 60%)` — Destructive actions, errors
+Semantic colors:
+- Success: `hsl(142, 76%, 36%)`
+- Warning: `hsl(38, 92%, 50%)`
+- Info: `hsl(199, 89%, 48%)`
+- Destructive: `hsl(0, 84%, 60%)`
 
 ## Environment Variables
 
-### Web App (apps/web)
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 NEXT_PUBLIC_APP_URL=http://localhost:3000  # Optional
 ```
 
-### Mobile App (apps/mobile)
-```env
-EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn  # Optional (observability)
-```
+## Glossary of Terms
 
-## Modules and Features
+| Term | Definition |
+| :--- | :--- |
+| **Unidade** | A physical parking lot or business location managed in the system. |
+| **Chamado** | A ticket or request (Maintenance, Purchase, etc.). |
+| **Sinistro** | An insurance claim or incident involving customer vehicles. |
+| **Checklist** | A set of recurring tasks or inspections to be performed at a Unit. |
+| **Impersonation** | The ability for admins to view the app as a specific user. |
 
-### Tickets
-Centralized ticket management system between departments:
-- **Departments**: Purchasing, Maintenance, HR, Claims, Commercial, Finance
-- **Flow**: Creation → Approvals (when applicable) → Triage → Execution → Resolution → Closure
-- **Specific statuses**: Each department has custom statuses (see `projeto/chamados/execuções.md`)
-- **Approvals**: Only for Valet → Purchasing/Maintenance (chain: Supervisor → Manager → Director)
-- **Documentation**: `projeto/chamados/abertura.md`, `aprovacoes.md`, `execuções.md`
+## Developer Tooling
 
-### Checklists
-- **Opening Checklist**: Daily, per unit, Yes/No questions, configurable per unit
-- **Supervision Checklist**: Per unit, multiple question types, supervisor signature
-- **Templates**: Configurable via admin (web), execution on mobile
-- **Documentation**: `projeto/database/seeds/checklist_abertura_padrao.sql`
-
-### RBAC and Permissions
-- **Multiple roles**: User can have multiple roles in multiple departments
-- **Permission union**: System sums permissions from all roles
-- **Unit association**: Valet/Supervisor (1 unit), Manager (multiple), Director (all)
-- **Documentation**: `projeto/usuarios/PERMISSOES_COMPLETAS.md`, `departamentos_cargos.md`
-
-### Units
-- **Complete management**: CRUD of network units/garages
-- **Information**: Address, capacity, hours, contacts, infrastructure
-- **User association**: Valets and Supervisors linked to specific units
+- **Testing**: Playwright for E2E testing (located in `/e2e`).
+- **Styling**: Tailwind CSS with Shadcn/UI components.
+- **Database**: Supabase (PostgreSQL) with generated TypeScript types in `src/lib/supabase/database.types.ts`.
+- **Validation**: Zod for schema validation in forms and server actions.
 
 ## Conventions
 
-### Commits
-- **Always use Conventional Commits**: `feat(tickets): add status filter`
-- Examples: `fix(checklists): fix required question validation`, `docs(rbac): update permission documentation`
+- **Portuguese**: UI text and route names (chamados, unidades, usuarios)
+- **Server Components**: Default; Client Components only when necessary
+- **Commits**: Conventional Commits (`feat(tickets): add filter`)
+- **TypeScript**: Strict typing with `database.types.ts`
+- **Tests**: E2E with Playwright in `e2e/`
 
-### Code
-- **Portuguese**: UI text and feature naming (chamados, unidades, usuarios)
-- **Server Components**: Use by default; Client Components only when necessary
-- **Server Actions**: In `actions.ts` files for data mutations
-- **TypeScript**: Strict typing, use `database.types.ts` for Supabase types
+## Documentation
 
-### Tests
-- **Web**: E2E tests with Playwright in `apps/web/e2e/`
-- **Mobile**: Unit tests with Jest in `src/**/__tests__/`
-- **Coverage**: Maintain minimum 70% coverage for critical components
+### Core Documentation
+- **[Project Overview](./.context/docs/project-overview.md)**: High-level vision, main features, and business context.
+- **[Architecture Notes](./.context/docs/architecture.md)**: System design, directory structure, and technical stack choices.
+- **[Security & RBAC](./.context/docs/security.md)**: Details on the Permission-Based Access Control (RBAC) and authentication flow.
+- **[Data Flow & Integrations](./.context/docs/data-flow.md)**: How data moves between the client, server actions, and Supabase.
+- **[Development Workflow](./.context/docs/development-workflow.md)**: Coding standards, branch strategy, and CI/CD pipelines.
 
-## Important Documentation
-
-- **PRD**: `projeto/PRD.md` — Complete Product Requirements Document
-- **Database**: `projeto/database/README.md` — Database structure, migrations, seeds
-- **Design System**: `design-system.md` — Complete design guide
-- **Tests**: `projeto/testes/` — Pending tests, bugs, strategies
-- **AI Context**: `.context/docs/` — Technical documentation for AI agents
+### Additional Resources
+- **PRD**: `../../projeto/PRD.md`
+- **Database**: `../../projeto/database/README.md`
+- **Design System**: `../../design-system.md`
+- **Permissions**: `../../projeto/usuarios/PERMISSOES_COMPLETAS.md`
+- **Tooling Guide**: `.context/docs/tooling.md` — Detailed setup instructions and productivity tools.

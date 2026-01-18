@@ -1,199 +1,268 @@
 # AGENTS.md
 
-## About the Project
+Este arquivo fornece instruções para agentes AI trabalhando neste repositório, com foco no uso do MCP ai-context para orquestração e análise de código.
 
-**GAPP (Garageinn App)** is a SaaS platform for managing tickets and operational checklists for the Garageinn parking network. The system uses role-based access control (RBAC) to manage permissions across multiple departments and roles.
+## Uso do MCP AI-Context
 
-### Monorepo Structure
+**IMPORTANTE:** Todos os agentes devem usar as ferramentas do MCP `ai-context` para análise de código, gerenciamento de contexto e orquestração de workflows. Consulte `AI-CONTEXT-MCP-TOOLS.md` para documentação completa.
 
-- **apps/web**: Next.js 16 application (React 19, Tailwind CSS 4) for administrative management
-- **apps/mobile**: Expo/React Native app (SDK 54) for field operations
-- **supabase/**: Supabase Edge Functions and migrations
-- **projeto/**: Requirements documentation, PRD, tests, and specifications
+### Ferramentas Essenciais para Agentes
 
-### Main Modules
+#### 1. Descoberta e Análise de Agentes
 
-- **Tickets**: Ticket system by department (Purchasing, Maintenance, HR, Claims, Commercial, Finance)
-- **Checklists**: Opening and supervision checklists per unit
-- **Units**: Management of network units/garages
-- **Users**: User management with RBAC (multiple roles/departments)
-- **RBAC**: Permission system based on department, role, and unit association
+- **`discoverAgents`** — Descobrir todos os agentes disponíveis (built-in + custom)
+  - Use no início para ver agentes disponíveis no projeto
+  - Escaneia `.context/agents/` para playbooks customizados
 
-## Dev environment tips
+- **`getAgentInfo`** — Obter informações detalhadas sobre um agente específico
+  - Use para entender capacidades de um agente antes de usá-lo
 
-### Web App (apps/web)
-```bash
-cd apps/web
-npm install          # Install dependencies
-npm run dev         # Development server (Next.js)
-npm run build       # Production build
-npm run lint        # ESLint
-npm run lint:fix     # Fix lint errors
-npm run format      # Prettier
-npm run test:e2e     # E2E tests (Playwright)
+- **`listAgentTypes`** — Listar tipos de agentes com descrições
+  - Use para visão geral rápida de agentes disponíveis
+
+#### 2. Orquestração de Agentes
+
+- **`orchestrateAgents`** — Selecionar agentes apropriados baseado em:
+  - `task`: Descrição da tarefa para seleção inteligente
+  - `phase`: Fase PREVC (`P`, `R`, `E`, `V`, `C`)
+  - `role`: Role PREVC (`planner`, `designer`, `architect`, `developer`, `qa`, `reviewer`, `documenter`, `solo-dev`)
+
+- **`getAgentSequence`** — Obter sequência recomendada de agentes para uma tarefa
+  - Inclui ordem de handoff entre agentes
+  - Use `includeReview: true` para incluir code review na sequência
+
+**Exemplo de uso:**
+```
+Orquestrar agentes para "Implementar autenticação OAuth"
+→ Retorna agentes recomendados: architect-specialist, backend-specialist, security-auditor
 ```
 
-### Mobile App (apps/mobile)
-```bash
-cd apps/mobile
-npm install          # Install dependencies
-npm start           # Expo dev server
-npm run android      # Android
-npm run ios         # iOS
-npm run lint         # ESLint
-npm run typecheck    # TypeScript check
-npm test             # Jest tests
-npm run test:watch   # Jest watch mode
+#### 3. Contexto e Documentação para Agentes
+
+- **`getAgentDocs`** — Obter guias de documentação relevantes para um tipo de agente
+  - Use para fornecer contexto adequado a um agente específico
+  - Agentes disponíveis: `code-reviewer`, `bug-fixer`, `feature-developer`, `refactoring-specialist`, `test-writer`, `documentation-writer`, `performance-optimizer`, `security-auditor`, `backend-specialist`, `frontend-specialist`, `architect-specialist`, `devops-specialist`, `database-specialist`, `mobile-specialist`
+
+- **`getPhaseDocs`** — Obter documentação relevante para uma fase PREVC
+  - Use para entender documentação necessária em cada fase
+
+#### 4. Análise de Código para Agentes
+
+- **`getCodebaseMap`** — Obter mapa do codebase (arquitetura, stack, símbolos)
+  - Use seções específicas para reduzir tokens: `architecture`, `stack`, `symbols.classes`
+  - Essencial antes de iniciar trabalho em áreas desconhecidas
+
+- **`buildSemanticContext`** — Construir contexto semântico otimizado
+  - Use `contextType: "playbook"` para contexto focado em agentes
+  - Use `targetFile` para contexto focado em arquivo específico
+
+- **`analyzeSymbols`** — Analisar símbolos em arquivos específicos
+  - Use para entender APIs públicas antes de modificações
+
+### Workflow Recomendado para Agentes
+
+#### Iniciando uma Tarefa Complexa
+
+1. **Descobrir agentes disponíveis:**
+   ```
+   discoverAgents() → Ver agentes built-in e custom
+   ```
+
+2. **Orquestrar agentes apropriados:**
+   ```
+   orchestrateAgents({ task: "Descrição da tarefa" })
+   → Retorna agentes recomendados com descrições
+   ```
+
+3. **Obter sequência de execução:**
+   ```
+   getAgentSequence({ task: "Descrição da tarefa" })
+   → Retorna ordem de handoff entre agentes
+   ```
+
+4. **Obter contexto para cada agente:**
+   ```
+   getAgentDocs({ agent: "frontend-specialist" })
+   getCodebaseMap({ section: "architecture" })
+   ```
+
+#### Durante Execução
+
+- Use `getCodebaseMap` para entender estrutura antes de modificar código
+- Use `analyzeSymbols` para entender APIs de módulos específicos
+- Use `searchCode` para encontrar padrões e dependências
+- Use `buildSemanticContext` para contexto rico quando necessário
+
+#### Para Code Review
+
+1. **Obter skill de code review:**
+   ```
+   getSkillContent({ skillSlug: "code-review" })
+   ```
+
+2. **Analisar código:**
+   ```
+   analyzeSymbols({ filePath: "arquivo.ts" })
+   searchCode({ pattern: "padrão-procurado" })
+   ```
+
+### Integração com Workflow PREVC
+
+Agentes podem trabalhar dentro do framework PREVC:
+
+- **Fase P (Planejamento):** `orchestrateAgents({ phase: "P" })` → Retorna agentes de planejamento
+- **Fase R (Revisão):** `orchestrateAgents({ phase: "R" })` → Retorna code-reviewer, security-auditor
+- **Fase E (Execução):** `orchestrateAgents({ phase: "E" })` → Retorna feature-developer, backend-specialist, etc.
+- **Fase V (Validação):** `orchestrateAgents({ phase: "V" })` → Retorna test-writer, qa
+- **Fase C (Confirmação):** `orchestrateAgents({ phase: "C" })` → Retorna documentation-writer
+
+### Skills para Agentes
+
+- **`getSkillContent`** — Obter instruções detalhadas de uma skill
+  - Skills comuns: `code-review`, `pr-review`, `commit-message`, `feature-breakdown`
+
+- **`getSkillsForPhase`** — Obter skills relevantes para uma fase PREVC
+  - Use para saber quais skills ativar em cada fase
+
+### Exemplos Práticos
+
+#### Exemplo 1: Implementar Nova Feature
+
+```typescript
+// 1. Descobrir agentes
+const agents = await discoverAgents();
+
+// 2. Orquestrar para tarefa
+const recommended = await orchestrateAgents({
+  task: "Implementar sistema de notificações em tempo real"
+});
+
+// 3. Obter sequência
+const sequence = await getAgentSequence({
+  task: "Implementar sistema de notificações em tempo real",
+  includeReview: true
+});
+
+// 4. Para cada agente na sequência:
+// - getAgentDocs({ agent: "architect-specialist" })
+// - getCodebaseMap({ section: "architecture" })
+// - Executar trabalho do agente
 ```
 
-### Database
-- **Always use Supabase MCP** for database operations (see section below)
-- After schema changes, regenerate types: `npx supabase gen types typescript`
-- Migrations in `projeto/database/migrations/`
-- Seeds in `projeto/database/seeds/`
+#### Exemplo 2: Code Review
 
-## Testing instructions
+```typescript
+// 1. Obter skill de review
+const reviewSkill = await getSkillContent({ skillSlug: "code-review" });
 
-### Web App
-- Run `npm run test:e2e` for E2E tests with Playwright
-- Use `npm run test:e2e:ui` for interactive mode
-- Impersonation tests in `apps/web/e2e/impersonation.spec.ts
+// 2. Analisar arquivos modificados
+const symbols = await analyzeSymbols({ 
+  filePath: "src/components/TicketForm.tsx",
+  symbolTypes: ["function", "interface"]
+});
 
-### E2E Testing with Playwright MCP
-- **Use Playwright MCP for interactive E2E testing during development**
-- See `.context/docs/e2e-testing-playwright-mcp.md` for complete guide
-- Use MCP for: visual validation, permission testing, impersonation flows, bug validation
-- Screenshots saved to `.playwright-mcp/` directory
-- **Rule:** Always use Playwright MCP to validate bug fixes visually before marking as resolved
-
-### Mobile App
-- Run `npm test` to run the Jest suite
-- Use `npm run test:watch` during development
-- Use `npm run test:coverage` for coverage report
-- Tests in `src/components/ui/__tests__/` and `src/theme/__tests__/`
-
-## PR instructions
-
-- **Always use Conventional Commits**: `feat(tickets): add status filter`
-- **Cross-link**: Reference new modules in `projeto/PRD.md` and relevant documentation
-- **Tests**: Add or update tests along with code changes
-- **Documentation**: Update `.context/docs/` when necessary
-- **RLS**: Always check security advisors after DDL changes
-
-## Repository map
-
-### Main Documentation
-- `projeto/PRD.md` — Complete Product Requirements Document
-- `projeto/database/` — Schema, migrations, seeds, and database documentation
-- `projeto/chamados/` — Opening, approval, and execution specifications
-- `projeto/testes/` — Pending tests, bugs, and testing strategies
-- `projeto/usuarios/` — Department, role, and permission documentation
-- `design-system.md` — Complete Design System (colors, components, tokens)
-
-### Assets
-- `favicon.ico` — Web application favicon
-- `logo-garageinn.png` — Main Garageinn brand logo
-- `apps/web/public/` — Public assets for web app
-- `apps/mobile/assets/` — Mobile app assets
-
-### AI Context
-- `.context/docs/` — Technical documentation for AI agents
-- `.context/agents/` — Specialized agent playbooks
-- `.context/plans/` — Implementation plans
-
-### Configuration
-- `apps/web/next.config.ts` — Next.js configuration
-- `apps/mobile/app.json` — Expo configuration
-- `apps/web/components.json` — shadcn/ui configuration
-
-## Supabase MCP Integration
-This project uses **Supabase** as the backend. **Always use Supabase MCP** for database operations:
-
-### When to use Supabase MCP:
-- **Database queries**: Use `mcp_supabase_gapp_execute_sql` for SELECT queries
-- **Schema changes**: Use `mcp_supabase_gapp_apply_migration` for DDL (CREATE, ALTER, DROP)
-- **Check structure**: Use `mcp_supabase_gapp_list_tables` to list existing tables
-- **Generate types**: Use `mcp_supabase_gapp_search_docs` to search Supabase documentation
-- **Debug**: Use `mcp_supabase_gapp_get_logs` to investigate errors
-- **Security**: Use `mcp_supabase_gapp_get_advisors` after DDL changes to verify RLS
-
-### Important rules:
-1. **Never execute DDL directly** — always use `apply_migration` to maintain history
-2. **Always check security advisors** after creating/altering tables
-3. **Generate TypeScript types** after schema changes to keep typing up to date
-4. For simple read operations, prefer `execute_sql` over code calls
-
-### RLS Best Practices for UPDATE Policies
-
-> ⚠️ **Critical Rule**: In PostgreSQL, when an UPDATE policy **does not have `WITH CHECK`**, the `USING` clause is applied to both the OLD and NEW row. This causes silent failures when UPDATE modifies columns referenced in `USING`.
-
-**Required pattern for UPDATE policies:**
-
-```sql
--- ✅ CORRECT: Explicit WITH CHECK
-CREATE POLICY example_update ON table_name
-FOR UPDATE TO authenticated
-USING (
-  -- Checks permission to ACCESS the original row
-  owner_id = auth.uid()
-)
-WITH CHECK (
-  -- Checks if the NEW value is allowed
-  -- Use (true) if any new value is accepted
-  true
-);
-
--- ❌ INCORRECT: Without WITH CHECK
-CREATE POLICY example_update ON table_name
-FOR UPDATE TO authenticated
-USING (status = 'pending');  -- FAILS if UPDATE changes status!
+// 3. Buscar padrões problemáticos
+const patterns = await searchCode({
+  pattern: "useState|useEffect",
+  fileGlob: "**/*.tsx"
+});
 ```
 
-**When to use `WITH CHECK (true)`:**
-- The intention is only to verify if the user can access the row
-- There are no restrictions on new values
+### Referências
 
-**When to define specific `WITH CHECK`:**
-- There are restrictions on which values the user can set
-- Ex: `WITH CHECK (priority <= user_max_priority)`
+- **Documentação Completa:** `AI-CONTEXT-MCP-TOOLS.md`
+- **Playbooks de Agentes:** `.context/agents/`
+- **Skills:** `.context/skills/`
+- **Planos:** `.context/plans/`
 
-**Debugging RLS 42501 Errors:**
-1. List ALL policies for the table: `SELECT * FROM pg_policies WHERE tablename = 'x'`
-2. Check `with_check` of each policy - if NULL, `USING` will be used
-3. Mentally simulate the UPDATE: will the `USING` condition be valid AFTER the UPDATE?
-4. Remember: multiple PERMISSIVE policies have their `WITH CHECK` combined with AND
+---
 
-**Complete reference:** `.context/docs/rls-patterns.md`
+# Project Rules and Guidelines
 
-## Modules and Features
+> Auto-generated from .context/docs on 2026-01-17T22:18:05.423Z
 
-### Tickets
-- **Departments**: Purchasing, Maintenance, HR, Claims, Commercial, Finance
-- **Flow**: Creation → Approvals (when applicable) → Triage → Execution → Resolution → Closure
-- **Specific statuses**: Each department has custom statuses (see `projeto/chamados/execuções.md`)
-- **Approvals**: Only for Valet → Purchasing/Maintenance (chain: Supervisor → Manager → Director)
+## README
 
-### Checklists
-- **Opening Checklist**: Daily, per unit, Yes/No questions
-- **Supervision Checklist**: Per unit, multiple question types, supervisor signature
-- **Templates**: Configurable per unit (admin on web, execution on mobile)
+# GarageInn Web App Documentation
 
-### RBAC and Permissions
-- **Multiple roles**: User can have multiple roles in multiple departments
-- **Permission union**: System sums permissions from all roles
-- **Unit association**: Valet/Supervisor (1 unit), Manager (multiple), Director (all)
-- **Complete documentation**: `projeto/usuarios/PERMISSOES_COMPLETAS.md`
+Welcome to the technical documentation for the GarageInn web application. This repository contains the front-end and server-side logic for the GarageInn management platform, built with Next.js, TypeScript, and Supabase.
 
-### Database
-- **33 tables** organized by module (authentication, tickets, checklists, units, etc.)
-- **8 SQL functions** for business logic
-- **RLS (Row Level Security)**: All tables protected by RLS policies
-- **Documentation**: `projeto/database/README.md`, `schema.md`, `relationships.md`
+## 🚀 Getting Started
 
-## AI Context References
-- **Documentation index**: `.context/docs/README.md`
-- **Agent playbooks**: `.context/agents/README.md` (if exists)
-- **Project overview**: `.context/docs/project-overview.md`
-- **Architecture**: `.context/docs/architecture.md`
-- **RLS Patterns**: `.context/docs/rls-patterns.md` ⚠️ **Required reading**
-- **Development workflow**: `.context/docs/development-workflow.md`
+GarageInn is a comprehensive management system for parking operations, maintenance requests, procurement, and human resources. This documentation provides a deep dive into the system's architecture and inner workings.
+
+### Core Documentation
+- **[Project Overview](./project-overview.md)**: High-level vision, main features, and business context.
+- **[Architecture Notes](./architecture.md)**: System design, directory structure, and technical stack choices.
+- **[Security & RBAC](./security.md)**: Details on the Permission-Based Access Control (RBAC) and authentication flow.
+- **[Data Flow & Integrations](./data-flow.md)**: How data moves between the client, server actions, and Supabase.
+- **[Development Workflow](./development-workflow.md)**: Coding standards, branch strategy, and CI/CD pipelines.
+
+---
+
+## 🏗️ Repository Structure
+
+The project follows a modern Next.js App Router structure:
+
+```text
+src/
+├── app/               # Next.js App Router (Routes, Actions, Pages)
+│   ├── (app)/         # Main application routes (requires auth)
+│   └── (auth)/        # Authentication routes (login, recovery)
+├── components/        # Reusable UI components
+│   ├── layout/        # AppShell, Sidebar, Header
+│   └── ui/            # Base Shadcn UI components
+├── hooks/             # Custom React hooks (useAuth, usePermissions)
+├── lib/               # Shared logic and utilities
+│   ├── auth/          # RBAC logic and session management
+│   ├── supabase/      # Database types and clients
+│   └── utils/         # Helper functions (formatting, validation)
+└── scripts/           # Maintenance and validation scripts
+```
+
+---
+
+## 🛠️ Key Technical Modules
+
+### 1. Authentication & Permissions
+The system uses a robust RBAC (Role-Based Access Control) system managed via Supabase.
+- **Hook**: `usePermissions()` provides real-time access checks.
+- **Logic**: `src/lib/auth/rbac.ts` contains functions like `hasPermission(permission)`.
+- **Impersonation**: Admin users can impersonate other profiles for debugging using the `impersonateUser` service.
+
+### 2. Ticketing System (Chamados)
+The application handles four distinct ticket types:
+- **Maintenance (Manutenção)**: Physical repairs and infrastructure.
+- **Procurement (Compras)**: Requesting items or services.
+- **Claims (Sinistros)**: Handling vehicle damage and insurance incidents.
+- **HR (RH)**: Employee-related requests.
+
+### 3. Unit Management (Unidades)
+Units represent physical locations. The system tracks:
+- **Staffing**: Linking users to specific units.
+- **Supervision**: Hierarchical relationships between managers and units.
+- **Checklists**: Operational procedures executed at specific locations.
+
+---
+
+## 📖 Glossary of Terms
+
+| Term | Definition |
+| :--- | :--- |
+| **Unidade** | A physical parking lot or business location managed in the system. |
+| **Chamado** | A ticket or request (Maintenance, Purchase, etc.). |
+| **Sinistro** | An insurance claim or incident involving customer vehicles. |
+| **Checklist** | A set of recurring tasks or inspections to be performed at a Unit. |
+| **Impersonation** | The ability for admins to view the app as a specific user. |
+
+---
+
+## 🛠️ Developer Tooling
+
+- **Testing**: Playwright for E2E testing (located in `/e2e`).
+- **Styling**: Tailwind CSS with Shadcn/UI components.
+- **Database**: Supabase (PostgreSQL) with generated TypeScript types in `src/lib/supabase/database.types.ts`.
+- **Validation**: Zod for schema validation in forms and server actions.
+
+For detailed setup instructions, refer to the **[Tooling & Productivity Guide](./tooling.md)**.
+
