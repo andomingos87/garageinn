@@ -33,6 +33,8 @@ export type Permission =
   // Configurações
   | "settings:read"
   | "settings:update"
+  // Relatórios
+  | "reports:read"
   // Admin total
   | "admin:all";
 
@@ -96,6 +98,7 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "checklists:configure",
       "units:read",
       "units:update",
+      "reports:read",
     ],
   },
 
@@ -110,6 +113,7 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "tickets:approve",
       "tickets:triage",
       "settings:read",
+      "reports:read",
     ],
   },
 
@@ -126,6 +130,7 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "tickets:execute",
       "tickets:approve",
       "tickets:triage",
+      "reports:read",
     ],
     Gerente: [
       "tickets:read",
@@ -133,6 +138,7 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "tickets:approve",
       "tickets:triage",
       "settings:read",
+      "reports:read",
     ],
   },
 
@@ -140,7 +146,7 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
   // Cargos no banco: Analista, Gerente
   // Nota: Desenvolvedor é cargo global (definido em GLOBAL_ROLE_PERMISSIONS)
   TI: {
-    Analista: ["tickets:read", "tickets:execute", "settings:read"],
+    Analista: ["tickets:read", "tickets:execute", "settings:read", "reports:read"],
     Gerente: ["admin:all"],
   },
 
@@ -159,25 +165,27 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "users:update",
       "users:delete",
       "settings:read",
+      "reports:read",
     ],
   },
 
   // ===== COMERCIAL =====
   // Cargos no banco: Gerente
   Comercial: {
-    Gerente: ["units:read", "tickets:read", "settings:read"],
+    Gerente: ["units:read", "tickets:read", "settings:read", "reports:read"],
   },
 
   // ===== AUDITORIA =====
   // Cargos no banco: Auditor, Gerente
   Auditoria: {
-    Auditor: ["tickets:read", "checklists:read"],
+    Auditor: ["tickets:read", "checklists:read", "reports:read"],
     Gerente: [
       "tickets:read",
       "tickets:approve",
       "checklists:read",
       "checklists:configure",
       "settings:read",
+      "reports:read",
     ],
   },
 
@@ -191,6 +199,7 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "tickets:approve",
       "tickets:triage",
       "settings:read",
+      "reports:read",
     ],
   },
 };
@@ -215,5 +224,6 @@ export const ALL_PERMISSIONS: Permission[] = [
   "checklists:configure",
   "settings:read",
   "settings:update",
+  "reports:read",
   "admin:all",
 ];

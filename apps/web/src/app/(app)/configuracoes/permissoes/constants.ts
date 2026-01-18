@@ -66,6 +66,10 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     permissions: ["settings:read", "settings:update"],
   },
   {
+    name: "Relatórios",
+    permissions: ["reports:read"],
+  },
+  {
     name: "Admin",
     permissions: ["admin:all"],
   },
@@ -94,5 +98,6 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "checklists:configure": "Configurar",
   "settings:read": "Visualizar",
   "settings:update": "Editar",
+  "reports:read": "Visualizar",
   "admin:all": "Acesso Total",
 };

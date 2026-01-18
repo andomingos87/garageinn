@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BarChart3,
   Building2,
   CheckSquare,
   Home,
@@ -85,6 +86,14 @@ const menuItems: MenuItem[] = [
     icon: Users,
     // Visível para RH (users:read) e admins
     requirePermission: ["users:read", "admin:all"],
+    permissionMode: "any",
+  },
+  {
+    title: "Relatórios",
+    href: "/relatorios",
+    icon: BarChart3,
+    // Visível para quem pode ver relatórios ou admins
+    requirePermission: ["reports:read", "admin:all"],
     permissionMode: "any",
   },
 ];

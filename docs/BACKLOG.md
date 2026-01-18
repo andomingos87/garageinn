@@ -424,20 +424,316 @@
   - [x] Subtarefa: Parametros basicos (configuracoes/sistema: company_name, timezone, upload_max_size_mb)
   - [x] Subtarefa: Config de notificacoes (NotificationSettingsForm: notifications_email_enabled, notifications_push_enabled)
 
-### Épico 3.3 — Dashboard e Relatorios ⚠️
+### Épico 3.3 — Dashboard e Relatorios ✅
 **Contexto**: visibilidade gerencial pos-MVP.
-**Status**: PARCIALMENTE COMPLETO (verificado em 2026-01-18)
+**Status**: COMPLETO (verificado em 2026-01-18)
 
 - [x] Tarefa 3.3.1: Dashboard gerencial
   - [x] Subtarefa: Chamados abertos e por prioridade (dashboard/page.tsx: openTicketsCount, recentTickets)
   - [x] Subtarefa: Tempo medio de resolucao (resolutionRate calculado nos ultimos 30 dias)
   - [x] Subtarefa: Conformidade de checklists (checklistsTodayCount/totalExpectedChecklists, pendingChecklists)
-- [ ] Tarefa 3.3.2: Relatorios de chamados
-  - [ ] Subtarefa: Filtros por periodo/status ⚠️ NAO IMPLEMENTADO (nao existe rota /relatorios)
-  - [ ] Subtarefa: Exportacao PDF/Excel ⚠️ NAO IMPLEMENTADO
-- [ ] Tarefa 3.3.3: Relatorios de supervisao
-  - [ ] Subtarefa: Listagem por unidade ⚠️ NAO IMPLEMENTADO
-  - [ ] Subtarefa: Exportacao simples ⚠️ NAO IMPLEMENTADO
+- [x] Tarefa 3.3.2: Relatorios de chamados
+  - [x] Subtarefa: Filtros por periodo/status (relatorios/chamados/page.tsx com filtros de data, status, prioridade, departamento, unidade)
+  - [x] Subtarefa: Exportacao PDF/Excel (api/relatorios/chamados/pdf e excel com @react-pdf/renderer e exceljs)
+- [x] Tarefa 3.3.3: Relatorios de supervisao
+  - [x] Subtarefa: Listagem por unidade (relatorios/supervisao/page.tsx com filtros de unidade, supervisor, score, NC)
+  - [x] Subtarefa: Exportacao simples (api/relatorios/supervisao/pdf e excel com estatisticas e distribuicao)
+
+#### Critérios de Aceite - Épico 3.3
+
+##### Tarefa 3.3.1: Dashboard Gerencial ✅
+
+**Status**: COMPLETO (verificado em 2026-01-18)
+
+**Subtarefa: Chamados abertos e por prioridade**
+
+**Critérios de Aceite:**
+1. **Métricas de Chamados**
+   - [x] Dashboard exibe contador de chamados abertos (excluindo resolved, closed, cancelled)
+   - [x] Lista de chamados recentes é exibida (últimos 5-10)
+   - [x] Chamados recentes mostram: número, título, departamento, status formatado
+   - [x] Dados são filtrados conforme visibilidade do usuário (RLS)
+
+**Subtarefa: Tempo médio de resolução**
+
+**Critérios de Aceite:**
+1. **Cálculo de Taxa de Resolução**
+   - [x] Taxa é calculada para os últimos 30 dias
+   - [x] Fórmula: (chamados resolvidos + fechados) / total de chamados no período * 100
+   - [x] Taxa é exibida em formato percentual (ex: "75%")
+   - [x] Dados consideram apenas chamados visíveis ao usuário (RLS)
+
+**Subtarefa: Conformidade de checklists**
+
+**Critérios de Aceite:**
+1. **Métricas de Checklists**
+   - [x] Dashboard exibe contador de checklists executados hoje
+   - [x] Dashboard exibe total de checklists esperados (unit_checklist_templates)
+   - [x] Progresso é calculado: (executados / esperados) * 100
+   - [x] Lista de checklists pendentes é exibida (até 5 unidades)
+   - [x] Lista pendente mostra: nome da unidade, tipo (Abertura/Supervisão), status "Pendente"
+
+##### Tarefa 3.3.2: Relatórios de Chamados ✅
+
+**Status**: COMPLETO (verificado em 2026-01-18)
+
+**Subtarefa: Filtros por período/status**
+
+**Critérios de Aceite:**
+1. **Rota e Navegação**
+   - [x] Existe rota `/relatorios/chamados` acessível via menu lateral
+   - [x] Menu lateral exibe "Relatórios" quando usuário tem permissão de visualização de relatórios
+   - [x] Submenu "Relatórios de Chamados" redireciona para `/relatorios/chamados`
+
+2. **Filtros Disponíveis**
+   - [ ] Filtro por Período (date range):
+     - Data inicial (date picker, obrigatório)
+     - Data final (date picker, obrigatório)
+     - Validação: data final >= data inicial
+     - Opções rápidas: Hoje, Últimos 7 dias, Últimos 30 dias, Últimos 90 dias, Mês atual, Mês anterior
+   - [ ] Filtro por Status (multi-select):
+     - Todos os status disponíveis: awaiting_triage, prioritized, in_progress, resolved, closed, denied, cancelled
+     - Permite seleção múltipla
+     - Opção "Todos" seleciona todos os status
+   - [ ] Filtro por Departamento (multi-select):
+     - Lista todos os departamentos: Compras, Manutenção, RH, Sinistros, Comercial, Financeiro, TI
+     - Permite seleção múltipla
+     - Opção "Todos" seleciona todos os departamentos
+   - [ ] Filtro por Prioridade (multi-select):
+     - Baixa, Média, Alta, Urgente
+     - Permite seleção múltipla
+     - Opção "Todas" seleciona todas as prioridades
+   - [ ] Filtro por Unidade (multi-select):
+     - Lista unidades visíveis ao usuário (conforme RBAC)
+     - Permite seleção múltipla
+     - Opção "Todas" seleciona todas as unidades
+   - [ ] Botão "Limpar Filtros" reseta todos os filtros para valores padrão
+   - [ ] Botão "Aplicar Filtros" atualiza a listagem
+
+3. **Listagem de Resultados**
+   - [ ] Tabela exibe colunas:
+     - Número do chamado (formato: DEP-XXXX)
+     - Título
+     - Departamento
+     - Status (com badge colorido)
+     - Prioridade (com badge colorido)
+     - Unidade(s)
+     - Responsável
+     - Data de criação
+     - Data de resolução (se aplicável)
+     - Tempo de resolução (em dias/horas, se resolvido)
+   - [ ] Ordenação:
+     - Padrão: data de criação (mais recente primeiro)
+     - Permite ordenar por qualquer coluna (clicando no header)
+     - Indicação visual da coluna e direção de ordenação
+   - [ ] Paginação:
+     - 50 itens por página (padrão)
+     - Opções: 25, 50, 100 itens por página
+     - Navegação: primeira, anterior, próxima, última
+     - Contador: "Mostrando X de Y resultados"
+   - [ ] Mensagem "Nenhum chamado encontrado" quando não há resultados
+
+4. **Estatísticas do Relatório**
+   - [ ] Cards de resumo exibem:
+     - Total de chamados no período
+     - Chamados por status (distribuição)
+     - Chamados por prioridade (distribuição)
+     - Chamados por departamento (distribuição)
+     - Tempo médio de resolução (em dias)
+     - Taxa de resolução (%)
+   - [ ] Estatísticas são calculadas com base nos filtros aplicados
+   - [ ] Estatísticas são atualizadas ao aplicar/remover filtros
+
+5. **Permissões e Visibilidade**
+   - [ ] Usuários veem apenas chamados conforme regras RBAC (via RLS existente)
+   - [ ] RLS aplica corretamente as políticas de visibilidade por unidade/departamento
+   - [ ] Apenas usuários com permissão `reports:read` ou equivalente podem acessar relatórios
+
+**Subtarefa: Exportação PDF/Excel**
+
+**Critérios de Aceite:**
+1. **Botões de Exportação**
+   - [ ] Botão "Exportar PDF" está visível na página de relatórios
+   - [ ] Botão "Exportar Excel" está visível na página de relatórios
+   - [ ] Botões são desabilitados quando não há resultados
+   - [ ] Indicador de carregamento durante geração do arquivo
+
+2. **Exportação PDF**
+   - [ ] PDF contém todas as informações da listagem filtrada
+   - [ ] PDF inclui cabeçalho com:
+     - Logo da empresa (se disponível)
+     - Título: "Relatório de Chamados"
+     - Período do relatório (data inicial - data final)
+     - Filtros aplicados (status, departamento, prioridade, unidade)
+     - Data/hora de geração
+   - [ ] PDF inclui tabela com todas as colunas da listagem
+   - [ ] PDF inclui rodapé com:
+     - Total de chamados
+     - Página X de Y
+   - [ ] Layout do PDF é profissional e legível
+   - [ ] PDF é gerado server-side (API route)
+   - [ ] Nome do arquivo: `relatorio-chamados-YYYY-MM-DD.pdf`
+
+3. **Exportação Excel**
+   - [ ] Arquivo Excel (.xlsx) contém todas as informações da listagem filtrada
+   - [ ] Planilha inclui cabeçalho com informações do relatório (mesmas do PDF)
+   - [ ] Planilha inclui tabela com todas as colunas da listagem
+   - [ ] Colunas são formatadas adequadamente:
+     - Datas no formato brasileiro (DD/MM/YYYY)
+     - Números com formatação numérica
+     - Textos alinhados à esquerda
+   - [ ] Planilha inclui aba de "Resumo" com estatísticas:
+     - Total de chamados
+     - Distribuição por status
+     - Distribuição por prioridade
+     - Distribuição por departamento
+     - Tempo médio de resolução
+   - [ ] Excel é gerado server-side (API route)
+   - [ ] Nome do arquivo: `relatorio-chamados-YYYY-MM-DD.xlsx`
+
+4. **Performance e Limites**
+   - [ ] Exportação funciona corretamente com até 10.000 registros
+   - [ ] Mensagem de aviso se resultado exceder limite recomendado (ex: "Exportando muitos registros, pode levar alguns minutos")
+   - [ ] Timeout adequado para geração de arquivos grandes
+   - [ ] Tratamento de erro: mensagem clara se exportação falhar
+
+##### Tarefa 3.3.3: Relatórios de Supervisão ✅
+
+**Status**: COMPLETO (verificado em 2026-01-18)
+
+**Subtarefa: Listagem por unidade**
+
+**Critérios de Aceite:**
+1. **Rota e Navegação**
+   - [x] Existe rota `/relatorios/supervisao` acessível via menu lateral
+   - [x] Submenu "Relatórios de Supervisão" redireciona para `/relatorios/supervisao`
+   - [x] Acesso restrito a usuários com permissão de visualização de relatórios de supervisão
+
+2. **Filtros Disponíveis**
+   - [ ] Filtro por Unidade (select):
+     - Lista unidades visíveis ao usuário (conforme RBAC)
+     - Para Supervisores: apenas unidades com `is_coverage = true`
+     - Para Gerentes/Admins: todas as unidades
+     - Opção "Todas" para ver todas as unidades
+   - [ ] Filtro por Período (date range):
+     - Data inicial (date picker, obrigatório)
+     - Data final (date picker, obrigatório)
+     - Validação: data final >= data inicial
+     - Opções rápidas: Hoje, Últimos 7 dias, Últimos 30 dias, Mês atual, Mês anterior
+   - [ ] Filtro por Status (multi-select):
+     - Em Andamento, Concluído
+     - Permite seleção múltipla
+     - Opção "Todos" seleciona todos os status
+   - [ ] Filtro por Score de Conformidade (range slider ou inputs):
+     - Mínimo: 0%
+     - Máximo: 100%
+     - Permite filtrar por faixa de score (ex: apenas supervisões com score >= 80%)
+   - [ ] Filtro por Não-Conformidades (checkbox):
+     - Opção "Apenas com não-conformidades" filtra supervisões que tiveram respostas "Não"
+   - [ ] Botão "Limpar Filtros" reseta todos os filtros
+   - [ ] Botão "Aplicar Filtros" atualiza a listagem
+
+3. **Listagem de Execuções**
+   - [ ] Tabela exibe colunas:
+     - Data/Hora de execução
+     - Unidade (nome e código)
+     - Template (nome do checklist)
+     - Supervisor (nome do executante)
+     - Score de Conformidade (% com badge colorido)
+     - Total de Perguntas
+     - Conformidades (número de "Sim")
+     - Não-Conformidades (número de "Não")
+     - Status (Em Andamento / Concluído)
+     - Duração (tempo de execução, se concluído)
+     - Ações (visualizar, exportar)
+   - [ ] Ordenação:
+     - Padrão: data/hora de execução (mais recente primeiro)
+     - Permite ordenar por: unidade, score, data, supervisor
+     - Indicação visual da coluna e direção de ordenação
+   - [ ] Paginação:
+     - 20 itens por página (padrão)
+     - Opções: 10, 20, 50 itens por página
+     - Navegação: primeira, anterior, próxima, última
+     - Contador: "Mostrando X de Y resultados"
+   - [ ] Mensagem "Nenhuma supervisão encontrada" quando não há resultados
+
+4. **Visualização de Detalhes**
+   - [ ] Ao clicar em uma execução, exibe modal ou redireciona para página de detalhes
+   - [ ] Detalhes incluem:
+     - Informações completas da execução
+     - Score de conformidade
+     - Lista de todas as perguntas e respostas
+     - Lista de não-conformidades com observações
+     - Assinaturas (supervisor e encarregado, se disponíveis)
+     - Fotos anexadas (se houver)
+   - [ ] Botão "Ver Relatório Completo" redireciona para `/checklists/[executionId]`
+
+5. **Estatísticas do Relatório**
+   - [ ] Cards de resumo exibem:
+     - Total de supervisões no período
+     - Supervisões por unidade (distribuição)
+     - Score médio de conformidade (%)
+     - Total de não-conformidades
+     - Unidades com maior número de não-conformidades (top 5)
+     - Taxa de conclusão (supervisões concluídas / iniciadas)
+   - [ ] Estatísticas são calculadas com base nos filtros aplicados
+   - [ ] Gráfico de distribuição de scores (histograma ou barras)
+   - [ ] Gráfico de supervisões por unidade (barras ou pizza)
+
+6. **Permissões e Visibilidade**
+   - [ ] Supervisores veem apenas supervisões das unidades sob sua cobertura (`is_coverage = true`)
+   - [ ] Gerentes/Admins veem todas as supervisões
+   - [ ] RLS aplica corretamente as políticas de visibilidade
+   - [ ] Apenas usuários com permissão adequada podem acessar relatórios de supervisão
+
+**Subtarefa: Exportação simples**
+
+**Critérios de Aceite:**
+1. **Botões de Exportação**
+   - [ ] Botão "Exportar PDF" está visível na página de relatórios de supervisão
+   - [ ] Botão "Exportar Excel" está visível na página de relatórios de supervisão
+   - [ ] Botões são desabilitados quando não há resultados
+   - [ ] Indicador de carregamento durante geração do arquivo
+   - [ ] Opção de exportar relatório consolidado (todas as supervisões filtradas) ou individual
+
+2. **Exportação PDF - Relatório Consolidado**
+   - [ ] PDF contém resumo executivo com:
+     - Período do relatório
+     - Filtros aplicados
+     - Estatísticas gerais (total, score médio, não-conformidades)
+   - [ ] PDF inclui lista de todas as supervisões filtradas com:
+     - Data/hora, unidade, supervisor, score, status
+   - [ ] PDF inclui seção de não-conformidades agrupadas por unidade
+   - [ ] PDF inclui gráficos de distribuição (se aplicável)
+   - [ ] Layout do PDF é profissional e legível
+   - [ ] PDF é gerado server-side (API route)
+   - [ ] Nome do arquivo: `relatorio-supervisao-YYYY-MM-DD.pdf` ou `relatorio-supervisao-[unidade]-YYYY-MM-DD.pdf`
+
+3. **Exportação PDF - Relatório Individual**
+   - [ ] Reutiliza funcionalidade existente de exportação PDF de supervisão individual
+   - [ ] Botão "Exportar PDF" em cada linha da tabela gera PDF da supervisão específica
+   - [ ] PDF individual segue mesmo formato do relatório de supervisão existente (`/api/checklists/[executionId]/pdf`)
+
+4. **Exportação Excel**
+   - [ ] Arquivo Excel (.xlsx) contém planilha "Resumo" com:
+     - Informações do período e filtros
+     - Estatísticas gerais
+   - [ ] Planilha "Supervisões" com todas as execuções filtradas:
+     - Todas as colunas da listagem
+     - Formatação adequada (datas, percentuais)
+   - [ ] Planilha "Não-Conformidades" com:
+     - Unidade, data, pergunta, observação
+     - Agrupadas por unidade
+   - [ ] Planilha "Estatísticas por Unidade" com:
+     - Unidade, total de supervisões, score médio, total de não-conformidades
+   - [ ] Excel é gerado server-side (API route)
+   - [ ] Nome do arquivo: `relatorio-supervisao-YYYY-MM-DD.xlsx`
+
+5. **Performance e Limites**
+   - [ ] Exportação funciona corretamente com até 1.000 supervisões
+   - [ ] Mensagem de aviso se resultado exceder limite recomendado
+   - [ ] Timeout adequado para geração de arquivos grandes
+   - [ ] Tratamento de erro: mensagem clara se exportação falhar
 
 ## 5. Fase 4 — Entrega 4 (Mobile) ⚠️
 
