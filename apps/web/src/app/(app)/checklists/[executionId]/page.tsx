@@ -1,11 +1,11 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Suspense } from "react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -17,68 +17,112 @@ import {
   User,
   FileText,
   MessageSquare,
-} from 'lucide-react'
-import { getExecutionDetails, checkIsAdmin } from '../actions'
-import { DeleteExecutionButton } from './components/delete-execution-button'
+} from "lucide-react";
+import { getExecutionDetails, checkIsAdmin } from "../actions";
+import { DeleteExecutionButton } from "./components/delete-execution-button";
+import { SupervisionReport } from "./components/supervision-report";
+import { ExportButtons } from "./components/export-buttons";
 
 interface PageProps {
   params: Promise<{
-    executionId: string
-  }>
+    executionId: string;
+  }>;
 }
 
 async function ExecutionDetailsContent({
   executionId,
   isAdmin,
 }: {
-  executionId: string
-  isAdmin: boolean
+  executionId: string;
+  isAdmin: boolean;
 }) {
-  const execution = await getExecutionDetails(executionId)
+  const execution = await getExecutionDetails(executionId);
 
   if (!execution) {
-    notFound()
+    notFound();
   }
+
+  const isSupervision = execution.template?.type === "supervision";
+  const isCompleted = execution.status === "completed";
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
+    return new Date(dateString).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const formatDateTime = (dateString: string) => {
-    return `${formatDate(dateString)} às ${formatTime(dateString)}`
-  }
+    return `${formatDate(dateString)} às ${formatTime(dateString)}`;
+  };
 
   const getInitials = (name: string | null) => {
-    if (!name) return '??'
+    if (!name) return "??";
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
-      .slice(0, 2)
+      .slice(0, 2);
+  };
+
+  const nonConformitiesCount = execution.answers.filter(
+    (a) => !a.answer
+  ).length;
+  const conformitiesCount = execution.answers.filter((a) => a.answer).length;
+
+  // Se for supervisão completa, renderizar o relatório de supervisão
+  if (isSupervision && isCompleted) {
+    return (
+      <div className="space-y-6">
+        {/* Header com botões de ação */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" asChild>
+              <Link href="/checklists/supervisao">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Relatório de Supervisão
+              </h2>
+              <p className="text-muted-foreground">
+                {execution.template?.name} - {execution.unit?.name}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <ExportButtons executionId={execution.id} />
+            {isAdmin && <DeleteExecutionButton executionId={execution.id} />}
+          </div>
+        </div>
+
+        {/* Relatório de Supervisão */}
+        <SupervisionReport execution={execution} />
+      </div>
+    );
   }
 
-  const nonConformitiesCount = execution.answers.filter((a) => !a.answer).length
-  const conformitiesCount = execution.answers.filter((a) => a.answer).length
-
+  // Layout padrão para checklists de abertura ou supervisão em andamento
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" asChild>
-            <Link href="/checklists">
+            <Link
+              href={isSupervision ? "/checklists/supervisao" : "/checklists"}
+            >
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -92,9 +136,7 @@ async function ExecutionDetailsContent({
           </div>
         </div>
 
-        {isAdmin && (
-          <DeleteExecutionButton executionId={execution.id} />
-        )}
+        {isAdmin && <DeleteExecutionButton executionId={execution.id} />}
       </div>
 
       {/* Info Cards */}
@@ -103,7 +145,7 @@ async function ExecutionDetailsContent({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              {execution.status === 'completed' ? (
+              {execution.status === "completed" ? (
                 execution.has_non_conformities ? (
                   <>
                     <AlertTriangle className="h-4 w-4 text-warning" />
@@ -126,11 +168,15 @@ async function ExecutionDetailsContent({
           <CardContent>
             <div className="flex gap-4">
               <div>
-                <div className="text-2xl font-bold text-success">{conformitiesCount}</div>
+                <div className="text-2xl font-bold text-success">
+                  {conformitiesCount}
+                </div>
                 <p className="text-xs text-muted-foreground">Conformes</p>
               </div>
               <div>
-                <div className="text-2xl font-bold text-destructive">{nonConformitiesCount}</div>
+                <div className="text-2xl font-bold text-destructive">
+                  {nonConformitiesCount}
+                </div>
                 <p className="text-xs text-muted-foreground">Não-conformes</p>
               </div>
             </div>
@@ -184,7 +230,9 @@ async function ExecutionDetailsContent({
           <CardContent>
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={execution.executed_by_profile?.avatar_url || undefined} />
+                <AvatarImage
+                  src={execution.executed_by_profile?.avatar_url || undefined}
+                />
                 <AvatarFallback>
                   {getInitials(execution.executed_by_profile?.full_name)}
                 </AvatarFallback>
@@ -217,8 +265,8 @@ async function ExecutionDetailsContent({
                 key={answer.id}
                 className={`rounded-lg border p-4 ${
                   !answer.answer
-                    ? 'border-destructive/30 bg-destructive/5'
-                    : 'border-border'
+                    ? "border-destructive/30 bg-destructive/5"
+                    : "border-border"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -227,7 +275,9 @@ async function ExecutionDetailsContent({
                       {index + 1}.
                     </span>
                     <div className="min-w-0">
-                      <p className="font-medium">{answer.question?.question_text}</p>
+                      <p className="font-medium">
+                        {answer.question?.question_text}
+                      </p>
                       {answer.question?.is_required && (
                         <Badge variant="outline" className="text-xs mt-1">
                           Obrigatória
@@ -281,7 +331,7 @@ async function ExecutionDetailsContent({
         </Card>
       )}
     </div>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -333,17 +383,16 @@ function LoadingSkeleton() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export default async function ExecutionDetailsPage({ params }: PageProps) {
-  const { executionId } = await params
-  const isAdmin = await checkIsAdmin()
+  const { executionId } = await params;
+  const isAdmin = await checkIsAdmin();
 
   return (
     <Suspense fallback={<LoadingSkeleton />}>
       <ExecutionDetailsContent executionId={executionId} isAdmin={isAdmin} />
     </Suspense>
-  )
+  );
 }
-

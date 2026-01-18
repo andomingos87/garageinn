@@ -193,3 +193,84 @@
       "calt" 1;
   }
 }
+
+/* Print Styles */
+@media print {
+  /* Hide non-printable elements */
+  .print\:hidden,
+  header,
+  nav,
+  aside,
+  [data-sidebar],
+  [data-radix-popper-content-wrapper] {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for print */
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Full width content */
+  main,
+  .print-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+
+  /* Card styling for print */
+  [class*="card"] {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+    break-inside: avoid;
+  }
+
+  /* Ensure colors print correctly */
+  .text-success,
+  .bg-success\/10 {
+    color: #16a34a !important;
+  }
+
+  .text-destructive,
+  .bg-destructive\/10 {
+    color: #dc2626 !important;
+  }
+
+  .text-warning,
+  .bg-warning\/10 {
+    color: #ca8a04 !important;
+  }
+
+  .text-primary {
+    color: #dc2626 !important;
+  }
+
+  /* Page breaks */
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  /* Ensure signatures print */
+  img {
+    max-width: 100% !important;
+    break-inside: avoid;
+  }
+
+  /* A4 page setup */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  /* Hide scrollbars in print */
+  * {
+    overflow: visible !important;
+  }
+}

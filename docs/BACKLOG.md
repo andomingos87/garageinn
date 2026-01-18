@@ -218,9 +218,9 @@
   - [x] Subtarefa: Prioridade e responsavel (comercial-triage-dialog.tsx, triageComercialTicket action)
   - [x] Subtarefa: Mudanca de status (comercial-status-actions.tsx, updateComercialTicketStatus action)
 
-### Épico 2.3 — Checklist de Supervisao ⚠️
+### Épico 2.3 — Checklist de Supervisao ✅
 **Contexto**: supervisores criam e executam checklists por unidade.
-**Status**: PARCIALMENTE IMPLEMENTADO (atualizado em 2026-01-18)
+**Status**: COMPLETO (atualizado em 2026-01-18)
 
 - [x] Tarefa 2.3.1: Modelagem e RLS
   - [x] Subtarefa: Templates e perguntas flexiveis (checklist_templates.type = 'supervision' suportado)
@@ -231,9 +231,9 @@
 - [x] Tarefa 2.3.3: Execucao de supervisao ✅ IMPLEMENTADO (2026-01-18)
   - [x] Subtarefa: Fluxo com inicio/fim ✅ Rotas /checklists/supervisao/* criadas, actions.ts suporta type='supervision'
   - [x] Subtarefa: Assinatura do encarregado ✅ IMPLEMENTADO (signature-pad.tsx, SupervisionSummary, completeSupervisionExecution)
-- [ ] Tarefa 2.3.4: Relatorio de supervisao
-  - [ ] Subtarefa: Pontuacao e resumo ⚠️ NAO IMPLEMENTADO
-  - [ ] Subtarefa: Exportacao simples (PDF/print) ⚠️ NAO IMPLEMENTADO
+- [x] Tarefa 2.3.4: Relatorio de supervisao ✅ IMPLEMENTADO (2026-01-18)
+  - [x] Subtarefa: Pontuacao e resumo ✅ SupervisionReport com score de conformidade, estatisticas e lista de nao-conformidades
+  - [x] Subtarefa: Exportacao simples (PDF/print) ✅ API /api/checklists/[id]/pdf + ExportButtons + estilos de impressao
 
 ## 4. Fase 3 — Entrega 3 (Financeiro, Configuracoes, Relatorios) ⚠️
 

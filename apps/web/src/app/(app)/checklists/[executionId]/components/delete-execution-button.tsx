@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,36 +13,38 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Trash2 } from 'lucide-react'
-import { deleteExecution } from '../../actions'
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
+import { deleteExecution } from "../../actions";
 
 interface DeleteExecutionButtonProps {
-  executionId: string
+  executionId: string;
 }
 
-export function DeleteExecutionButton({ executionId }: DeleteExecutionButtonProps) {
-  const router = useRouter()
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [open, setOpen] = useState(false)
+export function DeleteExecutionButton({
+  executionId,
+}: DeleteExecutionButtonProps) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleDelete = async () => {
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
-      const result = await deleteExecution(executionId)
+      const result = await deleteExecution(executionId);
       if (result.error) {
-        alert(result.error)
+        alert(result.error);
       } else {
-        router.push('/checklists')
+        router.push("/checklists");
       }
     } catch (error) {
-      console.error('Error deleting execution:', error)
-      alert('Erro ao excluir execução')
+      console.error("Error deleting execution:", error);
+      alert("Erro ao excluir execução");
     } finally {
-      setIsDeleting(false)
-      setOpen(false)
+      setIsDeleting(false);
+      setOpen(false);
     }
-  }
+  };
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -56,10 +58,12 @@ export function DeleteExecutionButton({ executionId }: DeleteExecutionButtonProp
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir execução?</AlertDialogTitle>
           <AlertDialogDescription>
-            Você está prestes a excluir esta execução de checklist.
-            Todas as respostas também serão excluídas.
+            Você está prestes a excluir esta execução de checklist. Todas as
+            respostas também serão excluídas.
             <br />
-            <strong className="text-destructive">Esta ação não pode ser desfeita.</strong>
+            <strong className="text-destructive">
+              Esta ação não pode ser desfeita.
+            </strong>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -69,11 +73,10 @@ export function DeleteExecutionButton({ executionId }: DeleteExecutionButtonProp
             disabled={isDeleting}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isDeleting ? 'Excluindo...' : 'Excluir'}
+            {isDeleting ? "Excluindo..." : "Excluir"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
-
