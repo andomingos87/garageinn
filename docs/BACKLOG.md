@@ -230,7 +230,7 @@
   - [x] Subtarefa: Validacoes por tipo
 - [x] Tarefa 2.3.3: Execucao de supervisao ✅ IMPLEMENTADO (2026-01-18)
   - [x] Subtarefa: Fluxo com inicio/fim ✅ Rotas /checklists/supervisao/* criadas, actions.ts suporta type='supervision'
-  - [ ] Subtarefa: Assinatura do encarregado ⚠️ NAO IMPLEMENTADO
+  - [x] Subtarefa: Assinatura do encarregado ✅ IMPLEMENTADO (signature-pad.tsx, SupervisionSummary, completeSupervisionExecution)
 - [ ] Tarefa 2.3.4: Relatorio de supervisao
   - [ ] Subtarefa: Pontuacao e resumo ⚠️ NAO IMPLEMENTADO
   - [ ] Subtarefa: Exportacao simples (PDF/print) ⚠️ NAO IMPLEMENTADO

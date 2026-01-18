@@ -8,6 +8,8 @@ import { redirect } from 'next/navigation'
 // Types
 // ============================================
 
+export type ChecklistType = 'opening' | 'supervision'
+
 export interface AvailableChecklist {
   unit: {
     id: string
@@ -69,18 +71,21 @@ export interface ExecutionWithDetails {
 
 /**
  * Obtém os checklists disponíveis para o usuário executar
- * baseado nas unidades vinculadas
+ * baseado nas unidades vinculadas e tipo de checklist
+ * @param type - 'opening' para abertura (padrão), 'supervision' para supervisão
  */
-export async function getAvailableChecklists(): Promise<AvailableChecklist[]> {
+export async function getAvailableChecklists(type: ChecklistType = 'opening'): Promise<AvailableChecklist[]> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
 
-  // Buscar unidades do usuário
-  const { data: userUnits, error: unitsError } = await supabase
+  // Para supervisão, buscar apenas unidades com is_coverage = true
+  // Para abertura, buscar todas as unidades vinculadas
+  const userUnitsQuery = supabase
     .from('user_units')
     .select(`
+      is_coverage,
       unit:units!inner(
         id,
         name,
@@ -89,6 +94,13 @@ export async function getAvailableChecklists(): Promise<AvailableChecklist[]> {
       )
     `)
     .eq('user_id', user.id)
+
+  // Se for supervisão, filtrar apenas unidades com cobertura
+  if (type === 'supervision') {
+    userUnitsQuery.eq('is_coverage', true)
+  }
+
+  const { data: userUnits, error: unitsError } = await userUnitsQuery
 
   if (unitsError) {
     console.error('Error fetching user units:', unitsError)
@@ -114,7 +126,7 @@ export async function getAvailableChecklists(): Promise<AvailableChecklist[]> {
   const result: AvailableChecklist[] = []
   const today = new Date().toISOString().split('T')[0]
 
-  // Para cada unidade, buscar templates de abertura vinculados
+  // Para cada unidade, buscar templates do tipo especificado
   for (const unit of activeUnits) {
     // Buscar templates vinculados
     const { data: unitTemplates } = await supabase
@@ -131,14 +143,15 @@ export async function getAvailableChecklists(): Promise<AvailableChecklist[]> {
 
     if (!unitTemplates || unitTemplates.length === 0) continue
 
+    // Filtrar templates pelo tipo especificado
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const openingTemplates = unitTemplates
+    const filteredTemplates = unitTemplates
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((ut: any) => ut.template)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter((t: any) => t && t.status === 'active' && t.type === 'opening')
+      .filter((t: any) => t && t.status === 'active' && t.type === type)
 
-    for (const template of openingTemplates) {
+    for (const template of filteredTemplates) {
       // Contar perguntas ativas
       const { count: questionsCount } = await supabase
         .from('checklist_questions')
@@ -180,6 +193,14 @@ export async function getAvailableChecklists(): Promise<AvailableChecklist[]> {
   }
 
   return result
+}
+
+/**
+ * Obtém os checklists de supervisão disponíveis
+ * Wrapper conveniente para getAvailableChecklists('supervision')
+ */
+export async function getSupervisionChecklists(): Promise<AvailableChecklist[]> {
+  return getAvailableChecklists('supervision')
 }
 
 /**
@@ -242,8 +263,11 @@ export async function getExecution(executionId: string): Promise<ExecutionWithDe
 
 /**
  * Inicia uma nova execução de checklist
+ * @param unitId - ID da unidade
+ * @param templateId - ID do template
+ * @param checklistType - Tipo do checklist ('opening' ou 'supervision')
  */
-export async function startExecution(unitId: string, templateId: string) {
+export async function startExecution(unitId: string, templateId: string, checklistType: ChecklistType = 'opening') {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -252,15 +276,37 @@ export async function startExecution(unitId: string, templateId: string) {
   }
 
   // Verificar se o usuário tem acesso à unidade
-  const { data: hasAccess } = await supabase
+  // Para supervisão, verificar também is_coverage = true
+  const accessQuery = supabase
     .from('user_units')
-    .select('id')
+    .select('id, is_coverage')
     .eq('user_id', user.id)
     .eq('unit_id', unitId)
-    .maybeSingle()
 
-  if (!hasAccess) {
+  const { data: userUnit } = await accessQuery.maybeSingle()
+
+  if (!userUnit) {
     return { error: 'Você não tem acesso a esta unidade' }
+  }
+
+  // Para supervisão, verificar se tem cobertura
+  if (checklistType === 'supervision' && !userUnit.is_coverage) {
+    return { error: 'Você não tem permissão de supervisão para esta unidade' }
+  }
+
+  // Verificar se o template é do tipo correto
+  const { data: template } = await supabase
+    .from('checklist_templates')
+    .select('id, type')
+    .eq('id', templateId)
+    .single()
+
+  if (!template) {
+    return { error: 'Template não encontrado' }
+  }
+
+  if (template.type !== checklistType) {
+    return { error: `Este template não é do tipo ${checklistType === 'opening' ? 'abertura' : 'supervisão'}` }
   }
 
   // Verificar se já existe execução em andamento hoje
@@ -276,10 +322,13 @@ export async function startExecution(unitId: string, templateId: string) {
     .limit(1)
     .maybeSingle()
 
+  // Definir rota base dependendo do tipo
+  const baseRoute = checklistType === 'supervision' ? '/checklists/supervisao' : '/checklists'
+
   if (existingExecution) {
     if (existingExecution.status === 'in_progress') {
       // Retomar execução existente
-      redirect(`/checklists/executar/${existingExecution.id}`)
+      redirect(`${baseRoute}/executar/${existingExecution.id}`)
     }
     // Se já completou hoje, redirecionar para a lista
     return { error: 'Este checklist já foi executado hoje para esta unidade' }
@@ -305,7 +354,17 @@ export async function startExecution(unitId: string, templateId: string) {
 
   revalidatePath('/checklists')
   revalidatePath('/checklists/executar')
-  redirect(`/checklists/executar/${data.id}`)
+  revalidatePath('/checklists/supervisao')
+  revalidatePath('/checklists/supervisao/executar')
+  redirect(`${baseRoute}/executar/${data.id}`)
+}
+
+/**
+ * Inicia uma nova execução de checklist de supervisão
+ * Wrapper conveniente para startExecution com tipo 'supervision'
+ */
+export async function startSupervisionExecution(unitId: string, templateId: string) {
+  return startExecution(unitId, templateId, 'supervision')
 }
 
 /**
@@ -378,10 +437,16 @@ export async function completeExecution(executionId: string, generalObservations
     return { error: 'Não autenticado' }
   }
 
-  // Buscar execução com perguntas e respostas
+  // Buscar execução com template para determinar o tipo
   const { data: execution, error: execError } = await supabase
     .from('checklist_executions')
-    .select('id, executed_by, status, template_id')
+    .select(`
+      id,
+      executed_by,
+      status,
+      template_id,
+      template:checklist_templates(type)
+    `)
     .eq('id', executionId)
     .single()
 
@@ -444,8 +509,141 @@ export async function completeExecution(executionId: string, generalObservations
     return { error: error.message }
   }
 
+  // Determinar rota de redirecionamento baseado no tipo
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const templateType = (execution.template as any)?.type as ChecklistType
+  const isSupervision = templateType === 'supervision'
+
   revalidatePath('/checklists')
   revalidatePath('/checklists/executar')
-  redirect('/checklists')
+  revalidatePath('/checklists/supervisao')
+  revalidatePath('/checklists/supervisao/executar')
+
+  redirect(isSupervision ? '/checklists/supervisao' : '/checklists')
+}
+
+// ============================================
+// Supervision-specific Functions
+// ============================================
+
+export interface SupervisionSignatureData {
+  supervisorSignature: string
+  attendantSignature: string
+  attendantName: string
+}
+
+/**
+ * Finaliza uma execução de checklist de supervisão com assinaturas
+ */
+export async function completeSupervisionExecution(
+  executionId: string,
+  signatureData: SupervisionSignatureData,
+  generalObservations?: string
+) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { error: 'Não autenticado' }
+  }
+
+  // Buscar execução com template
+  const { data: execution, error: execError } = await supabase
+    .from('checklist_executions')
+    .select(`
+      id,
+      executed_by,
+      status,
+      template_id,
+      template:checklist_templates(type)
+    `)
+    .eq('id', executionId)
+    .single()
+
+  if (execError || !execution) {
+    return { error: 'Execução não encontrada' }
+  }
+
+  if (execution.executed_by !== user.id) {
+    return { error: 'Você não pode finalizar esta execução' }
+  }
+
+  if (execution.status !== 'in_progress') {
+    return { error: 'Esta execução já foi finalizada' }
+  }
+
+  // Verificar se é supervisão
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const templateType = (execution.template as any)?.type as ChecklistType
+  if (templateType !== 'supervision') {
+    return { error: 'Esta função é apenas para checklists de supervisão' }
+  }
+
+  // Validar assinaturas
+  if (!signatureData.supervisorSignature) {
+    return { error: 'A assinatura do supervisor é obrigatória' }
+  }
+  if (!signatureData.attendantSignature) {
+    return { error: 'A assinatura do encarregado é obrigatória' }
+  }
+  if (!signatureData.attendantName?.trim()) {
+    return { error: 'O nome do encarregado é obrigatório' }
+  }
+
+  // Buscar perguntas obrigatórias
+  const { data: questions } = await supabase
+    .from('checklist_questions')
+    .select('id, is_required, requires_observation_on_no')
+    .eq('template_id', execution.template_id)
+    .eq('status', 'active')
+
+  // Buscar respostas
+  const { data: answers } = await supabase
+    .from('checklist_answers')
+    .select('question_id, answer, observation')
+    .eq('execution_id', executionId)
+
+  // Validar respostas
+  const requiredQuestions = questions?.filter(q => q.is_required) || []
+  const answersMap = new Map(answers?.map(a => [a.question_id, a]) || [])
+
+  for (const q of requiredQuestions) {
+    const ans = answersMap.get(q.id)
+    if (!ans) {
+      return { error: 'Responda todas as perguntas obrigatórias' }
+    }
+
+    if (q.requires_observation_on_no && ans.answer === false && !ans.observation) {
+      return { error: 'Adicione observação para as respostas "Não" que exigem justificativa' }
+    }
+  }
+
+  // Calcular has_non_conformities
+  const hasNonConformities = answers?.some(a => a.answer === false) || false
+
+  // Atualizar execução com assinaturas
+  const { error } = await supabase
+    .from('checklist_executions')
+    .update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      general_observations: generalObservations || null,
+      has_non_conformities: hasNonConformities,
+      supervisor_signature: signatureData.supervisorSignature,
+      attendant_signature: signatureData.attendantSignature,
+      attendant_name: signatureData.attendantName.trim(),
+    })
+    .eq('id', executionId)
+
+  if (error) {
+    console.error('Error completing supervision execution:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/checklists')
+  revalidatePath('/checklists/supervisao')
+  revalidatePath('/checklists/supervisao/executar')
+
+  redirect('/checklists/supervisao')
 }
 

@@ -165,6 +165,8 @@ export type Database = {
       }
       checklist_executions: {
         Row: {
+          attendant_name: string | null
+          attendant_signature: string | null
           completed_at: string | null
           created_at: string | null
           executed_by: string
@@ -173,11 +175,14 @@ export type Database = {
           id: string
           started_at: string
           status: string
+          supervisor_signature: string | null
           template_id: string
           unit_id: string
           updated_at: string | null
         }
         Insert: {
+          attendant_name?: string | null
+          attendant_signature?: string | null
           completed_at?: string | null
           created_at?: string | null
           executed_by: string
@@ -186,11 +191,14 @@ export type Database = {
           id?: string
           started_at?: string
           status?: string
+          supervisor_signature?: string | null
           template_id: string
           unit_id: string
           updated_at?: string | null
         }
         Update: {
+          attendant_name?: string | null
+          attendant_signature?: string | null
           completed_at?: string | null
           created_at?: string | null
           executed_by?: string
@@ -199,6 +207,7 @@ export type Database = {
           id?: string
           started_at?: string
           status?: string
+          supervisor_signature?: string | null
           template_id?: string
           unit_id?: string
           updated_at?: string | null
