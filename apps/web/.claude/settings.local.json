@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Grep",
+      "Glob",
+      "LS",
+      "-la",
+      "Bash(npm run:*)",
+      "Bash(npx:*)",
+      "Bash(pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(alembic:*)",
+      "Bash(docker-compose:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "mcp__ai-context__getFileStructure",
+      "Bash(find:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(cat:*)",
+      "Bash(wc:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "mcp__supabase_gapp__list_tables",
+      "mcp__supabase_gapp__list_extensions",
+      "mcp__supabase_gapp__execute_sql",
+      "mcp__supabase_gapp__apply_migration",
+      "Bash(npm install:*)",
+      "Bash(npm ls:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(curl:*)",
+      "Read(.env)",
+      "Read(secrets/**)",
+      "Edit(.env)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase_gapp",
+    "context7",
+    "playwright",
+    "ai-context"
+  ]
+}

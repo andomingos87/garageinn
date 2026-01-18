@@ -1,0 +1,526 @@
+### Page state
+- Page URL: http://localhost:3000/usuarios
+- Page Title: GAPP - Garageinn App
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e29] [cursor=pointer]:
+    - img [ref=e30]
+  - alert [ref=e33]: GAPP - Garageinn App
+  - generic [ref=e48]:
+    - generic [ref=e51]:
+      - link "GarageInn Logo" [ref=e53] [cursor=pointer]:
+        - /url: /dashboard
+        - img "GarageInn Logo" [ref=e55]
+      - list [ref=e59]:
+        - listitem [ref=e60]:
+          - link "Início" [ref=e61] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e62]
+            - generic [ref=e65]: Início
+        - listitem [ref=e66]:
+          - link "Chamados" [ref=e67] [cursor=pointer]:
+            - /url: /chamados
+            - img [ref=e68]
+            - generic [ref=e70]: Chamados
+        - listitem [ref=e71]:
+          - link "Checklists" [ref=e72] [cursor=pointer]:
+            - /url: /checklists
+            - img [ref=e73]
+            - generic [ref=e76]: Checklists
+        - listitem [ref=e77]:
+          - link "Unidades" [ref=e78] [cursor=pointer]:
+            - /url: /unidades
+            - img [ref=e79]
+            - generic [ref=e83]: Unidades
+        - listitem [ref=e84]:
+          - link "Usuários" [active] [ref=e85] [cursor=pointer]:
+            - /url: /usuarios
+            - img [ref=e86]
+            - generic [ref=e91]: Usuários
+      - list [ref=e93]:
+        - listitem [ref=e94]:
+          - link "Configurações" [ref=e95] [cursor=pointer]:
+            - /url: /configuracoes
+            - img [ref=e96]
+            - generic [ref=e99]: Configurações
+    - main [ref=e100]:
+      - generic [ref=e101]:
+        - heading "Dashboard" [level=1] [ref=e103]
+        - generic [ref=e104]:
+          - button "Notificações" [ref=e105]:
+            - img
+            - generic [ref=e106]: Notificações
+          - button "AS" [ref=e107]:
+            - generic [ref=e109]: AS
+      - main [ref=e110]:
+        - generic [ref=e3417]:
+          - generic [ref=e3418]:
+            - generic [ref=e3419]:
+              - heading "Usuários" [level=2] [ref=e3420]
+              - paragraph [ref=e3421]: Gerencie os usuários do sistema
+            - link "Novo Usuário" [ref=e3422] [cursor=pointer]:
+              - /url: /usuarios/novo
+              - img
+              - text: Novo Usuário
+          - generic [ref=e3423]:
+            - generic [ref=e3424]:
+              - generic [ref=e3425]:
+                - generic [ref=e3426]: Total de Usuários
+                - img [ref=e3427]
+              - generic [ref=e3433]: "32"
+            - generic [ref=e3434]:
+              - generic [ref=e3435]:
+                - generic [ref=e3436]: Ativos
+                - img [ref=e3437]
+              - generic [ref=e3442]: "32"
+            - generic [ref=e3443]:
+              - generic [ref=e3444]:
+                - generic [ref=e3445]: Pendentes
+                - img [ref=e3446]
+              - generic [ref=e3451]: "0"
+            - generic [ref=e3452]:
+              - generic [ref=e3453]:
+                - generic [ref=e3454]: Inativos
+                - img [ref=e3455]
+              - generic [ref=e3461]: "0"
+          - generic [ref=e3462]:
+            - generic [ref=e3463]:
+              - generic [ref=e3465]: Todos os Usuários
+              - generic [ref=e3467]:
+                - generic [ref=e3468]:
+                  - img [ref=e3469]
+                  - searchbox "Buscar por nome ou email..." [ref=e3472]
+                - button "Todos" [ref=e3473]:
+                  - generic [ref=e3474]: Todos
+                  - img
+                - button "Departamento" [ref=e3475]:
+                  - generic [ref=e3476]: Departamento
+                  - img
+            - generic [ref=e3477]:
+              - table [ref=e3479]:
+                - rowgroup [ref=e3480]:
+                  - row "Usuário Departamento Cargo Status Convite" [ref=e3481]:
+                    - columnheader "Usuário" [ref=e3482]
+                    - columnheader "Departamento" [ref=e3483]
+                    - columnheader "Cargo" [ref=e3484]
+                    - columnheader "Status" [ref=e3485]
+                    - columnheader "Convite" [ref=e3486]
+                    - columnheader [ref=e3487]
+                - rowgroup [ref=e3488]:
+                  - row "AD Administrador do Sistema admin@garageinn.com.br Global Administrador Ativo Abrir menu" [ref=e3489] [cursor=pointer]:
+                    - cell "AD Administrador do Sistema admin@garageinn.com.br" [ref=e3490]:
+                      - link "AD Administrador do Sistema admin@garageinn.com.br" [ref=e3491]:
+                        - /url: /usuarios/6b17e55c-a246-42ed-83a2-c7276553e9e7
+                        - generic [ref=e3493]: AD
+                        - generic [ref=e3494]:
+                          - paragraph [ref=e3495]: Administrador do Sistema
+                          - paragraph [ref=e3496]: admin@garageinn.com.br
+                    - cell "Global" [ref=e3497]:
+                      - generic [ref=e3499]: Global
+                    - cell "Administrador" [ref=e3500]
+                    - cell "Ativo" [ref=e3501]:
+                      - generic [ref=e3502]: Ativo
+                    - cell [ref=e3503]:
+                      - generic [ref=e3504]:
+                        - img
+                    - cell "Abrir menu" [ref=e3505]:
+                      - button "Abrir menu" [ref=e3506]:
+                        - img
+                        - generic [ref=e3507]: Abrir menu
+                  - row "TA Teste Administrador - Global administrador_global_teste@garageinn.com Global Administrador Ativo Abrir menu" [ref=e3508] [cursor=pointer]:
+                    - cell "TA Teste Administrador - Global administrador_global_teste@garageinn.com" [ref=e3509]:
+                      - link "TA Teste Administrador - Global administrador_global_teste@garageinn.com" [ref=e3510]:
+                        - /url: /usuarios/1f684960-a55c-4f85-849b-cc46288d7c6c
+                        - generic [ref=e3512]: TA
+                        - generic [ref=e3513]:
+                          - paragraph [ref=e3514]: Teste Administrador - Global
+                          - paragraph [ref=e3515]: administrador_global_teste@garageinn.com
+                    - cell "Global" [ref=e3516]:
+                      - generic [ref=e3518]: Global
+                    - cell "Administrador" [ref=e3519]
+                    - cell "Ativo" [ref=e3520]:
+                      - generic [ref=e3521]: Ativo
+                    - cell [ref=e3522]:
+                      - generic [ref=e3523]:
+                        - img
+                    - cell "Abrir menu" [ref=e3524]:
+                      - button "Abrir menu" [ref=e3525]:
+                        - img
+                        - generic [ref=e3526]: Abrir menu
+                  - row "TA Teste Analista - TI analista_ti_teste@garageinn.com TI Analista (TI) Ativo Abrir menu" [ref=e3527] [cursor=pointer]:
+                    - cell "TA Teste Analista - TI analista_ti_teste@garageinn.com" [ref=e3528]:
+                      - link "TA Teste Analista - TI analista_ti_teste@garageinn.com" [ref=e3529]:
+                        - /url: /usuarios/90270d66-d815-47f7-be91-3f30f1ba4097
+                        - generic [ref=e3531]: TA
+                        - generic [ref=e3532]:
+                          - paragraph [ref=e3533]: Teste Analista - TI
+                          - paragraph [ref=e3534]: analista_ti_teste@garageinn.com
+                    - cell "TI" [ref=e3535]:
+                      - generic [ref=e3537]: TI
+                    - cell "Analista (TI)" [ref=e3538]
+                    - cell "Ativo" [ref=e3539]:
+                      - generic [ref=e3540]: Ativo
+                    - cell [ref=e3541]:
+                      - generic [ref=e3542]:
+                        - img
+                    - cell "Abrir menu" [ref=e3543]:
+                      - button "Abrir menu" [ref=e3544]:
+                        - img
+                        - generic [ref=e3545]: Abrir menu
+                  - row "TA Teste Analista Júnior - Financeiro analista_junior_financeiro_teste@garageinn.com Financeiro Analista Júnior (Financeiro) Ativo Abrir menu" [ref=e3546] [cursor=pointer]:
+                    - cell "TA Teste Analista Júnior - Financeiro analista_junior_financeiro_teste@garageinn.com" [ref=e3547]:
+                      - link "TA Teste Analista Júnior - Financeiro analista_junior_financeiro_teste@garageinn.com" [ref=e3548]:
+                        - /url: /usuarios/e6ea1394-d0b5-4a99-a9a4-67e26f301bcc
+                        - generic [ref=e3550]: TA
+                        - generic [ref=e3551]:
+                          - paragraph [ref=e3552]: Teste Analista Júnior - Financeiro
+                          - paragraph [ref=e3553]: analista_junior_financeiro_teste@garageinn.com
+                    - cell "Financeiro" [ref=e3554]:
+                      - generic [ref=e3556]: Financeiro
+                    - cell "Analista Júnior (Financeiro)" [ref=e3557]
+                    - cell "Ativo" [ref=e3558]:
+                      - generic [ref=e3559]: Ativo
+                    - cell [ref=e3560]:
+                      - generic [ref=e3561]:
+                        - img
+                    - cell "Abrir menu" [ref=e3562]:
+                      - button "Abrir menu" [ref=e3563]:
+                        - img
+                        - generic [ref=e3564]: Abrir menu
+                  - row "TA Teste Analista Júnior - RH analista_junior_rh_teste@garageinn.com RH Analista Júnior (RH) Ativo Abrir menu" [ref=e3565] [cursor=pointer]:
+                    - cell "TA Teste Analista Júnior - RH analista_junior_rh_teste@garageinn.com" [ref=e3566]:
+                      - link "TA Teste Analista Júnior - RH analista_junior_rh_teste@garageinn.com" [ref=e3567]:
+                        - /url: /usuarios/4d0eb992-4119-42b7-95a8-3ff4e4946ed3
+                        - generic [ref=e3569]: TA
+                        - generic [ref=e3570]:
+                          - paragraph [ref=e3571]: Teste Analista Júnior - RH
+                          - paragraph [ref=e3572]: analista_junior_rh_teste@garageinn.com
+                    - cell "RH" [ref=e3573]:
+                      - generic [ref=e3575]: RH
+                    - cell "Analista Júnior (RH)" [ref=e3576]
+                    - cell "Ativo" [ref=e3577]:
+                      - generic [ref=e3578]: Ativo
+                    - cell [ref=e3579]:
+                      - generic [ref=e3580]:
+                        - img
+                    - cell "Abrir menu" [ref=e3581]:
+                      - button "Abrir menu" [ref=e3582]:
+                        - img
+                        - generic [ref=e3583]: Abrir menu
+                  - row "TA Teste Analista Pleno - Financeiro analista_pleno_financeiro_teste@garageinn.com Financeiro Analista Pleno (Financeiro) Ativo Abrir menu" [ref=e3584] [cursor=pointer]:
+                    - cell "TA Teste Analista Pleno - Financeiro analista_pleno_financeiro_teste@garageinn.com" [ref=e3585]:
+                      - link "TA Teste Analista Pleno - Financeiro analista_pleno_financeiro_teste@garageinn.com" [ref=e3586]:
+                        - /url: /usuarios/aeaa1b51-f3f0-4614-bdd5-16b1989ea22b
+                        - generic [ref=e3588]: TA
+                        - generic [ref=e3589]:
+                          - paragraph [ref=e3590]: Teste Analista Pleno - Financeiro
+                          - paragraph [ref=e3591]: analista_pleno_financeiro_teste@garageinn.com
+                    - cell "Financeiro" [ref=e3592]:
+                      - generic [ref=e3594]: Financeiro
+                    - cell "Analista Pleno (Financeiro)" [ref=e3595]
+                    - cell "Ativo" [ref=e3596]:
+                      - generic [ref=e3597]: Ativo
+                    - cell [ref=e3598]:
+                      - generic [ref=e3599]:
+                        - img
+                    - cell "Abrir menu" [ref=e3600]:
+                      - button "Abrir menu" [ref=e3601]:
+                        - img
+                        - generic [ref=e3602]: Abrir menu
+                  - row "TA Teste Analista Pleno - RH analista_pleno_rh_teste@garageinn.com RH Analista Pleno (RH) Ativo Abrir menu" [ref=e3603] [cursor=pointer]:
+                    - cell "TA Teste Analista Pleno - RH analista_pleno_rh_teste@garageinn.com" [ref=e3604]:
+                      - link "TA Teste Analista Pleno - RH analista_pleno_rh_teste@garageinn.com" [ref=e3605]:
+                        - /url: /usuarios/1c724049-3c89-4bd9-aa9b-7b85e5037ae0
+                        - generic [ref=e3607]: TA
+                        - generic [ref=e3608]:
+                          - paragraph [ref=e3609]: Teste Analista Pleno - RH
+                          - paragraph [ref=e3610]: analista_pleno_rh_teste@garageinn.com
+                    - cell "RH" [ref=e3611]:
+                      - generic [ref=e3613]: RH
+                    - cell "Analista Pleno (RH)" [ref=e3614]
+                    - cell "Ativo" [ref=e3615]:
+                      - generic [ref=e3616]: Ativo
+                    - cell [ref=e3617]:
+                      - generic [ref=e3618]:
+                        - img
+                    - cell "Abrir menu" [ref=e3619]:
+                      - button "Abrir menu" [ref=e3620]:
+                        - img
+                        - generic [ref=e3621]: Abrir menu
+                  - row "TA Teste Analista Sênior - Financeiro analista_senior_financeiro_teste@garageinn.com Financeiro Analista Sênior (Financeiro) Ativo Abrir menu" [ref=e3622] [cursor=pointer]:
+                    - cell "TA Teste Analista Sênior - Financeiro analista_senior_financeiro_teste@garageinn.com" [ref=e3623]:
+                      - link "TA Teste Analista Sênior - Financeiro analista_senior_financeiro_teste@garageinn.com" [ref=e3624]:
+                        - /url: /usuarios/56553d2e-1435-4405-809c-7db9b54dee2c
+                        - generic [ref=e3626]: TA
+                        - generic [ref=e3627]:
+                          - paragraph [ref=e3628]: Teste Analista Sênior - Financeiro
+                          - paragraph [ref=e3629]: analista_senior_financeiro_teste@garageinn.com
+                    - cell "Financeiro" [ref=e3630]:
+                      - generic [ref=e3632]: Financeiro
+                    - cell "Analista Sênior (Financeiro)" [ref=e3633]
+                    - cell "Ativo" [ref=e3634]:
+                      - generic [ref=e3635]: Ativo
+                    - cell [ref=e3636]:
+                      - generic [ref=e3637]:
+                        - img
+                    - cell "Abrir menu" [ref=e3638]:
+                      - button "Abrir menu" [ref=e3639]:
+                        - img
+                        - generic [ref=e3640]: Abrir menu
+                  - row "TA Teste Analista Sênior - RH analista_senior_rh_teste@garageinn.com RH Analista Sênior (RH) Ativo Abrir menu" [ref=e3641] [cursor=pointer]:
+                    - cell "TA Teste Analista Sênior - RH analista_senior_rh_teste@garageinn.com" [ref=e3642]:
+                      - link "TA Teste Analista Sênior - RH analista_senior_rh_teste@garageinn.com" [ref=e3643]:
+                        - /url: /usuarios/c94b8a5b-cf56-458b-9158-844c24b7f45f
+                        - generic [ref=e3645]: TA
+                        - generic [ref=e3646]:
+                          - paragraph [ref=e3647]: Teste Analista Sênior - RH
+                          - paragraph [ref=e3648]: analista_senior_rh_teste@garageinn.com
+                    - cell "RH" [ref=e3649]:
+                      - generic [ref=e3651]: RH
+                    - cell "Analista Sênior (RH)" [ref=e3652]
+                    - cell "Ativo" [ref=e3653]:
+                      - generic [ref=e3654]: Ativo
+                    - cell [ref=e3655]:
+                      - generic [ref=e3656]:
+                        - img
+                    - cell "Abrir menu" [ref=e3657]:
+                      - button "Abrir menu" [ref=e3658]:
+                        - img
+                        - generic [ref=e3659]: Abrir menu
+                  - row "TA Teste Assistente - Compras e Manutenção assistente_compras_e_manutencao_teste@garageinn.com Compras e Manutenção Assistente (Compras e Manutenção) Ativo Abrir menu" [ref=e3660] [cursor=pointer]:
+                    - cell "TA Teste Assistente - Compras e Manutenção assistente_compras_e_manutencao_teste@garageinn.com" [ref=e3661]:
+                      - link "TA Teste Assistente - Compras e Manutenção assistente_compras_e_manutencao_teste@garageinn.com" [ref=e3662]:
+                        - /url: /usuarios/6c1cdd92-63ec-498c-a564-3e9553bef945
+                        - generic [ref=e3664]: TA
+                        - generic [ref=e3665]:
+                          - paragraph [ref=e3666]: Teste Assistente - Compras e Manutenção
+                          - paragraph [ref=e3667]: assistente_compras_e_manutencao_teste@garageinn.com
+                    - cell "Compras e Manutenção" [ref=e3668]:
+                      - generic [ref=e3670]: Compras e Manutenção
+                    - cell "Assistente (Compras e Manutenção)" [ref=e3671]
+                    - cell "Ativo" [ref=e3672]:
+                      - generic [ref=e3673]: Ativo
+                    - cell [ref=e3674]:
+                      - generic [ref=e3675]:
+                        - img
+                    - cell "Abrir menu" [ref=e3676]:
+                      - button "Abrir menu" [ref=e3677]:
+                        - img
+                        - generic [ref=e3678]: Abrir menu
+                  - row "TA Teste Assistente - Financeiro assistente_financeiro_teste@garageinn.com Financeiro Assistente (Financeiro) Ativo Abrir menu" [ref=e3679] [cursor=pointer]:
+                    - cell "TA Teste Assistente - Financeiro assistente_financeiro_teste@garageinn.com" [ref=e3680]:
+                      - link "TA Teste Assistente - Financeiro assistente_financeiro_teste@garageinn.com" [ref=e3681]:
+                        - /url: /usuarios/c056ff39-30f5-4397-b1e0-f1906cc56231
+                        - generic [ref=e3683]: TA
+                        - generic [ref=e3684]:
+                          - paragraph [ref=e3685]: Teste Assistente - Financeiro
+                          - paragraph [ref=e3686]: assistente_financeiro_teste@garageinn.com
+                    - cell "Financeiro" [ref=e3687]:
+                      - generic [ref=e3689]: Financeiro
+                    - cell "Assistente (Financeiro)" [ref=e3690]
+                    - cell "Ativo" [ref=e3691]:
+                      - generic [ref=e3692]: Ativo
+                    - cell [ref=e3693]:
+                      - generic [ref=e3694]:
+                        - img
+                    - cell "Abrir menu" [ref=e3695]:
+                      - button "Abrir menu" [ref=e3696]:
+                        - img
+                        - generic [ref=e3697]: Abrir menu
+                  - row "TA Teste Assistente - RH assistente_rh_teste@garageinn.com RH Assistente (RH) Ativo Abrir menu" [ref=e3698] [cursor=pointer]:
+                    - cell "TA Teste Assistente - RH assistente_rh_teste@garageinn.com" [ref=e3699]:
+                      - link "TA Teste Assistente - RH assistente_rh_teste@garageinn.com" [ref=e3700]:
+                        - /url: /usuarios/67d9f4de-27e1-48f7-97f3-055c7f0dd431
+                        - generic [ref=e3702]: TA
+                        - generic [ref=e3703]:
+                          - paragraph [ref=e3704]: Teste Assistente - RH
+                          - paragraph [ref=e3705]: assistente_rh_teste@garageinn.com
+                    - cell "RH" [ref=e3706]:
+                      - generic [ref=e3708]: RH
+                    - cell "Assistente (RH)" [ref=e3709]
+                    - cell "Ativo" [ref=e3710]:
+                      - generic [ref=e3711]: Ativo
+                    - cell [ref=e3712]:
+                      - generic [ref=e3713]:
+                        - img
+                    - cell "Abrir menu" [ref=e3714]:
+                      - button "Abrir menu" [ref=e3715]:
+                        - img
+                        - generic [ref=e3716]: Abrir menu
+                  - row "TA Teste Auditor - Auditoria auditor_auditoria_teste@garageinn.com Auditoria Auditor (Auditoria) Ativo Abrir menu" [ref=e3717] [cursor=pointer]:
+                    - cell "TA Teste Auditor - Auditoria auditor_auditoria_teste@garageinn.com" [ref=e3718]:
+                      - link "TA Teste Auditor - Auditoria auditor_auditoria_teste@garageinn.com" [ref=e3719]:
+                        - /url: /usuarios/9fe02725-5fc9-4d1b-803e-70e768d953b5
+                        - generic [ref=e3721]: TA
+                        - generic [ref=e3722]:
+                          - paragraph [ref=e3723]: Teste Auditor - Auditoria
+                          - paragraph [ref=e3724]: auditor_auditoria_teste@garageinn.com
+                    - cell "Auditoria" [ref=e3725]:
+                      - generic [ref=e3727]: Auditoria
+                    - cell "Auditor (Auditoria)" [ref=e3728]
+                    - cell "Ativo" [ref=e3729]:
+                      - generic [ref=e3730]: Ativo
+                    - cell [ref=e3731]:
+                      - generic [ref=e3732]:
+                        - img
+                    - cell "Abrir menu" [ref=e3733]:
+                      - button "Abrir menu" [ref=e3734]:
+                        - img
+                        - generic [ref=e3735]: Abrir menu
+                  - row "TA Teste Auxiliar - Financeiro auxiliar_financeiro_teste@garageinn.com Financeiro Auxiliar (Financeiro) Ativo Abrir menu" [ref=e3736] [cursor=pointer]:
+                    - cell "TA Teste Auxiliar - Financeiro auxiliar_financeiro_teste@garageinn.com" [ref=e3737]:
+                      - link "TA Teste Auxiliar - Financeiro auxiliar_financeiro_teste@garageinn.com" [ref=e3738]:
+                        - /url: /usuarios/92618abd-23d8-41b6-8268-395ed0600403
+                        - generic [ref=e3740]: TA
+                        - generic [ref=e3741]:
+                          - paragraph [ref=e3742]: Teste Auxiliar - Financeiro
+                          - paragraph [ref=e3743]: auxiliar_financeiro_teste@garageinn.com
+                    - cell "Financeiro" [ref=e3744]:
+                      - generic [ref=e3746]: Financeiro
+                    - cell "Auxiliar (Financeiro)" [ref=e3747]
+                    - cell "Ativo" [ref=e3748]:
+                      - generic [ref=e3749]: Ativo
+                    - cell [ref=e3750]:
+                      - generic [ref=e3751]:
+                        - img
+                    - cell "Abrir menu" [ref=e3752]:
+                      - button "Abrir menu" [ref=e3753]:
+                        - img
+                        - generic [ref=e3754]: Abrir menu
+                  - row "TA Teste Auxiliar - RH auxiliar_rh_teste@garageinn.com RH Auxiliar (RH) Ativo Abrir menu" [ref=e3755] [cursor=pointer]:
+                    - cell "TA Teste Auxiliar - RH auxiliar_rh_teste@garageinn.com" [ref=e3756]:
+                      - link "TA Teste Auxiliar - RH auxiliar_rh_teste@garageinn.com" [ref=e3757]:
+                        - /url: /usuarios/f76b2144-bef1-4956-a2fe-8e2d98939f3e
+                        - generic [ref=e3759]: TA
+                        - generic [ref=e3760]:
+                          - paragraph [ref=e3761]: Teste Auxiliar - RH
+                          - paragraph [ref=e3762]: auxiliar_rh_teste@garageinn.com
+                    - cell "RH" [ref=e3763]:
+                      - generic [ref=e3765]: RH
+                    - cell "Auxiliar (RH)" [ref=e3766]
+                    - cell "Ativo" [ref=e3767]:
+                      - generic [ref=e3768]: Ativo
+                    - cell [ref=e3769]:
+                      - generic [ref=e3770]:
+                        - img
+                    - cell "Abrir menu" [ref=e3771]:
+                      - button "Abrir menu" [ref=e3772]:
+                        - img
+                        - generic [ref=e3773]: Abrir menu
+                  - row "TC Teste Comprador - Compras e Manutenção comprador_compras_e_manutencao_teste@garageinn.com Compras e Manutenção Comprador (Compras e Manutenção) Ativo Abrir menu" [ref=e3774] [cursor=pointer]:
+                    - cell "TC Teste Comprador - Compras e Manutenção comprador_compras_e_manutencao_teste@garageinn.com" [ref=e3775]:
+                      - link "TC Teste Comprador - Compras e Manutenção comprador_compras_e_manutencao_teste@garageinn.com" [ref=e3776]:
+                        - /url: /usuarios/052892bf-4cab-4b25-9a4a-7afe23268e7a
+                        - generic [ref=e3778]: TC
+                        - generic [ref=e3779]:
+                          - paragraph [ref=e3780]: Teste Comprador - Compras e Manutenção
+                          - paragraph [ref=e3781]: comprador_compras_e_manutencao_teste@garageinn.com
+                    - cell "Compras e Manutenção" [ref=e3782]:
+                      - generic [ref=e3784]: Compras e Manutenção
+                    - cell "Comprador (Compras e Manutenção)" [ref=e3785]
+                    - cell "Ativo" [ref=e3786]:
+                      - generic [ref=e3787]: Ativo
+                    - cell [ref=e3788]:
+                      - generic [ref=e3789]:
+                        - img
+                    - cell "Abrir menu" [ref=e3790]:
+                      - button "Abrir menu" [ref=e3791]:
+                        - img
+                        - generic [ref=e3792]: Abrir menu
+                  - row "TD Teste Desenvolvedor - Global desenvolvedor_global_teste@garageinn.com Global Desenvolvedor Ativo Abrir menu" [ref=e3793] [cursor=pointer]:
+                    - cell "TD Teste Desenvolvedor - Global desenvolvedor_global_teste@garageinn.com" [ref=e3794]:
+                      - link "TD Teste Desenvolvedor - Global desenvolvedor_global_teste@garageinn.com" [ref=e3795]:
+                        - /url: /usuarios/a466a9ac-9d78-4c66-bc76-3fb1e5311c43
+                        - generic [ref=e3797]: TD
+                        - generic [ref=e3798]:
+                          - paragraph [ref=e3799]: Teste Desenvolvedor - Global
+                          - paragraph [ref=e3800]: desenvolvedor_global_teste@garageinn.com
+                    - cell "Global" [ref=e3801]:
+                      - generic [ref=e3803]: Global
+                    - cell "Desenvolvedor" [ref=e3804]
+                    - cell "Ativo" [ref=e3805]:
+                      - generic [ref=e3806]: Ativo
+                    - cell [ref=e3807]:
+                      - generic [ref=e3808]:
+                        - img
+                    - cell "Abrir menu" [ref=e3809]:
+                      - button "Abrir menu" [ref=e3810]:
+                        - img
+                        - generic [ref=e3811]: Abrir menu
+                  - row "TD Teste Diretor - Global diretor_global_teste@garageinn.com Global Diretor Ativo Abrir menu" [ref=e3812] [cursor=pointer]:
+                    - cell "TD Teste Diretor - Global diretor_global_teste@garageinn.com" [ref=e3813]:
+                      - link "TD Teste Diretor - Global diretor_global_teste@garageinn.com" [ref=e3814]:
+                        - /url: /usuarios/fc66583a-3030-4325-bc5a-e1f905be41c0
+                        - generic [ref=e3816]: TD
+                        - generic [ref=e3817]:
+                          - paragraph [ref=e3818]: Teste Diretor - Global
+                          - paragraph [ref=e3819]: diretor_global_teste@garageinn.com
+                    - cell "Global" [ref=e3820]:
+                      - generic [ref=e3822]: Global
+                    - cell "Diretor" [ref=e3823]
+                    - cell "Ativo" [ref=e3824]:
+                      - generic [ref=e3825]: Ativo
+                    - cell [ref=e3826]:
+                      - generic [ref=e3827]:
+                        - img
+                    - cell "Abrir menu" [ref=e3828]:
+                      - button "Abrir menu" [ref=e3829]:
+                        - img
+                        - generic [ref=e3830]: Abrir menu
+                  - row "TE Teste Encarregado - Operações encarregado_operacoes_teste@garageinn.com Operações Encarregado (Operações) Ativo Abrir menu" [ref=e3831] [cursor=pointer]:
+                    - cell "TE Teste Encarregado - Operações encarregado_operacoes_teste@garageinn.com" [ref=e3832]:
+                      - link "TE Teste Encarregado - Operações encarregado_operacoes_teste@garageinn.com" [ref=e3833]:
+                        - /url: /usuarios/ba990a25-6d16-4271-b57b-48f84cdecc68
+                        - generic [ref=e3835]: TE
+                        - generic [ref=e3836]:
+                          - paragraph [ref=e3837]: Teste Encarregado - Operações
+                          - paragraph [ref=e3838]: encarregado_operacoes_teste@garageinn.com
+                    - cell "Operações" [ref=e3839]:
+                      - generic [ref=e3841]: Operações
+                    - cell "Encarregado (Operações)" [ref=e3842]
+                    - cell "Ativo" [ref=e3843]:
+                      - generic [ref=e3844]: Ativo
+                    - cell [ref=e3845]:
+                      - generic [ref=e3846]:
+                        - img
+                    - cell "Abrir menu" [ref=e3847]:
+                      - button "Abrir menu" [ref=e3848]:
+                        - img
+                        - generic [ref=e3849]: Abrir menu
+                  - row "TG Teste Gerente - Auditoria gerente_auditoria_teste@garageinn.com Auditoria Gerente (Auditoria) Ativo Abrir menu" [ref=e3850] [cursor=pointer]:
+                    - cell "TG Teste Gerente - Auditoria gerente_auditoria_teste@garageinn.com" [ref=e3851]:
+                      - link "TG Teste Gerente - Auditoria gerente_auditoria_teste@garageinn.com" [ref=e3852]:
+                        - /url: /usuarios/763d8ff0-a047-4a23-adf7-9061748a844a
+                        - generic [ref=e3854]: TG
+                        - generic [ref=e3855]:
+                          - paragraph [ref=e3856]: Teste Gerente - Auditoria
+                          - paragraph [ref=e3857]: gerente_auditoria_teste@garageinn.com
+                    - cell "Auditoria" [ref=e3858]:
+                      - generic [ref=e3860]: Auditoria
+                    - cell "Gerente (Auditoria)" [ref=e3861]
+                    - cell "Ativo" [ref=e3862]:
+                      - generic [ref=e3863]: Ativo
+                    - cell [ref=e3864]:
+                      - generic [ref=e3865]:
+                        - img
+                    - cell "Abrir menu" [ref=e3866]:
+                      - button "Abrir menu" [ref=e3867]:
+                        - img
+                        - generic [ref=e3868]: Abrir menu
+              - generic [ref=e3869]:
+                - paragraph [ref=e3870]: Mostrando 1 a 20 de 32 usuário(s)
+                - generic [ref=e3871]:
+                  - button "Primeira página" [disabled]:
+                    - img
+                  - button "Página anterior" [disabled]:
+                    - img
+                  - generic [ref=e3872]:
+                    - button "1" [ref=e3873]
+                    - button "2" [ref=e3874]
+                  - button "Próxima página" [ref=e3875]:
+                    - img
+                  - button "Última página" [ref=e3876]:
+                    - img
+  - region "Notifications alt+T"
+```

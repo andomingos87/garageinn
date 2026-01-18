@@ -1,0 +1,363 @@
+'use client'
+
+import { useState, useTransition, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Loader2, Check, AlertCircle, CheckCircle } from 'lucide-react'
+import { createUser } from '../actions'
+import { UnitSelector } from '../../components/unit-selector'
+import type { UnitOption } from '../../actions'
+
+interface Department {
+  id: string
+  name: string
+}
+
+interface Role {
+  id: string
+  name: string
+  is_global: boolean | null
+  department_id: string | null
+}
+
+interface SelectedUnit {
+  unitId: string
+  isCoverage: boolean
+}
+
+interface NewUserFormProps {
+  departments: Department[]
+  allRoles: Role[]
+  units: UnitOption[]
+}
+
+// Cargos do departamento de Operações que requerem unidade
+const OPERATIONS_SINGLE_UNIT_ROLES = ['Manobrista', 'Encarregado']
+const OPERATIONS_MULTI_UNIT_ROLES = ['Supervisor']
+
+export function NewUserForm({ departments, allRoles, units }: NewUserFormProps) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  // Form state
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [cpf, setCpf] = useState('')
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([])
+  const [selectedUnits, setSelectedUnits] = useState<SelectedUnit[]>([])
+
+  // Determinar se o seletor de unidades deve aparecer e em qual modo
+  const unitSelectorConfig = useMemo(() => {
+    const selectedRoleNames = selectedRoles
+      .map((roleId) => allRoles.find((r) => r.id === roleId)?.name)
+      .filter((name): name is string => !!name)
+
+    const hasSingleUnitRole = selectedRoleNames.some((name) =>
+      OPERATIONS_SINGLE_UNIT_ROLES.includes(name)
+    )
+    const hasMultiUnitRole = selectedRoleNames.some((name) =>
+      OPERATIONS_MULTI_UNIT_ROLES.includes(name)
+    )
+
+    if (hasSingleUnitRole) {
+      return {
+        show: true,
+        mode: 'single' as const,
+        description: 'Manobristas e Encarregados devem estar vinculados a uma unidade.',
+      }
+    }
+
+    if (hasMultiUnitRole) {
+      return {
+        show: true,
+        mode: 'multiple' as const,
+        description: 'Supervisores podem cobrir múltiplas unidades.',
+      }
+    }
+
+    return { show: false, mode: 'single' as const, description: '' }
+  }, [selectedRoles, allRoles])
+
+  // Group roles by department
+  const globalRoles = allRoles.filter((r) => r.is_global)
+  const rolesByDepartment = allRoles
+    .filter((r) => !r.is_global)
+    .reduce((acc, role) => {
+      const deptId = role.department_id || 'none'
+      if (!acc[deptId]) acc[deptId] = []
+      acc[deptId].push(role)
+      return acc
+    }, {} as Record<string, Role[]>)
+
+  function formatPhone(value: string) {
+    const digits = value.replace(/\D/g, '')
+    
+    if (digits.length <= 2) return `(${digits}`
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`
+  }
+
+  function formatCPF(value: string) {
+    const digits = value.replace(/\D/g, '')
+    
+    if (digits.length <= 3) return digits
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
+    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9, 11)}`
+  }
+
+  // Limpar unidades quando o seletor é ocultado
+  function handleRoleToggle(roleId: string) {
+    const newSelectedRoles = selectedRoles.includes(roleId)
+      ? selectedRoles.filter((id) => id !== roleId)
+      : [...selectedRoles, roleId]
+
+    setSelectedRoles(newSelectedRoles)
+
+    // Se o seletor não deve mais aparecer, limpar as unidades
+    const newSelectedRoleNames = newSelectedRoles
+      .map((id) => allRoles.find((r) => r.id === id)?.name)
+      .filter((name): name is string => !!name)
+
+    const willShowSelector =
+      newSelectedRoleNames.some((name) => OPERATIONS_SINGLE_UNIT_ROLES.includes(name)) ||
+      newSelectedRoleNames.some((name) => OPERATIONS_MULTI_UNIT_ROLES.includes(name))
+
+    if (!willShowSelector) {
+      setSelectedUnits([])
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setSuccess(null)
+
+    if (!fullName || !email) {
+      setError('Nome e email são obrigatórios')
+      return
+    }
+
+    // Validar unidades se necessário
+    if (unitSelectorConfig.show && selectedUnits.length === 0) {
+      setError('Selecione pelo menos uma unidade para cargos de Operações')
+      return
+    }
+
+    startTransition(async () => {
+      try {
+        const formData = new FormData()
+        formData.set('full_name', fullName)
+        formData.set('email', email)
+        formData.set('phone', phone || '')
+        formData.set('cpf', cpf.replace(/\D/g, '') || '')
+        formData.set('roles', JSON.stringify(selectedRoles))
+        formData.set('units', JSON.stringify(selectedUnits))
+
+        const result = await createUser(formData)
+
+        if (result.error) {
+          setError(result.error)
+          return
+        }
+
+        setSuccess(result.message || 'Convite enviado com sucesso!')
+        
+        // Redirecionar após 2 segundos
+        setTimeout(() => {
+          router.push('/usuarios')
+        }, 2000)
+      } catch (err) {
+        setError('Erro ao criar usuário')
+        console.error(err)
+      }
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-500/10 text-green-600 text-sm p-3 rounded-md flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 shrink-0" />
+          {success}
+        </div>
+      )}
+
+      {/* Basic Info */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="fullName" className="text-sm font-medium">
+            Nome Completo *
+          </label>
+          <Input
+            id="fullName"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Nome completo do usuário"
+            required
+            minLength={3}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-medium">
+            Email *
+          </label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="email@empresa.com.br"
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            Um email de convite será enviado para este endereço.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="phone" className="text-sm font-medium">
+              Telefone
+            </label>
+            <Input
+              id="phone"
+              value={phone}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              placeholder="(11) 99999-9999"
+              maxLength={15}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="cpf" className="text-sm font-medium">
+              CPF
+            </label>
+            <Input
+              id="cpf"
+              value={cpf}
+              onChange={(e) => setCpf(formatCPF(e.target.value))}
+              placeholder="000.000.000-00"
+              maxLength={14}
+            />
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Roles */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-medium">Cargos</h3>
+          <p className="text-sm text-muted-foreground">
+            Selecione os cargos que o usuário deve ter.
+          </p>
+        </div>
+
+        {/* Global Roles */}
+        {globalRoles.length > 0 && (
+          <div>
+            <p className="text-sm font-medium mb-2">Cargos Globais</p>
+            <div className="flex flex-wrap gap-2">
+              {globalRoles.map((role) => (
+                <Badge
+                  key={role.id}
+                  variant={selectedRoles.includes(role.id) ? 'default' : 'outline'}
+                  className="cursor-pointer transition-colors"
+                  onClick={() => handleRoleToggle(role.id)}
+                >
+                  {selectedRoles.includes(role.id) && (
+                    <Check className="mr-1 h-3 w-3" />
+                  )}
+                  {role.name}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Department Roles */}
+        {departments.map((dept) => {
+          const deptRoles = rolesByDepartment[dept.id] || []
+          if (deptRoles.length === 0) return null
+
+          return (
+            <div key={dept.id}>
+              <p className="text-sm font-medium mb-2">{dept.name}</p>
+              <div className="flex flex-wrap gap-2">
+                {deptRoles.map((role) => (
+                  <Badge
+                    key={role.id}
+                    variant={selectedRoles.includes(role.id) ? 'secondary' : 'outline'}
+                    className="cursor-pointer transition-colors"
+                    onClick={() => handleRoleToggle(role.id)}
+                  >
+                    {selectedRoles.includes(role.id) && (
+                      <Check className="mr-1 h-3 w-3" />
+                    )}
+                    {role.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+
+        {selectedRoles.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {selectedRoles.length} cargo(s) selecionado(s)
+          </p>
+        )}
+      </div>
+
+      {/* Unit Selector - appears only for Operations roles */}
+      {unitSelectorConfig.show && (
+        <>
+          <Separator />
+          <UnitSelector
+            units={units}
+            selectedUnits={selectedUnits}
+            onChange={setSelectedUnits}
+            mode={unitSelectorConfig.mode}
+            label="Unidade(s) de Trabalho"
+            description={unitSelectorConfig.description}
+          />
+        </>
+      )}
+
+      <Separator />
+
+      {/* Actions */}
+      <div className="flex gap-3 justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={isPending}
+        >
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={isPending}>
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Criar Usuário
+        </Button>
+      </div>
+    </form>
+  )
+}
+

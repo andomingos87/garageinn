@@ -1,0 +1,1 @@
+Não execute/altere nada no projeto, apenas responda no chat.

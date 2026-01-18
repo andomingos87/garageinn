@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "supabase_gapp": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=llxgumwacwgppoxkawnu"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-d1a02904-a82a-4591-96b1-259424709049"
+      }
+    },
+    "playwright": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "ai-context": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "@ai-coders/context",
+        "mcp"
+      ]
+    }
+  }
+}

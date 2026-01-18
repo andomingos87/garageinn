@@ -1,0 +1,56 @@
+# Dependências (maior economia)
+node_modules/
+.pnpm-store/
+bower_components/
+
+# Build e output
+dist/
+build/
+.next/
+out/
+.nuxt/
+.output/
+
+# Cache
+.cache/
+.parcel-cache/
+.turbo/
+*.tsbuildinfo
+
+# Logs e temp
+logs/
+*.log
+npm-debug.log*
+.temp/
+tmp/
+
+# Ambientes virtuais (se usar Python no backend)
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Arquivos gerados
+coverage/
+.nyc_output/
+*.min.js
+*.min.css
+*.map
+
+# Assets pesados
+*.mp4
+*.mov
+*.zip
+*.tar.gz
+public/videos/
+*.svg
+
+# Lock files (opcional, mas economiza bastante)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Outros
+.git/
+.DS_Store
+.env*

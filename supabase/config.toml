@@ -1,0 +1,67 @@
+# Supabase Local Development Configuration
+# For documentation see: https://supabase.com/docs/guides/cli/local-development
+
+[api]
+# Port to use for the API server.
+port = 54321
+# Schemas to expose via the API.
+schemas = ["public", "storage", "graphql_public"]
+# Extra schemas to add to the search path.
+extra_search_path = ["public", "extensions"]
+# Maximum number of rows to return.
+max_rows = 1000
+
+[db]
+# Port to use for the database.
+port = 54322
+# The database major version to use.
+major_version = 15
+
+[studio]
+# Port to use for Supabase Studio.
+port = 54323
+
+[inbucket]
+# Port to use for the Inbucket email testing server.
+port = 54324
+
+[storage]
+# The maximum file size allowed (e.g. "5MB").
+file_size_limit = "50MiB"
+
+[auth]
+# The base URL for your project.
+site_url = "http://localhost:3000"
+# Additional redirect URLs (wildcards supported).
+additional_redirect_urls = ["https://localhost:3000"]
+# How long tokens are valid (in seconds).
+jwt_expiry = 3600
+# Allow new user signups.
+enable_signup = true
+# Email minimum password length.
+min_password_length = 6
+
+[auth.email]
+# Allow users to sign up with email.
+enable_signup = true
+# Requires users to confirm their email address before signing in.
+double_confirm_changes = true
+# Allow users to reset their password.
+enable_confirmations = false
+
+[auth.sms]
+# Allow users to sign up with phone number.
+enable_signup = false
+
+[auth.external.apple]
+enabled = false
+
+[auth.external.azure]
+enabled = false
+
+[auth.external.google]
+enabled = false
+
+# Project specific configuration
+[project]
+name = "garageinn-app"
