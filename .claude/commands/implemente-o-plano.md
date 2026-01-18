@@ -7,3 +7,4 @@
 
 ## O que não fazer
 - Não faça o push para o repositorio remoto ainda;
+- 
