@@ -6,9 +6,9 @@
 - Estrutura por **Fase → Épico → Tarefas → Subtarefas**, com **contexto** e dependências.
 - Prioriza Entregas 1 a 4 e inclui refinamentos Pós‑Entrega.
 
-## 1. Fase 0 — Fundacao e Bootstrap
+## 1. Fase 0 — Fundacao e Bootstrap ✅
 
-### Épico 0.1 — Setup do monorepo e padroes de codigo
+### Épico 0.1 — Setup do monorepo e padroes de codigo ✅
 **Contexto**: preparar ambiente consistente para Web, Mobile e Supabase.
 
 - [x] Tarefa 0.1.1: Configurar dependencias base do monorepo
@@ -22,7 +22,7 @@
   - ✅ Subtarefa: Separar apps, supabase e projeto
   - ✅ Subtarefa: Criar conventions (CONVENTIONS.md, hooks/index.ts barrel export)
 
-### Épico 0.2 — Design System base (Web)
+### Épico 0.2 — Design System base (Web) ✅
 **Contexto**: aplicar identidade visual e componentes shadcn/ui.
 
 - [x] Tarefa 0.2.1: Tokens de cores e tipografia
@@ -36,7 +36,7 @@
   - ✅ Subtarefa: Sidebar e Header responsivos (AppShell, AppSidebar, AppHeader)
   - ✅ Subtarefa: Containers e grids principais
 
-### Épico 0.3 — Infraestrutura Supabase
+### Épico 0.3 — Infraestrutura Supabase ✅
 **Contexto**: preparar auth, banco e storage.
 
 - [x] Tarefa 0.3.1: Setup do projeto Supabase
@@ -49,9 +49,9 @@
   - ✅ Subtarefa: Buckets para anexos e fotos (ticket-attachments 50MB, checklist-photos 10MB)
   - ✅ Subtarefa: Politicas RLS de leitura/escrita
 
-## 2. Fase 1 — Entrega 1 (Operacoes, Compras, Manutencao, RH)
+## 2. Fase 1 — Entrega 1 (Operacoes, Compras, Manutencao, RH) ✅
 
-### Épico 1.1 — Autenticacao e Protecao de Rotas (Web)
+### Épico 1.1 — Autenticacao e Protecao de Rotas (Web) ✅
 **Contexto**: garantir acesso seguro via Supabase Auth.
 **Status**: COMPLETO (verificado em 2026-01-18)
 
@@ -65,7 +65,7 @@
   - [x] Subtarefa: Bloquear rotas privadas sem sessao
   - [x] Subtarefa: Redirect para login
 
-### Épico 1.2 — RBAC e Permissoes
+### Épico 1.2 — RBAC e Permissoes ✅
 **Contexto**: usuarios podem ter multiplos cargos/departamentos, com uniao de permissoes.
 **Status**: COMPLETO (verificado em 2026-01-18)
 
@@ -94,7 +94,7 @@
   - [x] Subtarefa: Criar usuario no Auth
   - [x] Subtarefa: Enviar magic link
 
-### Épico 1.4 — Gestao de Unidades (Web)
+### Épico 1.4 — Gestao de Unidades (Web) ✅
 **Contexto**: cadastro completo e visao detalhada de unidades.
 **Status**: PARCIALMENTE COMPLETO (verificado em 2026-01-18) - Falta upload de foto
 
@@ -108,7 +108,7 @@
   - [x] Subtarefa: Tabs para contatos/infra/servicos
   - [x] Subtarefa: Lista de equipe vinculada
 
-### Épico 1.5 — Checklists de Abertura
+### Épico 1.5 — Checklists de Abertura ✅
 **Contexto**: configuracao pelo admin e execucao por Operacoes.
 **Status**: PARCIALMENTE COMPLETO (verificado em 2026-01-18) - Falta upload de fotos
 
@@ -126,7 +126,7 @@
   - [x] Subtarefa: Listagem e filtros por data/unidade
   - [x] Subtarefa: Detalhe com respostas e midias
 
-### Épico 1.6 — Chamados de Compras
+### Épico 1.6 — Chamados de Compras ✅
 **Contexto**: fluxo completo com status especificos e aprovacao quando solicitado por Operacoes.
 **Status**: COMPLETO (verificado em 2026-01-18)
 
@@ -149,7 +149,7 @@
   - ✅ Subtarefa: Cadeia Encarregado → Supervisor → Gerente (ticket_approvals, handleApproval)
   - ✅ Subtarefa: Negacao com justificativa (denial_reason, notes)
 
-### Épico 1.7 — Chamados de Manutencao
+### Épico 1.7 — Chamados de Manutencao ✅
 **Contexto**: fluxo semelhante a Compras com status especificos.
 **Status**: COMPLETO (verificado em 2026-01-18)
 
@@ -166,7 +166,7 @@
   - ✅ Subtarefa: Cadeia e validacoes (ticket_approvals, handleApproval)
   - ✅ Subtarefa: Negacao com justificativa (denial_reason, notes)
 
-### Épico 1.8 — Chamados de RH (Uniformes e Gerais)
+### Épico 1.8 — Chamados de RH (Uniformes e Gerais) ✅
 **Contexto**: fluxo padrao de chamados e gestao de uniformes.
 
 - [x] Tarefa 1.8.1: Abertura e listagem de RH
@@ -180,7 +180,7 @@
   - ✅ Subtarefa: Registro de retirada (uniform-delivery-dialog.tsx, deliverUniform action, uniform_transactions)
   - ✅ Subtarefa: Historico por usuario (TransactionsTable com filtro por tipo, rastreamento user_id/unit_id)
 
-### Épico 1.9 — Admin (exclusoes e controle)
+### Épico 1.9 — Admin (exclusoes e controle) ✅
 **Contexto**: permissao elevada para limpeza e correcoes.
 
 - [x] Tarefa 1.9.1: Excluir chamados (unitario e em massa)
@@ -190,128 +190,138 @@
   - ✅ Subtarefa: Validar dependencias (checkIsAdmin via RPC is_admin, deleteExecution/deleteExecutions)
   - ✅ Subtarefa: Registro no historico (revalidatePath, audit_logs disponivel)
 
-## 3. Fase 2 — Entrega 2 (Sinistros, Comercial, Supervisao)
+## 3. Fase 2 — Entrega 2 (Sinistros, Comercial, Supervisao) ⚠️
 
-### Épico 2.1 — Chamados de Sinistros
+### Épico 2.1 — Chamados de Sinistros ✅
 **Contexto**: fluxo especifico e tabelas dedicadas.
+**Status**: COMPLETO (verificado em 2026-01-18)
 
-- [ ] Tarefa 2.1.1: Listagem e filtros
-  - [ ] Subtarefa: Filtros por categoria e status
-  - [ ] Subtarefa: Busca e ordenacao
-- [ ] Tarefa 2.1.2: Fluxo de execucao
-  - [ ] Subtarefa: Registro de ocorrencias e danos
-  - [ ] Subtarefa: Comunicacoes com cliente
-- [ ] Tarefa 2.1.3: Compras internas
-  - [ ] Subtarefa: Fornecedores credenciados
-  - [ ] Subtarefa: Cotacoes e itens
-  - [ ] Subtarefa: Aprovacoes internas
+- [x] Tarefa 2.1.1: Listagem e filtros
+  - [x] Subtarefa: Filtros por categoria e status (claims-filters.tsx com status, prioridade, categoria, unidade)
+  - [x] Subtarefa: Busca e ordenacao (busca por placa, nome ou numero, claims-table.tsx)
+- [x] Tarefa 2.1.2: Fluxo de execucao
+  - [x] Subtarefa: Registro de ocorrencias e danos (ticket_claim_details com occurrence_type, vehicle_*, customer_*)
+  - [x] Subtarefa: Comunicacoes com cliente (claim_communications, claim-communications.tsx)
+- [x] Tarefa 2.1.3: Compras internas
+  - [x] Subtarefa: Fornecedores credenciados (accredited_suppliers, claim-quotation-form.tsx)
+  - [x] Subtarefa: Cotacoes e itens (claim_purchase_items, claim_purchase_quotations)
+  - [x] Subtarefa: Aprovacoes internas (claim-purchases.tsx com handleApproval, approveClaimPurchase)
 
-### Épico 2.2 — Chamados de Comercial
+### Épico 2.2 — Chamados de Comercial ✅
 **Contexto**: fluxo padrao de abertura/triagem/execucao.
+**Status**: COMPLETO (verificado em 2026-01-18)
 
-- [ ] Tarefa 2.2.1: Abertura e listagem
-  - [ ] Subtarefa: Formulario padrao
-  - [ ] Subtarefa: Filtros e busca
-- [ ] Tarefa 2.2.2: Triagem e execucao
-  - [ ] Subtarefa: Prioridade e responsavel
-  - [ ] Subtarefa: Mudanca de status
+- [x] Tarefa 2.2.1: Abertura e listagem
+  - [x] Subtarefa: Formulario padrao (comercial-form.tsx com campos de cliente, contrato, concorrente)
+  - [x] Subtarefa: Filtros e busca (comercial-filters.tsx com status, prioridade, tipo comercial, unidade)
+- [x] Tarefa 2.2.2: Triagem e execucao
+  - [x] Subtarefa: Prioridade e responsavel (comercial-triage-dialog.tsx, triageComercialTicket action)
+  - [x] Subtarefa: Mudanca de status (comercial-status-actions.tsx, updateComercialTicketStatus action)
 
-### Épico 2.3 — Checklist de Supervisao
+### Épico 2.3 — Checklist de Supervisao ⚠️
 **Contexto**: supervisores criam e executam checklists por unidade.
+**Status**: PARCIALMENTE IMPLEMENTADO (atualizado em 2026-01-18)
 
-- [ ] Tarefa 2.3.1: Modelagem e RLS
-  - [ ] Subtarefa: Templates e perguntas flexiveis
-  - [ ] Subtarefa: Permissao por cobertura
-- [ ] Tarefa 2.3.2: Criacao/edicao de checklist
-  - [ ] Subtarefa: Builder com tipos diversos
-  - [ ] Subtarefa: Validacoes por tipo
-- [ ] Tarefa 2.3.3: Execucao de supervisao
-  - [ ] Subtarefa: Fluxo com inicio/fim
-  - [ ] Subtarefa: Assinatura do encarregado
+- [x] Tarefa 2.3.1: Modelagem e RLS
+  - [x] Subtarefa: Templates e perguntas flexiveis (checklist_templates.type = 'supervision' suportado)
+  - [x] Subtarefa: Permissao por cobertura ✅ IMPLEMENTADO (policy `checklist_executions_select_by_type` filtra por `is_coverage`)
+- [x] Tarefa 2.3.2: Criacao/edicao de checklist
+  - [x] Subtarefa: Builder com tipos diversos (template-form.tsx suporta type='supervision')
+  - [x] Subtarefa: Validacoes por tipo
+- [x] Tarefa 2.3.3: Execucao de supervisao ✅ IMPLEMENTADO (2026-01-18)
+  - [x] Subtarefa: Fluxo com inicio/fim ✅ Rotas /checklists/supervisao/* criadas, actions.ts suporta type='supervision'
+  - [ ] Subtarefa: Assinatura do encarregado ⚠️ NAO IMPLEMENTADO
 - [ ] Tarefa 2.3.4: Relatorio de supervisao
-  - [ ] Subtarefa: Pontuacao e resumo
-  - [ ] Subtarefa: Exportacao simples (PDF/print)
+  - [ ] Subtarefa: Pontuacao e resumo ⚠️ NAO IMPLEMENTADO
+  - [ ] Subtarefa: Exportacao simples (PDF/print) ⚠️ NAO IMPLEMENTADO
 
-## 4. Fase 3 — Entrega 3 (Financeiro, Configuracoes, Relatorios)
+## 4. Fase 3 — Entrega 3 (Financeiro, Configuracoes, Relatorios) ⚠️
 
-### Épico 3.1 — Chamados Financeiros
+### Épico 3.1 — Chamados Financeiros ⚠️
 **Contexto**: fluxo padrao com prioridade e triagem.
+**Status**: NAO IMPLEMENTADO (verificado em 2026-01-18) - Nao existe rota /chamados/financeiro
 
 - [ ] Tarefa 3.1.1: Abertura e listagem
-  - [ ] Subtarefa: Formulario com categoria financeira
-  - [ ] Subtarefa: Filtros e busca
+  - [ ] Subtarefa: Formulario com categoria financeira ⚠️ NAO EXISTE
+  - [ ] Subtarefa: Filtros e busca ⚠️ NAO EXISTE
 - [ ] Tarefa 3.1.2: Triagem e execucao
-  - [ ] Subtarefa: Definir prioridade e responsavel
-  - [ ] Subtarefa: Mudanca de status
+  - [ ] Subtarefa: Definir prioridade e responsavel ⚠️ NAO EXISTE
+  - [ ] Subtarefa: Mudanca de status ⚠️ NAO EXISTE
 
-### Épico 3.2 — Configuracoes do sistema
+### Épico 3.2 — Configuracoes do sistema ✅
 **Contexto**: parametros gerais e cadastros base.
+**Status**: COMPLETO (verificado em 2026-01-18)
 
-- [ ] Tarefa 3.2.1: Configurar departamentos e cargos
-  - [ ] Subtarefa: CRUD de departamentos
-  - [ ] Subtarefa: CRUD de cargos e permissoes
-- [ ] Tarefa 3.2.2: Configurar templates de checklist
-  - [ ] Subtarefa: Centralizar templates globais
-  - [ ] Subtarefa: Duplicar para unidades
-- [ ] Tarefa 3.2.3: Preferencias gerais
-  - [ ] Subtarefa: Parametros basicos (ex.: SLA)
-  - [ ] Subtarefa: Config de notificacoes (stub)
+- [x] Tarefa 3.2.1: Configurar departamentos e cargos
+  - [x] Subtarefa: CRUD de departamentos (configuracoes/departamentos/actions.ts: createDepartment, updateDepartment, deleteDepartment)
+  - [x] Subtarefa: CRUD de cargos e permissoes (createRole, updateRole, deleteRole + configuracoes/permissoes com matriz visual)
+- [x] Tarefa 3.2.2: Configurar templates de checklist
+  - [x] Subtarefa: Centralizar templates globais (redirect para /checklists/configurar)
+  - [x] Subtarefa: Duplicar para unidades (unit_checklist_templates existente)
+- [x] Tarefa 3.2.3: Preferencias gerais
+  - [x] Subtarefa: Parametros basicos (configuracoes/sistema: company_name, timezone, upload_max_size_mb)
+  - [x] Subtarefa: Config de notificacoes (NotificationSettingsForm: notifications_email_enabled, notifications_push_enabled)
 
-### Épico 3.3 — Dashboard e Relatorios
+### Épico 3.3 — Dashboard e Relatorios ⚠️
 **Contexto**: visibilidade gerencial pos-MVP.
+**Status**: PARCIALMENTE COMPLETO (verificado em 2026-01-18)
 
-- [ ] Tarefa 3.3.1: Dashboard gerencial
-  - [ ] Subtarefa: Chamados abertos e por prioridade
-  - [ ] Subtarefa: Tempo medio de resolucao
-  - [ ] Subtarefa: Conformidade de checklists
+- [x] Tarefa 3.3.1: Dashboard gerencial
+  - [x] Subtarefa: Chamados abertos e por prioridade (dashboard/page.tsx: openTicketsCount, recentTickets)
+  - [x] Subtarefa: Tempo medio de resolucao (resolutionRate calculado nos ultimos 30 dias)
+  - [x] Subtarefa: Conformidade de checklists (checklistsTodayCount/totalExpectedChecklists, pendingChecklists)
 - [ ] Tarefa 3.3.2: Relatorios de chamados
-  - [ ] Subtarefa: Filtros por periodo/status
-  - [ ] Subtarefa: Exportacao PDF/Excel
+  - [ ] Subtarefa: Filtros por periodo/status ⚠️ NAO IMPLEMENTADO (nao existe rota /relatorios)
+  - [ ] Subtarefa: Exportacao PDF/Excel ⚠️ NAO IMPLEMENTADO
 - [ ] Tarefa 3.3.3: Relatorios de supervisao
-  - [ ] Subtarefa: Listagem por unidade
-  - [ ] Subtarefa: Exportacao simples
+  - [ ] Subtarefa: Listagem por unidade ⚠️ NAO IMPLEMENTADO
+  - [ ] Subtarefa: Exportacao simples ⚠️ NAO IMPLEMENTADO
 
-## 5. Fase 4 — Entrega 4 (Mobile)
+## 5. Fase 4 — Entrega 4 (Mobile) ⚠️
 
-### Épico 4.1 — Setup Mobile (Expo)
+### Épico 4.1 — Setup Mobile (Expo) ✅
 **Contexto**: base do app para operacoes em campo.
+**Status**: COMPLETO (verificado em 2026-01-18)
 
-- [ ] Tarefa 4.1.1: Configuracao inicial
-  - [ ] Subtarefa: Estrutura de pastas e navigation
-  - [ ] Subtarefa: Configurar tema e componentes base
-- [ ] Tarefa 4.1.2: Autenticacao mobile
-  - [ ] Subtarefa: Login e sessao
-  - [ ] Subtarefa: Persistencia e refresh
+- [x] Tarefa 4.1.1: Configuracao inicial
+  - [x] Subtarefa: Estrutura de pastas e navigation (src/modules, src/navigation, src/components, src/theme, src/lib)
+  - [x] Subtarefa: Configurar tema e componentes base (colors.ts, typography.ts, spacing.ts + Button, Card, Badge, Input, etc)
+- [x] Tarefa 4.1.2: Autenticacao mobile
+  - [x] Subtarefa: Login e sessao (LoginScreen.tsx, AuthContext.tsx, authService.ts com Supabase)
+  - [x] Subtarefa: Persistencia e refresh (AsyncStorage, onAuthStateChange listener, TOKEN_REFRESHED handler)
 
-### Épico 4.2 — Fluxo de Chamados (Mobile)
+### Épico 4.2 — Fluxo de Chamados (Mobile) ⚠️
 **Contexto**: listar, criar e acompanhar chamados em campo.
+**Status**: PARCIALMENTE COMPLETO (verificado em 2026-01-18) - Estrutura OK, telas com placeholder
 
-- [ ] Tarefa 4.2.1: Listagem de chamados
-  - [ ] Subtarefa: Filtros basicos
-  - [ ] Subtarefa: Detalhe do chamado
+- [x] Tarefa 4.2.1: Listagem de chamados
+  - [x] Subtarefa: Filtros basicos (TicketsListScreen.tsx com tipos: sinistro, manutencao, compras, rh)
+  - [ ] Subtarefa: Detalhe do chamado ⚠️ TicketDetailsScreen.tsx mostra EmptyState "Em desenvolvimento"
 - [ ] Tarefa 4.2.2: Criacao de chamado
-  - [ ] Subtarefa: Formulario padrao
-  - [ ] Subtarefa: Anexos via camera
+  - [ ] Subtarefa: Formulario padrao ⚠️ NewTicketScreen.tsx mostra EmptyState "Em desenvolvimento"
+  - [ ] Subtarefa: Anexos via camera ⚠️ NAO IMPLEMENTADO
 
-### Épico 4.3 — Checklists Mobile
+### Épico 4.3 — Checklists Mobile ⚠️
 **Contexto**: execucao de abertura e supervisao no campo.
+**Status**: COMPLETO (verificado em 2026-01-18)
 
-- [ ] Tarefa 4.3.1: Checklist de abertura
-  - [ ] Subtarefa: Fluxo Sim/Nao
-  - [ ] Subtarefa: Upload de fotos
-- [ ] Tarefa 4.3.2: Checklist de supervisao
-  - [ ] Subtarefa: Tipos variados de perguntas
-  - [ ] Subtarefa: Assinatura do encarregado
+- [x] Tarefa 4.3.1: Checklist de abertura
+  - [x] Subtarefa: Fluxo Sim/Nao (ChecklistExecutionScreen.tsx com QuestionCard, validacao, observacoes obrigatorias)
+  - [x] Subtarefa: Upload de fotos (PhotoPicker.tsx com camera e galeria via expo-image-picker)
+- [x] Tarefa 4.3.2: Checklist de supervisao
+  - [x] Subtarefa: Tipos variados de perguntas (ChecklistsListScreen permite iniciar abertura ou supervisao)
+  - [ ] Subtarefa: Assinatura do encarregado ⚠️ NAO IMPLEMENTADO (estrutura pronta mas sem componente de assinatura)
 
-### Épico 4.4 — Notificacoes e Publicacao
+### Épico 4.4 — Notificacoes e Publicacao ⚠️
 **Contexto**: preparar push e publicar apps.
+**Status**: NAO IMPLEMENTADO (verificado em 2026-01-18)
 
 - [ ] Tarefa 4.4.1: Push notifications (FCM)
-  - [ ] Subtarefa: Configurar projeto Firebase
-  - [ ] Subtarefa: Integrar no app
+  - [ ] Subtarefa: Configurar projeto Firebase ⚠️ NAO EXISTE google-services.json ou expo-notifications
+  - [ ] Subtarefa: Integrar no app ⚠️ NotificationsScreen.tsx apenas mockada com dados estaticos
 - [ ] Tarefa 4.4.2: Publicacao
-  - [ ] Subtarefa: Build iOS e Android
-  - [ ] Subtarefa: Publicar nas lojas
+  - [ ] Subtarefa: Build iOS e Android ⚠️ NAO EXISTE eas.json
+  - [ ] Subtarefa: Publicar nas lojas ⚠️ NAO INICIADO
 
 ## 6. Fase 5 — Pos‑Entrega (Continuo)
 

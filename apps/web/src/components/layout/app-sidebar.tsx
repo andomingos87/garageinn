@@ -6,6 +6,7 @@ import {
   Home,
   MessageSquareMore,
   Settings,
+  ShieldCheck,
   Users,
   LucideIcon,
 } from "lucide-react";
@@ -52,6 +53,14 @@ const menuItems: MenuItem[] = [
     title: "Checklists",
     href: "/checklists",
     icon: CheckSquare,
+  },
+  {
+    title: "Supervisão",
+    href: "/checklists/supervisao",
+    icon: ShieldCheck,
+    // Visível para quem pode executar checklists (supervisores e admins)
+    requirePermission: ['checklists:execute', 'admin:all'],
+    permissionMode: 'any',
   },
   {
     title: "Unidades",

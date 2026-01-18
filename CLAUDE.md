@@ -32,6 +32,7 @@ src/
 │   │   ├── actions.ts            # Shared server actions (signOut)
 │   │   ├── layout.tsx            # App shell (sidebar, header)
 │   │   ├── chamados/             # Tickets module by department
+│   │   │   ├── comercial/        # Commercial tickets (contracts, proposals)
 │   │   ├── checklists/           # Opening and supervision checklists
 │   │   ├── configuracoes/        # System settings
 │   │   ├── dashboard/            # Main dashboard
@@ -68,11 +69,12 @@ The system uses a robust RBAC (Role-Based Access Control) system managed via Sup
 - **Impersonation**: Admin users can impersonate other profiles for debugging using the `impersonateUser` service.
 
 ### 2. Ticketing System (Chamados)
-The application handles four distinct ticket types:
+The application handles five distinct ticket types:
 - **Maintenance (Manutenção)**: Physical repairs and infrastructure.
 - **Procurement (Compras)**: Requesting items or services.
 - **Claims (Sinistros)**: Handling vehicle damage and insurance incidents.
 - **HR (RH)**: Employee-related requests.
+- **Commercial (Comercial)**: Commercial operations including contracts, proposals, renewals, and client complaints.
 
 ### 3. Unit Management (Unidades)
 Units represent physical locations. The system tracks:
@@ -237,6 +239,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000  # Optional
 | **Sinistro** | An insurance claim or incident involving customer vehicles. |
 | **Checklist** | A set of recurring tasks or inspections to be performed at a Unit. |
 | **Impersonation** | The ability for admins to view the app as a specific user. |
+| **Comercial** | Commercial department ticket for contracts, proposals, renewals, and client complaints. |
 
 ## Developer Tooling
 

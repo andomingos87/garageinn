@@ -148,6 +148,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "checklist_answers_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_executions_with_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "checklist_answers_question_id_fkey"
             columns: ["question_id"]
             isOneToOne: false
@@ -769,6 +776,20 @@ export type Database = {
             referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ticket_approvals_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_approvals_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_with_details"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ticket_attachments: {
@@ -821,6 +842,20 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_with_details"
             referencedColumns: ["id"]
           },
           {
@@ -982,10 +1017,120 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ticket_claim_details_related_maintenance_ticket_id_fkey"
+            columns: ["related_maintenance_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_claim_details_related_maintenance_ticket_id_fkey"
+            columns: ["related_maintenance_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_with_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ticket_claim_details_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: true
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_claim_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_claim_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_comercial_details: {
+        Row: {
+          client_cnpj: string | null
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          comercial_type: string
+          competitor_info: string | null
+          contract_end_date: string | null
+          contract_start_date: string | null
+          contract_value: number | null
+          created_at: string | null
+          id: string
+          negotiation_notes: string | null
+          proposal_deadline: string | null
+          resolution_notes: string | null
+          resolution_type: string | null
+          ticket_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_cnpj?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          comercial_type: string
+          competitor_info?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          contract_value?: number | null
+          created_at?: string | null
+          id?: string
+          negotiation_notes?: string | null
+          proposal_deadline?: string | null
+          resolution_notes?: string | null
+          resolution_type?: string | null
+          ticket_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_cnpj?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          comercial_type?: string
+          competitor_info?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          contract_value?: number | null
+          created_at?: string | null
+          id?: string
+          negotiation_notes?: string | null
+          proposal_deadline?: string | null
+          resolution_notes?: string | null
+          resolution_type?: string | null
+          ticket_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_comercial_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_comercial_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_comercial_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_with_details"
             referencedColumns: ["id"]
           },
         ]
@@ -1024,6 +1169,20 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_with_details"
             referencedColumns: ["id"]
           },
           {
@@ -1072,6 +1231,20 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_history_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_history_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_with_details"
             referencedColumns: ["id"]
           },
           {
@@ -1126,6 +1299,20 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: true
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_maintenance_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_maintenance_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_with_details"
             referencedColumns: ["id"]
           },
         ]
@@ -1214,6 +1401,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ticket_maintenance_executions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_maintenance_executions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_with_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ticket_maintenance_executions_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
@@ -1284,6 +1485,20 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: true
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_purchase_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_purchase_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_with_details"
             referencedColumns: ["id"]
           },
         ]
@@ -1364,6 +1579,20 @@ export type Database = {
             referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ticket_quotations_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_quotations_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_with_details"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ticket_rh_details: {
@@ -1400,6 +1629,20 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: true
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_rh_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_rh_details_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets_with_details"
             referencedColumns: ["id"]
           },
         ]
@@ -1540,6 +1783,20 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uniform_transactions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_maintenance_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uniform_transactions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets_with_details"
             referencedColumns: ["id"]
           },
           {
@@ -1777,7 +2034,193 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      checklist_executions_with_details: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          executed_by: string | null
+          executed_by_avatar: string | null
+          executed_by_email: string | null
+          executed_by_name: string | null
+          general_observations: string | null
+          has_non_conformities: boolean | null
+          id: string | null
+          non_conformities_count: number | null
+          started_at: string | null
+          status: string | null
+          template_id: string | null
+          template_name: string | null
+          template_type: string | null
+          total_answers: number | null
+          total_questions: number | null
+          unit_code: string | null
+          unit_id: string | null
+          unit_name: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_executions_executed_by_fkey"
+            columns: ["executed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_executions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_executions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets_maintenance_with_details: {
+        Row: {
+          assigned_to_avatar: string | null
+          assigned_to_id: string | null
+          assigned_to_name: string | null
+          category_id: string | null
+          category_name: string | null
+          closed_at: string | null
+          completion_notes: string | null
+          completion_rating: number | null
+          created_at: string | null
+          created_by: string | null
+          created_by_avatar: string | null
+          created_by_name: string | null
+          denial_reason: string | null
+          department_id: string | null
+          department_name: string | null
+          description: string | null
+          due_date: string | null
+          equipment_affected: string | null
+          id: string | null
+          location_description: string | null
+          maintenance_type: string | null
+          perceived_urgency: string | null
+          priority: string | null
+          resolved_at: string | null
+          status: string | null
+          ticket_number: number | null
+          title: string | null
+          unit_code: string | null
+          unit_id: string | null
+          unit_name: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_assigned_to_fkey"
+            columns: ["assigned_to_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets_with_details: {
+        Row: {
+          assigned_to_avatar: string | null
+          assigned_to_id: string | null
+          assigned_to_name: string | null
+          category_id: string | null
+          category_name: string | null
+          closed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          created_by_avatar: string | null
+          created_by_name: string | null
+          denial_reason: string | null
+          department_id: string | null
+          department_name: string | null
+          description: string | null
+          due_date: string | null
+          id: string | null
+          perceived_urgency: string | null
+          priority: string | null
+          resolved_at: string | null
+          status: string | null
+          ticket_number: number | null
+          title: string | null
+          unit_code: string | null
+          unit_id: string | null
+          unit_name: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_assigned_to_fkey"
+            columns: ["assigned_to_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       advance_ticket_approval: {
@@ -1789,13 +2232,29 @@ export type Database = {
         }
         Returns: string
       }
+      can_approve_ticket: { Args: { p_approval_id: string }; Returns: boolean }
+      can_view_ticket: { Args: { p_ticket_id: string }; Returns: boolean }
       create_ticket_approvals: {
         Args: { p_ticket_id: string }
         Returns: undefined
       }
-      is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
+      delete_ticket_cascade: {
+        Args: { p_deleted_by: string; p_ticket_id: string }
+        Returns: Json
+      }
+      get_user_accessible_units: {
+        Args: never
+        Returns: {
+          code: string
+          id: string
+          name: string
+        }[]
+      }
+      has_units_update_permission: { Args: never; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
+      is_gerente: { Args: never; Returns: boolean }
       is_invitation_expired: { Args: { p_user_id: string }; Returns: boolean }
-      is_rh: { Args: Record<PropertyKey, never>; Returns: boolean }
+      is_rh: { Args: never; Returns: boolean }
       restore_deleted_user: { Args: { p_user_id: string }; Returns: boolean }
       soft_delete_user: { Args: { p_user_id: string }; Returns: boolean }
       ticket_needs_approval: {
