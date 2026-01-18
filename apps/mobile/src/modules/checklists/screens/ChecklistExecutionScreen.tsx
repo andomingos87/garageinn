@@ -30,21 +30,24 @@ import { logger } from '../../../lib/observability';
 
 import { useChecklistExecution } from '../hooks/useChecklistExecution';
 import { useUnitSelection } from '../hooks/useUnitSelection';
-import { 
-  UnitSelector, 
-  QuestionCard, 
-  ChecklistProgress, 
-  ChecklistSummary 
+import {
+  UnitSelector,
+  QuestionCard,
+  ChecklistProgress,
+  ChecklistSummary,
+  SupervisionSummary,
 } from '../components';
+import { SupervisionSignatureData } from '../types/checklist.types';
 
 type Props = ChecklistsStackScreenProps<'ChecklistExecution'>;
 
 type ExecutionStep = 'unit_selection' | 'execution' | 'summary' | 'success';
 
 export function ChecklistExecutionScreen({ route, navigation }: Props) {
-  const { checklistId, executionId } = route.params;
+  const { checklistId, executionId, checklistType = 'opening' } = route.params;
   const colors = useThemeColors();
-  
+  const isSupervision = checklistType === 'supervision';
+
   const [step, setStep] = useState<ExecutionStep>('unit_selection');
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -55,19 +58,20 @@ export function ChecklistExecutionScreen({ route, navigation }: Props) {
 
   // Log mount
   useEffect(() => {
-    logger.info('ChecklistExecutionScreen mounted', { 
-      checklistId, 
+    logger.info('ChecklistExecutionScreen mounted', {
+      checklistId,
       executionId,
+      checklistType,
       selectedUnitId: unitSelection.selectedUnitId,
     });
-  }, [checklistId, executionId, unitSelection.selectedUnitId]);
+  }, [checklistId, executionId, checklistType, unitSelection.selectedUnitId]);
 
   // Carrega template quando unidade é selecionada
   useEffect(() => {
     if (unitSelection.selectedUnitId && step === 'unit_selection') {
-      execution.loadTemplate();
+      execution.loadTemplate(checklistType);
     }
-  }, [unitSelection.selectedUnitId, step]);
+  }, [unitSelection.selectedUnitId, step, checklistType]);
 
   // Carrega rascunho quando template é carregado
   useEffect(() => {
@@ -158,6 +162,16 @@ export function ChecklistExecutionScreen({ route, navigation }: Props) {
     }
   }, [execution]);
 
+  const handleSupervisionSubmit = useCallback(
+    async (signatureData: SupervisionSignatureData) => {
+      const result = await execution.submitSupervision(signatureData);
+      if (result) {
+        setStep('success');
+      }
+    },
+    [execution]
+  );
+
   const handleFinish = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -181,7 +195,7 @@ export function ChecklistExecutionScreen({ route, navigation }: Props) {
   if (unitSelection.isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <Loading size="large" text="Carregando..." />
+        <Loading size="large" />
       </SafeAreaView>
     );
   }
@@ -198,7 +212,7 @@ export function ChecklistExecutionScreen({ route, navigation }: Props) {
           {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.foreground }]}>
-              📋 Checklist de Abertura
+              {isSupervision ? '🔍 Checklist de Supervisao' : '📋 Checklist de Abertura'}
             </Text>
             <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
               Selecione a unidade para iniciar
@@ -244,10 +258,10 @@ export function ChecklistExecutionScreen({ route, navigation }: Props) {
 
           {/* Rascunho existente */}
           {execution.hasDraft && (
-            <Card style={[styles.draftCard, { borderColor: themeColors.warning }]}>
+            <Card style={[styles.draftCard, { borderColor: themeColors.warning.DEFAULT }]}>
               <CardContent>
                 <View style={styles.draftInfo}>
-                  <Ionicons name="save-outline" size={24} color={themeColors.warning} />
+                  <Ionicons name="save-outline" size={24} color={themeColors.warning.DEFAULT} />
                   <View style={styles.draftText}>
                     <Text style={[styles.draftTitle, { color: colors.foreground }]}>
                       Rascunho Salvo
@@ -271,17 +285,17 @@ export function ChecklistExecutionScreen({ route, navigation }: Props) {
           {/* Loading do template */}
           {execution.loading && (
             <View style={styles.loadingContainer}>
-              <Loading size="small" text="Carregando template..." />
+              <Loading size="small" />
             </View>
           )}
 
           {/* Erro */}
           {execution.error && (
-            <Card style={[styles.errorCard, { borderColor: themeColors.destructive }]}>
+            <Card style={[styles.errorCard, { borderColor: themeColors.destructive.DEFAULT }]}>
               <CardContent>
                 <View style={styles.errorContent}>
-                  <Ionicons name="alert-circle" size={24} color={themeColors.destructive} />
-                  <Text style={[styles.errorText, { color: themeColors.destructive }]}>
+                  <Ionicons name="alert-circle" size={24} color={themeColors.destructive.DEFAULT} />
+                  <Text style={[styles.errorText, { color: themeColors.destructive.DEFAULT }]}>
                     {execution.error.message}
                   </Text>
                 </View>
@@ -398,18 +412,33 @@ export function ChecklistExecutionScreen({ route, navigation }: Props) {
   if (step === 'summary') {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
-        <ChecklistSummary
-          templateName={execution.template?.name || 'Checklist'}
-          unitName={unitSelection.selectedUnit?.name || ''}
-          questions={execution.questions}
-          answers={execution.answers}
-          generalObservations={execution.generalObservations}
-          onObservationsChange={execution.setGeneralObservations}
-          onSubmit={handleSubmit}
-          onBack={handleBackFromSummary}
-          isSubmitting={execution.submitting}
-          isValid={execution.isValid}
-        />
+        {isSupervision ? (
+          <SupervisionSummary
+            templateName={execution.template?.name || 'Supervisao'}
+            unitName={unitSelection.selectedUnit?.name || ''}
+            questions={execution.questions}
+            answers={execution.answers}
+            generalObservations={execution.generalObservations}
+            onObservationsChange={execution.setGeneralObservations}
+            onSubmit={handleSupervisionSubmit}
+            onBack={handleBackFromSummary}
+            isSubmitting={execution.submitting}
+            isValid={execution.isValid}
+          />
+        ) : (
+          <ChecklistSummary
+            templateName={execution.template?.name || 'Checklist'}
+            unitName={unitSelection.selectedUnit?.name || ''}
+            questions={execution.questions}
+            answers={execution.answers}
+            generalObservations={execution.generalObservations}
+            onObservationsChange={execution.setGeneralObservations}
+            onSubmit={handleSubmit}
+            onBack={handleBackFromSummary}
+            isSubmitting={execution.submitting}
+            isValid={execution.isValid}
+          />
+        )}
       </SafeAreaView>
     );
   }
@@ -420,20 +449,22 @@ export function ChecklistExecutionScreen({ route, navigation }: Props) {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
-            <Ionicons name="checkmark-circle" size={80} color={themeColors.success} />
+            <Ionicons name="checkmark-circle" size={80} color={themeColors.success.DEFAULT} />
           </View>
           <Text style={[styles.successTitle, { color: colors.foreground }]}>
-            Checklist Enviado!
+            {isSupervision ? 'Supervisao Enviada!' : 'Checklist Enviado!'}
           </Text>
           <Text style={[styles.successMessage, { color: colors.mutedForeground }]}>
-            A execução foi registrada com sucesso.
+            {isSupervision
+              ? 'A supervisao foi registrada com as assinaturas.'
+              : 'A execucao foi registrada com sucesso.'}
           </Text>
           
           {execution.execution?.hasNonConformities && (
-            <Card style={[styles.nonConformityAlert, { borderColor: themeColors.warning }]}>
+            <Card style={[styles.nonConformityAlert, { borderColor: themeColors.warning.DEFAULT }]}>
               <CardContent>
                 <View style={styles.alertContent}>
-                  <Ionicons name="warning" size={24} color={themeColors.warning} />
+                  <Ionicons name="warning" size={24} color={themeColors.warning.DEFAULT} />
                   <Text style={[styles.alertText, { color: colors.foreground }]}>
                     Foram identificadas não-conformidades nesta execução.
                   </Text>

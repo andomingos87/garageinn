@@ -76,7 +76,7 @@ export function QuestionCard({
               styles.answerButton,
               styles.yesButton,
               isYes && styles.yesButtonActive,
-              { borderColor: isYes ? themeColors.success : colors.border },
+              { borderColor: isYes ? themeColors.success.DEFAULT : colors.border },
             ]}
             onPress={() => onAnswer(true)}
             activeOpacity={0.7}
@@ -84,12 +84,12 @@ export function QuestionCard({
             <Ionicons
               name={isYes ? 'checkmark-circle' : 'checkmark-circle-outline'}
               size={28}
-              color={isYes ? themeColors.success : colors.mutedForeground}
+              color={isYes ? themeColors.success.DEFAULT : colors.mutedForeground}
             />
             <Text
               style={[
                 styles.answerText,
-                { color: isYes ? themeColors.success : colors.mutedForeground },
+                { color: isYes ? themeColors.success.DEFAULT : colors.mutedForeground },
                 isYes && styles.answerTextActive,
               ]}
             >
@@ -102,7 +102,7 @@ export function QuestionCard({
               styles.answerButton,
               styles.noButton,
               isNo && styles.noButtonActive,
-              { borderColor: isNo ? themeColors.destructive : colors.border },
+              { borderColor: isNo ? themeColors.destructive.DEFAULT : colors.border },
             ]}
             onPress={() => onAnswer(false)}
             activeOpacity={0.7}
@@ -110,12 +110,12 @@ export function QuestionCard({
             <Ionicons
               name={isNo ? 'close-circle' : 'close-circle-outline'}
               size={28}
-              color={isNo ? themeColors.destructive : colors.mutedForeground}
+              color={isNo ? themeColors.destructive.DEFAULT : colors.mutedForeground}
             />
             <Text
               style={[
                 styles.answerText,
-                { color: isNo ? themeColors.destructive : colors.mutedForeground },
+                { color: isNo ? themeColors.destructive.DEFAULT : colors.mutedForeground },
                 isNo && styles.answerTextActive,
               ]}
             >
@@ -139,7 +139,7 @@ export function QuestionCard({
                 {
                   backgroundColor: colors.input,
                   color: colors.foreground,
-                  borderColor: error ? themeColors.destructive : colors.border,
+                  borderColor: error ? themeColors.destructive.DEFAULT : colors.border,
                 },
               ]}
               placeholder="Descreva o problema encontrado..."
@@ -197,8 +197,8 @@ export function QuestionCard({
         {/* Erro */}
         {error && (
           <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle" size={16} color={themeColors.destructive} />
-            <Text style={[styles.errorText, { color: themeColors.destructive }]}>
+            <Ionicons name="alert-circle" size={16} color={themeColors.destructive.DEFAULT} />
+            <Text style={[styles.errorText, { color: themeColors.destructive.DEFAULT }]}>
               {error}
             </Text>
           </View>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   cardError: {
     borderWidth: 1,
-    borderColor: themeColors.destructive,
+    borderColor: themeColors.destructive.DEFAULT,
   },
   header: {
     flexDirection: 'row',
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   noButtonActive: {
-    backgroundColor: themeColors.destructive + '15',
+    backgroundColor: themeColors.destructive.DEFAULT + '15',
   },
   answerText: {
     fontSize: typography.sizes.lg,

@@ -87,8 +87,8 @@ export function ChecklistProgress({
               style={[
                 styles.dot,
                 status === 'current' && [styles.dotCurrent, { borderColor: themeColors.primary.DEFAULT }],
-                status === 'answered' && [styles.dotAnswered, { backgroundColor: themeColors.success }],
-                status === 'error' && [styles.dotError, { backgroundColor: themeColors.destructive }],
+                status === 'answered' && [styles.dotAnswered, { backgroundColor: themeColors.success.DEFAULT }],
+                status === 'error' && [styles.dotError, { backgroundColor: themeColors.destructive.DEFAULT }],
                 status === 'unanswered' && { backgroundColor: colors.muted },
               ]}
               onPress={() => onQuestionPress(index)}

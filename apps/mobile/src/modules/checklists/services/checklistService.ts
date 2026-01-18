@@ -16,6 +16,8 @@ import {
   ChecklistQuestionDbResponse,
   ChecklistExecutionDbResponse,
   ChecklistError,
+  SupervisionSignatureData,
+  SupervisionExecution,
 } from '../types/checklist.types';
 
 /**
@@ -464,6 +466,223 @@ export async function fetchExecutionDetails(
     throw {
       code: 'network_error',
       message: 'Erro ao carregar detalhes da execução.',
+      originalError: error as Error,
+    } as ChecklistError;
+  }
+}
+
+/**
+ * Busca o template de supervisao vinculado a uma unidade
+ */
+export async function fetchSupervisionTemplateForUnit(
+  unitId: string
+): Promise<ChecklistTemplate | null> {
+  logger.info('checklistService: Fetching supervision template for unit', { unitId });
+
+  try {
+    // Primeiro tenta buscar template especifico da unidade
+    const { data: unitTemplate, error: unitError } = await supabase
+      .from('unit_checklist_templates')
+      .select(`
+        template_id,
+        checklist_templates (
+          id, name, description, type, is_default, status, created_at, updated_at
+        )
+      `)
+      .eq('unit_id', unitId)
+      .single();
+
+    if (unitTemplate?.checklist_templates) {
+      const template = unitTemplate.checklist_templates as unknown as ChecklistTemplateDbResponse;
+      if (template.type === 'supervision' && template.status === 'active') {
+        logger.info('checklistService: Found unit-specific supervision template', {
+          templateId: template.id,
+        });
+        return mapDbTemplate(template);
+      }
+    }
+
+    // Se nao encontrou, busca template padrao de supervisao
+    const { data: defaultTemplate, error: defaultError } = await supabase
+      .from('checklist_templates')
+      .select('*')
+      .eq('type', 'supervision')
+      .eq('is_default', true)
+      .eq('status', 'active')
+      .single();
+
+    if (defaultError && defaultError.code !== 'PGRST116') {
+      logger.error('checklistService: Error fetching default supervision template', {
+        error: defaultError,
+      });
+      throw defaultError;
+    }
+
+    if (defaultTemplate) {
+      logger.info('checklistService: Using default supervision template', {
+        templateId: defaultTemplate.id,
+      });
+      return mapDbTemplate(defaultTemplate);
+    }
+
+    logger.warn('checklistService: No supervision template found for unit', { unitId });
+    return null;
+  } catch (error) {
+    logger.error('checklistService: Failed to fetch supervision template', { unitId, error });
+    throw {
+      code: 'template_not_found',
+      message: 'Template de supervisao nao encontrado para esta unidade.',
+      originalError: error as Error,
+    } as ChecklistError;
+  }
+}
+
+/**
+ * Finaliza uma execucao de supervisao com assinaturas
+ */
+export async function completeSupervisionExecution(
+  executionId: string,
+  signatureData: SupervisionSignatureData,
+  generalObservations?: string | null
+): Promise<SupervisionExecution> {
+  logger.info('checklistService: Completing supervision execution', {
+    executionId,
+    hasAttendantSignature: !!signatureData.attendantSignature,
+    hasSupervisorSignature: !!signatureData.supervisorSignature,
+    attendantName: signatureData.attendantName,
+  });
+
+  try {
+    // Validar que execucao existe e esta em andamento
+    const { data: execution, error: fetchError } = await supabase
+      .from('checklist_executions')
+      .select(`
+        id,
+        status,
+        template_id,
+        checklist_templates (type)
+      `)
+      .eq('id', executionId)
+      .single();
+
+    if (fetchError) {
+      logger.error('checklistService: Error fetching execution for completion', {
+        error: fetchError,
+      });
+      throw fetchError;
+    }
+
+    if (!execution) {
+      throw {
+        code: 'execution_failed',
+        message: 'Execucao nao encontrada.',
+      } as ChecklistError;
+    }
+
+    if (execution.status !== 'in_progress') {
+      throw {
+        code: 'execution_failed',
+        message: 'Esta execucao ja foi finalizada.',
+      } as ChecklistError;
+    }
+
+    const template = execution.checklist_templates as unknown as { type: string } | null;
+    if (template?.type !== 'supervision') {
+      throw {
+        code: 'validation_error',
+        message: 'Esta funcao e apenas para checklists de supervisao.',
+      } as ChecklistError;
+    }
+
+    // Validar assinaturas
+    if (!signatureData.supervisorSignature) {
+      throw {
+        code: 'validation_error',
+        message: 'Assinatura do supervisor e obrigatoria.',
+      } as ChecklistError;
+    }
+
+    if (!signatureData.attendantSignature) {
+      throw {
+        code: 'validation_error',
+        message: 'Assinatura do encarregado e obrigatoria.',
+      } as ChecklistError;
+    }
+
+    if (!signatureData.attendantName || signatureData.attendantName.trim() === '') {
+      throw {
+        code: 'validation_error',
+        message: 'Nome do encarregado e obrigatorio.',
+      } as ChecklistError;
+    }
+
+    // Verificar se ha nao-conformidades
+    const { data: answers, error: answersError } = await supabase
+      .from('checklist_answers')
+      .select('answer')
+      .eq('execution_id', executionId);
+
+    if (answersError) {
+      logger.error('checklistService: Error fetching answers', { error: answersError });
+      throw answersError;
+    }
+
+    const hasNonConformities = answers?.some((a) => a.answer === false) ?? false;
+
+    // Atualizar execucao com assinaturas
+    const { data, error } = await supabase
+      .from('checklist_executions')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        general_observations: generalObservations || null,
+        has_non_conformities: hasNonConformities,
+        supervisor_signature: signatureData.supervisorSignature,
+        attendant_signature: signatureData.attendantSignature,
+        attendant_name: signatureData.attendantName.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', executionId)
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('checklistService: Error completing supervision execution', { error });
+      throw error;
+    }
+
+    logger.info('checklistService: Supervision execution completed', {
+      executionId,
+      hasNonConformities,
+    });
+
+    return {
+      id: data.id,
+      templateId: data.template_id,
+      unitId: data.unit_id,
+      executedBy: data.executed_by,
+      startedAt: data.started_at,
+      completedAt: data.completed_at,
+      status: data.status,
+      generalObservations: data.general_observations,
+      hasNonConformities: data.has_non_conformities,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      supervisorSignature: data.supervisor_signature,
+      attendantSignature: data.attendant_signature,
+      attendantName: data.attendant_name,
+    };
+  } catch (error) {
+    logger.error('checklistService: Failed to complete supervision execution', { error });
+
+    // Re-throw if already a ChecklistError
+    if ((error as ChecklistError).code) {
+      throw error;
+    }
+
+    throw {
+      code: 'execution_failed',
+      message: 'Erro ao finalizar supervisao.',
       originalError: error as Error,
     } as ChecklistError;
   }

@@ -79,7 +79,7 @@ export function ChecklistDetailsScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <Loading size="large" text="Carregando detalhes..." />
+        <Loading size="large" />
       </SafeAreaView>
     );
   }
@@ -181,33 +181,33 @@ export function ChecklistDetailsScreen({ route, navigation }: Props) {
               </View>
               
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: themeColors.success }]}>
+                <Text style={[styles.statValue, { color: themeColors.success.DEFAULT }]}>
                   {stats.yes}
                 </Text>
                 <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
                   Conforme
                 </Text>
               </View>
-              
+
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: themeColors.destructive }]}>
+                <Text style={[styles.statValue, { color: themeColors.destructive.DEFAULT }]}>
                   {stats.no}
                 </Text>
                 <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
                   Não-conforme
                 </Text>
               </View>
-              
+
               <View style={styles.statItem}>
-                <Text 
+                <Text
                   style={[
-                    styles.statValue, 
-                    { 
-                      color: stats.percent >= 80 
-                        ? themeColors.success 
-                        : stats.percent >= 50 
-                          ? themeColors.warning 
-                          : themeColors.destructive,
+                    styles.statValue,
+                    {
+                      color: stats.percent >= 80
+                        ? themeColors.success.DEFAULT
+                        : stats.percent >= 50
+                          ? themeColors.warning.DEFAULT
+                          : themeColors.destructive.DEFAULT,
                     },
                   ]}
                 >
@@ -220,9 +220,9 @@ export function ChecklistDetailsScreen({ route, navigation }: Props) {
             </View>
 
             {execution.hasNonConformities && (
-              <View style={[styles.warningBanner, { backgroundColor: themeColors.warning + '20' }]}>
-                <Ionicons name="warning" size={20} color={themeColors.warning} />
-                <Text style={[styles.warningText, { color: themeColors.warning }]}>
+              <View style={[styles.warningBanner, { backgroundColor: themeColors.warning.DEFAULT + '20' }]}>
+                <Ionicons name="warning" size={20} color={themeColors.warning.DEFAULT} />
+                <Text style={[styles.warningText, { color: themeColors.warning.DEFAULT }]}>
                   Esta execução possui não-conformidades
                 </Text>
               </View>
@@ -239,11 +239,11 @@ export function ChecklistDetailsScreen({ route, navigation }: Props) {
           execution.answers
             .sort((a, b) => (a.question?.orderIndex || 0) - (b.question?.orderIndex || 0))
             .map((answer, index) => (
-              <Card 
-                key={answer.id} 
+              <Card
+                key={answer.id}
                 style={[
                   styles.answerCard,
-                  !answer.answer && { borderLeftWidth: 3, borderLeftColor: themeColors.destructive },
+                  !answer.answer && { borderLeftWidth: 3, borderLeftColor: themeColors.destructive.DEFAULT },
                 ]}
               >
                 <CardContent>

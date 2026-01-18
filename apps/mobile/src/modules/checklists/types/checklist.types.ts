@@ -199,3 +199,21 @@ export const CHECKLIST_ERROR_MESSAGES: Record<ChecklistErrorCode, string> = {
   unknown: 'Ocorreu um erro. Tente novamente.',
 };
 
+/**
+ * Dados de assinatura para supervisão
+ */
+export interface SupervisionSignatureData {
+  supervisorSignature: string; // base64 PNG
+  attendantSignature: string; // base64 PNG
+  attendantName: string;
+}
+
+/**
+ * Execução de supervisão com assinaturas (extensão)
+ */
+export interface SupervisionExecution extends ChecklistExecution {
+  supervisorSignature?: string | null;
+  attendantSignature?: string | null;
+  attendantName?: string | null;
+}
+

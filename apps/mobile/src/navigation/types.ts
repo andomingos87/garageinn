@@ -40,7 +40,11 @@ export type HomeStackParamList = {
 // === Checklists Stack ===
 export type ChecklistsStackParamList = {
   ChecklistsList: undefined;
-  ChecklistExecution: { checklistId: string; executionId?: string };
+  ChecklistExecution: {
+    checklistId: string;
+    executionId?: string;
+    checklistType?: 'opening' | 'supervision';
+  };
   ChecklistDetails: { executionId: string };
 };
 

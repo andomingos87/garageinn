@@ -25,3 +25,6 @@ export type { LoadingProps, SkeletonProps, LoadingSize } from './Loading';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 
+export { SignaturePad } from './SignaturePad';
+export type { SignaturePadProps } from './SignaturePad';
+

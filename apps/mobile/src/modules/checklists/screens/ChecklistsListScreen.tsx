@@ -140,7 +140,7 @@ export function ChecklistsListScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-        <Loading size="large" text="Carregando checklists..." />
+        <Loading size="large" />
       </SafeAreaView>
     );
   }
@@ -170,9 +170,9 @@ export function ChecklistsListScreen() {
 
         {/* Alerta de rascunhos pendentes */}
         {pendingDraftsCount > 0 && (
-          <Card style={[styles.draftAlert, { borderColor: themeColors.warning }]}>
+          <Card style={[styles.draftAlert, { borderColor: themeColors.warning.DEFAULT }]}>
             <CardContent style={styles.draftAlertContent}>
-              <Ionicons name="save-outline" size={24} color={themeColors.warning} />
+              <Ionicons name="save-outline" size={24} color={themeColors.warning.DEFAULT} />
               <View style={styles.draftAlertText}>
                 <Text style={[styles.draftAlertTitle, { color: colors.foreground }]}>
                   Rascunho Pendente
@@ -309,10 +309,10 @@ export function ChecklistsListScreen() {
                   <View style={styles.historyBadge}>
                     {getConformityBadge(execution)}
                     {execution.hasNonConformities && (
-                      <Ionicons 
-                        name="warning" 
-                        size={16} 
-                        color={themeColors.warning} 
+                      <Ionicons
+                        name="warning"
+                        size={16}
+                        color={themeColors.warning.DEFAULT}
                         style={styles.warningIcon}
                       />
                     )}
@@ -342,7 +342,7 @@ export function ChecklistsListScreen() {
               </Card>
               <Card style={styles.statCard}>
                 <CardContent style={styles.statContent}>
-                  <Text style={[styles.statValue, { color: themeColors.warning }]}>
+                  <Text style={[styles.statValue, { color: themeColors.warning.DEFAULT }]}>
                     {history.filter(e => e.hasNonConformities).length}
                   </Text>
                   <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>

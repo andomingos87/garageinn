@@ -127,7 +127,7 @@ export function ProfileScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <Loading size="large" text="Carregando perfil..." />
+          <Loading size="large" />
         </View>
       </SafeAreaView>
     );

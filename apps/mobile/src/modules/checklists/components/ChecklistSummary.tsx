@@ -110,33 +110,33 @@ export function ChecklistSummary({
             </View>
             
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: themeColors.success }]}>
+              <Text style={[styles.statValue, { color: themeColors.success.DEFAULT }]}>
                 {yesCount}
               </Text>
               <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
                 Conforme
               </Text>
             </View>
-            
+
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: themeColors.destructive }]}>
+              <Text style={[styles.statValue, { color: themeColors.destructive.DEFAULT }]}>
                 {noCount}
               </Text>
               <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
                 Não-conforme
               </Text>
             </View>
-            
+
             <View style={styles.statItem}>
-              <Text 
+              <Text
                 style={[
-                  styles.statValue, 
-                  { 
-                    color: conformityPercent >= 80 
-                      ? themeColors.success 
-                      : conformityPercent >= 50 
-                        ? themeColors.warning 
-                        : themeColors.destructive,
+                  styles.statValue,
+                  {
+                    color: conformityPercent >= 80
+                      ? themeColors.success.DEFAULT
+                      : conformityPercent >= 50
+                        ? themeColors.warning.DEFAULT
+                        : themeColors.destructive.DEFAULT,
                   },
                 ]}
               >
@@ -174,7 +174,7 @@ export function ChecklistSummary({
                   ]}
                 >
                   <View style={styles.nonConformityIcon}>
-                    <Ionicons name="alert-circle" size={20} color={themeColors.destructive} />
+                    <Ionicons name="alert-circle" size={20} color={themeColors.destructive.DEFAULT} />
                   </View>
                   <View style={styles.nonConformityContent}>
                     <Text style={[styles.nonConformityText, { color: colors.foreground }]}>

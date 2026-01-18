@@ -18,6 +18,7 @@ import {
   ChecklistDraft,
   ChecklistPhoto,
   ChecklistError,
+  SupervisionSignatureData,
 } from '../types/checklist.types';
 
 interface UseChecklistExecutionState {
@@ -26,17 +27,22 @@ interface UseChecklistExecutionState {
   loadingQuestions: boolean;
   submitting: boolean;
   error: ChecklistError | null;
-  
+
   // Dados do template
   template: ChecklistTemplate | null;
   questions: ChecklistQuestion[];
-  
+
   // Dados da execução
   execution: ChecklistExecution | null;
   answers: Record<string, ChecklistAnswer>;
   generalObservations: string;
   photos: ChecklistPhoto[];
-  
+
+  // Estados de assinatura (para supervisão)
+  supervisorSignature: string | null;
+  attendantSignature: string | null;
+  attendantName: string;
+
   // Estados auxiliares
   hasDraft: boolean;
   currentQuestionIndex: number;
@@ -46,31 +52,37 @@ interface UseChecklistExecutionState {
 
 interface UseChecklistExecutionActions {
   // Carregamento
-  loadTemplate: () => Promise<void>;
+  loadTemplate: (type?: 'opening' | 'supervision') => Promise<void>;
   loadDraft: () => Promise<void>;
-  
+
   // Respostas
   setAnswer: (questionId: string, answer: boolean | null, observation?: string) => void;
   setObservation: (questionId: string, observation: string) => void;
   setGeneralObservations: (observations: string) => void;
-  
+
   // Navegação
   goToQuestion: (index: number) => void;
   goToNextQuestion: () => void;
   goToPreviousQuestion: () => void;
-  
+
   // Fotos
   addPhoto: (photo: ChecklistPhoto) => void;
   removePhoto: (photoId: string) => void;
-  
+
+  // Assinaturas (para supervisão)
+  setSupervisorSignature: (signature: string | null) => void;
+  setAttendantSignature: (signature: string | null) => void;
+  setAttendantName: (name: string) => void;
+
   // Persistência
   saveDraft: () => Promise<void>;
   discardDraft: () => Promise<void>;
-  
+
   // Submissão
   validate: () => boolean;
   submit: () => Promise<ChecklistExecution | null>;
-  
+  submitSupervision: (signatureData: SupervisionSignatureData) => Promise<ChecklistExecution | null>;
+
   // Reset
   reset: () => void;
 }
@@ -97,53 +109,68 @@ export function useChecklistExecution(unitId: string): UseChecklistExecutionRetu
   const [hasDraft, setHasDraft] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  
+
+  // Estados de assinatura (para supervisão)
+  const [supervisorSignature, setSupervisorSignatureState] = useState<string | null>(null);
+  const [attendantSignature, setAttendantSignatureState] = useState<string | null>(null);
+  const [attendantName, setAttendantNameState] = useState('');
+
   // Ref para auto-save
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Carrega template de abertura para a unidade
-  const loadTemplate = useCallback(async () => {
-    if (!unitId) {
-      setLoading(false);
-      return;
-    }
-
-    logger.info('useChecklistExecution: Loading template', { unitId });
-    setLoading(true);
-    setError(null);
-
-    try {
-      const templateData = await checklistService.fetchOpeningTemplateForUnit(unitId);
-      
-      if (!templateData) {
-        setError({
-          code: 'template_not_found',
-          message: 'Nenhum template de checklist encontrado para esta unidade.',
-        });
+  // Carrega template para a unidade (abertura ou supervisão)
+  const loadTemplate = useCallback(
+    async (type: 'opening' | 'supervision' = 'opening') => {
+      if (!unitId) {
         setLoading(false);
         return;
       }
 
-      setTemplate(templateData);
-      
-      // Carrega perguntas
-      setLoadingQuestions(true);
-      const questionsData = await checklistService.fetchTemplateQuestions(templateData.id);
-      setQuestions(questionsData);
-      setLoadingQuestions(false);
-      
-      logger.info('useChecklistExecution: Template loaded', { 
-        templateId: templateData.id,
-        questionsCount: questionsData.length,
-      });
-    } catch (err) {
-      logger.error('useChecklistExecution: Failed to load template', { error: err });
-      setError(err as ChecklistError);
-    } finally {
-      setLoading(false);
-      setLoadingQuestions(false);
-    }
-  }, [unitId]);
+      logger.info('useChecklistExecution: Loading template', { unitId, type });
+      setLoading(true);
+      setError(null);
+
+      try {
+        const templateData =
+          type === 'supervision'
+            ? await checklistService.fetchSupervisionTemplateForUnit(unitId)
+            : await checklistService.fetchOpeningTemplateForUnit(unitId);
+
+        if (!templateData) {
+          setError({
+            code: 'template_not_found',
+            message:
+              type === 'supervision'
+                ? 'Nenhum template de supervisao encontrado para esta unidade.'
+                : 'Nenhum template de checklist encontrado para esta unidade.',
+          });
+          setLoading(false);
+          return;
+        }
+
+        setTemplate(templateData);
+
+        // Carrega perguntas
+        setLoadingQuestions(true);
+        const questionsData = await checklistService.fetchTemplateQuestions(templateData.id);
+        setQuestions(questionsData);
+        setLoadingQuestions(false);
+
+        logger.info('useChecklistExecution: Template loaded', {
+          templateId: templateData.id,
+          type: templateData.type,
+          questionsCount: questionsData.length,
+        });
+      } catch (err) {
+        logger.error('useChecklistExecution: Failed to load template', { error: err });
+        setError(err as ChecklistError);
+      } finally {
+        setLoading(false);
+        setLoadingQuestions(false);
+      }
+    },
+    [unitId]
+  );
 
   // Carrega rascunho existente
   const loadDraft = useCallback(async () => {
@@ -418,6 +445,92 @@ export function useChecklistExecution(unitId: string): UseChecklistExecutionRetu
     }
   }, [template, profile, unitId, answers, generalObservations, validate]);
 
+  // Setters de assinatura
+  const setSupervisorSignature = useCallback((signature: string | null) => {
+    setSupervisorSignatureState(signature);
+  }, []);
+
+  const setAttendantSignature = useCallback((signature: string | null) => {
+    setAttendantSignatureState(signature);
+  }, []);
+
+  const setAttendantName = useCallback((name: string) => {
+    setAttendantNameState(name);
+  }, []);
+
+  // Submeter execução de supervisão com assinaturas
+  const submitSupervision = useCallback(
+    async (signatureData: SupervisionSignatureData): Promise<ChecklistExecution | null> => {
+      if (!template || !profile) {
+        setError({
+          code: 'validation_error',
+          message: 'Dados incompletos para submissao.',
+        });
+        return null;
+      }
+
+      // Valida antes de submeter
+      if (!validate()) {
+        setError({
+          code: 'validation_error',
+          message: 'Preencha todas as perguntas obrigatorias.',
+        });
+        return null;
+      }
+
+      logger.info('useChecklistExecution: Submitting supervision execution', {
+        templateId: template.id,
+        unitId,
+      });
+
+      setSubmitting(true);
+      setError(null);
+
+      try {
+        // Cria execução
+        const exec = await checklistService.createExecution(template.id, unitId, profile.id);
+
+        // Salva respostas
+        const answersToSave = Object.values(answers)
+          .filter((a) => a.answer !== null && a.answer !== undefined)
+          .map((a) => ({
+            questionId: a.questionId,
+            answer: a.answer as boolean,
+            observation: a.observation || null,
+          }));
+
+        await checklistService.saveAnswers(exec.id, answersToSave);
+
+        // Finaliza execução com assinaturas
+        const completedExec = await checklistService.completeSupervisionExecution(
+          exec.id,
+          signatureData,
+          generalObservations || null
+        );
+
+        // Remove rascunho
+        await draftService.deleteDraft(template.id, unitId);
+        setHasDraft(false);
+
+        setExecution(completedExec);
+
+        logger.info('useChecklistExecution: Supervision execution completed', {
+          executionId: completedExec.id,
+          hasNonConformities: completedExec.hasNonConformities,
+        });
+
+        return completedExec;
+      } catch (err) {
+        logger.error('useChecklistExecution: Supervision submission failed', { error: err });
+        setError(err as ChecklistError);
+        return null;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [template, profile, unitId, answers, generalObservations, validate]
+  );
+
   // Reset
   const reset = useCallback(() => {
     setLoading(true);
@@ -431,6 +544,9 @@ export function useChecklistExecution(unitId: string): UseChecklistExecutionRetu
     setHasDraft(false);
     setCurrentQuestionIndex(0);
     setValidationErrors({});
+    setSupervisorSignatureState(null);
+    setAttendantSignatureState(null);
+    setAttendantNameState('');
   }, []);
 
   // Calcula se é válido para submissão
@@ -457,11 +573,14 @@ export function useChecklistExecution(unitId: string): UseChecklistExecutionRetu
     answers,
     generalObservations,
     photos,
+    supervisorSignature,
+    attendantSignature,
+    attendantName,
     hasDraft,
     currentQuestionIndex,
     isValid,
     validationErrors,
-    
+
     // Actions
     loadTemplate,
     loadDraft,
@@ -473,10 +592,14 @@ export function useChecklistExecution(unitId: string): UseChecklistExecutionRetu
     goToPreviousQuestion,
     addPhoto,
     removePhoto,
+    setSupervisorSignature,
+    setAttendantSignature,
+    setAttendantName,
     saveDraft,
     discardDraft,
     validate,
     submit,
+    submitSupervision,
     reset,
   };
 }

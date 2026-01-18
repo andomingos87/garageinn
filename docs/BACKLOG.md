@@ -768,7 +768,7 @@
   - [x] Subtarefa: Upload de fotos (PhotoPicker.tsx com camera e galeria via expo-image-picker)
 - [x] Tarefa 4.3.2: Checklist de supervisao
   - [x] Subtarefa: Tipos variados de perguntas (ChecklistsListScreen permite iniciar abertura ou supervisao)
-  - [ ] Subtarefa: Assinatura do encarregado ⚠️ NAO IMPLEMENTADO (estrutura pronta mas sem componente de assinatura)
+  - [x] Subtarefa: Assinatura do encarregado ✅ IMPLEMENTADO (SignaturePad.tsx, SupervisionSummary.tsx, completeSupervisionExecution)
 
 ### Épico 4.4 — Notificacoes e Publicacao ⚠️
 **Contexto**: preparar push e publicar apps.

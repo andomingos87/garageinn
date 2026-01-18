@@ -8,5 +8,6 @@ export { UnitSelector } from './UnitSelector';
 export { QuestionCard } from './QuestionCard';
 export { ChecklistProgress } from './ChecklistProgress';
 export { ChecklistSummary } from './ChecklistSummary';
+export { SupervisionSummary } from './SupervisionSummary';
 export { PhotoPicker } from './PhotoPicker';
 

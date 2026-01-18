@@ -126,7 +126,7 @@ export function PhotoPicker({
         
         {photo.uploadStatus === 'uploaded' && (
           <View style={styles.uploadedBadge}>
-            <Ionicons name="checkmark-circle" size={16} color={themeColors.success} />
+            <Ionicons name="checkmark-circle" size={16} color={themeColors.success.DEFAULT} />
           </View>
         )}
 
@@ -137,7 +137,7 @@ export function PhotoPicker({
             onPress={() => handleRemovePhoto(photo.id)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="close-circle" size={22} color={themeColors.destructive} />
+            <Ionicons name="close-circle" size={22} color={themeColors.destructive.DEFAULT} />
           </TouchableOpacity>
         )}
       </TouchableOpacity>
