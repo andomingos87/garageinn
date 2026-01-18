@@ -8,6 +8,7 @@ import {
   Settings,
   ShieldCheck,
   Users,
+  Wallet,
   LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -48,6 +49,14 @@ const menuItems: MenuItem[] = [
     title: "Chamados",
     href: "/chamados",
     icon: MessageSquareMore,
+  },
+  {
+    title: "Financeiro",
+    href: "/chamados/financeiro",
+    icon: Wallet,
+    // Visível para quem pode ler tickets ou admins
+    requirePermission: ["tickets:read", "admin:all"],
+    permissionMode: "any",
   },
   {
     title: "Checklists",

@@ -237,16 +237,178 @@
 
 ## 4. Fase 3 — Entrega 3 (Financeiro, Configuracoes, Relatorios) ⚠️
 
-### Épico 3.1 — Chamados Financeiros ⚠️
+### Épico 3.1 — Chamados Financeiros ✅
 **Contexto**: fluxo padrao com prioridade e triagem.
-**Status**: NAO IMPLEMENTADO (verificado em 2026-01-18) - Nao existe rota /chamados/financeiro
+**Status**: COMPLETO (implementado em 2026-01-18) - Rota /chamados/financeiro funcional
 
-- [ ] Tarefa 3.1.1: Abertura e listagem
-  - [ ] Subtarefa: Formulario com categoria financeira ⚠️ NAO EXISTE
-  - [ ] Subtarefa: Filtros e busca ⚠️ NAO EXISTE
-- [ ] Tarefa 3.1.2: Triagem e execucao
-  - [ ] Subtarefa: Definir prioridade e responsavel ⚠️ NAO EXISTE
-  - [ ] Subtarefa: Mudanca de status ⚠️ NAO EXISTE
+- [x] Tarefa 3.1.1: Abertura e listagem
+  - [x] Subtarefa: Formulario com categoria financeira ✅ financeiro-form.tsx com validacao Zod
+  - [x] Subtarefa: Filtros e busca ✅ financeiro-filters.tsx com status, prioridade, categoria, unidade
+- [x] Tarefa 3.1.2: Triagem e execucao
+  - [x] Subtarefa: Definir prioridade e responsavel ✅ financeiro-triage-dialog.tsx
+  - [x] Subtarefa: Mudanca de status ✅ financeiro-actions.tsx com transicoes validas
+
+#### Critérios de Aceite - Épico 3.1
+
+##### Tarefa 3.1.1: Abertura e Listagem
+
+**Subtarefa: Formulário com categoria financeira**
+
+**Critérios de Aceite:**
+1. **Rota e Navegação**
+   - [x] Existe rota `/chamados/financeiro` acessível via menu lateral
+   - [x] Existe rota `/chamados/financeiro/novo` para criação de chamado
+   - [x] Menu lateral exibe "Financeiro" quando usuário tem permissão `tickets:read` para departamento Financeiro
+   - [x] Botão "Novo Chamado" redireciona para `/chamados/financeiro/novo`
+
+2. **Formulário de Abertura**
+   - [x] Formulário exibe todos os campos obrigatórios:
+     - Título (texto, obrigatório, mínimo 5 caracteres)
+     - Categoria (select, obrigatório, carrega categorias do departamento Financeiro)
+     - Unidade(s) (select, opcional, carrega unidades do usuário conforme RBAC)
+     - Descrição/Justificativa (textarea, obrigatório, mínimo 10 caracteres)
+     - Valor Estimado (input numérico, opcional)
+   - [x] Categorias disponíveis são as definidas no seed:
+     - Pagamento a Fornecedor
+     - Reembolso
+     - Nota Fiscal
+     - Cobrança
+     - Conciliação
+     - Relatório Financeiro
+     - Outros
+   - [x] Validação client-side e server-side funcionam corretamente
+   - [x] Mensagens de erro são claras e específicas
+   - [x] Após submissão bem-sucedida, redireciona para `/chamados/financeiro/[ticketId]`
+
+3. **Criação do Chamado**
+   - [x] Chamado é criado com status `awaiting_triage` ou `awaiting_approval_*` (se valor alto)
+   - [x] Número do chamado é gerado automaticamente (formato: FIN-XXXX)
+   - [x] Departamento destinatário é automaticamente "Financeiro"
+   - [x] Autor do chamado é o usuário logado
+   - [x] Histórico inicial é registrado em `ticket_history`
+   - [x] RLS (Row Level Security) aplica corretamente as políticas de visibilidade
+
+4. **Aprovações (quando aplicável)**
+   - [x] Se chamado tiver valor >= R$ 10.000, segue fluxo de aprovação (Encarregado → Supervisor → Gerente)
+   - [x] Se não houver aprovação necessária, vai direto para `awaiting_triage`
+
+**Subtarefa: Filtros e Busca**
+
+**Critérios de Aceite:**
+1. **Listagem de Chamados**
+   - [x] Página `/chamados/financeiro` exibe lista de chamados do departamento Financeiro
+   - [x] Lista mostra informações essenciais: número, título, status, prioridade, unidade, responsável, data de criação
+   - [x] Ordenação padrão é por data de criação (mais recente primeiro)
+   - [x] Paginação funciona corretamente (10 itens por página)
+   - [x] Contador total de chamados é exibido
+
+2. **Filtros Disponíveis**
+   - [x] Filtro por Status (dropdown): Todos, Aguardando Triagem, Priorizado, Em Andamento, Resolvido, Fechado, Negado, Cancelado
+   - [x] Filtro por Prioridade (dropdown): Todas, Baixa, Média, Alta, Urgente
+   - [x] Filtro por Categoria (dropdown): Todas + categorias ativas do Financeiro
+   - [x] Filtro por Unidade (dropdown): Todas + unidades visíveis ao usuário (conforme RBAC)
+   - [x] Botão "Limpar Filtros" reseta todos os filtros
+
+3. **Busca**
+   - [x] Campo de busca permite pesquisar por:
+     - Número do chamado (ex: "FIN-123" ou "123")
+     - Título do chamado (busca parcial, case-insensitive)
+   - [x] Busca funciona em conjunto com os filtros
+   - [x] Resultados são atualizados ao aplicar filtros/busca
+   - [x] Mensagem "Nenhum chamado encontrado" quando não há resultados
+
+4. **Estatísticas**
+   - [x] Cards de estatísticas exibem:
+     - Total de chamados abertos
+     - Chamados aguardando triagem
+     - Chamados em andamento
+     - Chamados resolvidos (últimos 30 dias)
+   - [x] Estatísticas são calculadas conforme visibilidade do usuário (RBAC)
+
+5. **Permissões e Visibilidade**
+   - [x] Usuários veem apenas chamados conforme regras RBAC (via RLS existente)
+   - [x] RLS aplica corretamente as políticas de visibilidade
+
+##### Tarefa 3.1.2: Triagem e Execução
+
+**Subtarefa: Definir Prioridade e Responsável**
+
+**Critérios de Aceite:**
+1. **Permissões de Triagem**
+   - [x] Apenas Gerentes e Supervisores do departamento Financeiro podem triar chamados
+   - [x] Usuários sem permissão não veem botão/opção de triagem
+   - [x] Verificação server-side bloqueia tentativas não autorizadas
+
+2. **Dialog/Modal de Triagem**
+   - [x] Dialog de triagem é exibido ao clicar em "Triar Chamado"
+   - [x] Campos do formulário de triagem:
+     - Prioridade (select obrigatório): Baixa, Média, Alta, Urgente
+     - Responsável (select opcional): lista membros do departamento Financeiro
+     - Previsão de Conclusão (date picker, opcional)
+   - [x] Validação impede submissão sem prioridade
+
+3. **Processo de Triagem**
+   - [x] Ao triar, status muda de `awaiting_triage` para `prioritized`
+   - [x] Prioridade oficial é definida
+   - [x] Responsável é atribuído ao chamado (se selecionado)
+   - [x] Previsão de conclusão é salva (se informada)
+   - [x] Histórico registra ação de triagem em `ticket_history`
+   - [x] Após triagem, chamado sai da lista "Aguardando Triagem"
+
+4. **Negação na Triagem**
+   - [x] Opção de negar chamado via botões de status
+   - [x] Justificativa é obrigatória ao negar (deny reason dialog)
+   - [x] Status muda para `denied`
+
+**Subtarefa: Mudança de Status**
+
+**Critérios de Aceite:**
+1. **Transições de Status Permitidas**
+   - [x] Transições seguem o fluxo definido em constants.ts:
+     - `awaiting_approval_*` → fluxo de aprovação multi-nível
+     - `awaiting_triage` → `prioritized`, `in_progress`, `denied`
+     - `prioritized` → `in_progress`, `denied`, `cancelled`
+     - `in_progress` → `resolved`, `denied`, `cancelled`
+     - `resolved` → `closed`
+     - `closed` → (sem transições)
+     - `cancelled` → (sem transições)
+   - [x] Apenas transições válidas são permitidas (validação client e server-side)
+
+2. **Permissões para Mudança de Status**
+   - [x] Responsável pelo chamado pode alterar status
+   - [x] Gerentes/Admins podem alterar status de qualquer chamado
+   - [x] Autor pode cancelar chamado via botão
+
+3. **Interface de Mudança de Status**
+   - [x] Botões de ações de status são exibidos conforme estado atual
+   - [x] Apenas transições permitidas são mostradas
+   - [x] Confirmação via dialog para ações críticas (negar, cancelar)
+   - [x] Campo de justificativa é obrigatório para negação e cancelamento
+
+4. **Registro de Histórico**
+   - [x] Toda mudança de status é registrada em `ticket_history`
+   - [x] Histórico inclui: usuário, data/hora, ação, status anterior, novo status
+   - [x] Histórico é visível na página de detalhes do chamado (Timeline)
+
+5. **Comentários**
+   - [x] Usuários podem adicionar comentários em qualquer momento
+   - [x] Comentários são exibidos em lista cronológica
+
+6. **Detalhes do Chamado**
+   - [x] Página `/chamados/financeiro/[ticketId]` exibe:
+     - Informações completas do chamado (FinanceiroInfo)
+     - Status atual com badge colorido (FinanceiroHeader)
+     - Prioridade oficial
+     - Responsável atribuído
+     - Histórico de mudanças (FinanceiroTimeline)
+     - Comentários (FinanceiroComments)
+     - Ações disponíveis (FinanceiroActions, FinanceiroTriageDialog)
+     - Fluxo de Aprovação quando aplicável (FinanceiroApprovals)
+   - [x] Layout é responsivo e segue design system
+
+7. **Validações e Regras de Negócio**
+   - [x] Chamado não pode ser fechado sem estar resolvido (validação de transição)
+   - [x] Transições de status são validadas server-side
 
 ### Épico 3.2 — Configuracoes do sistema ✅
 **Contexto**: parametros gerais e cadastros base.
