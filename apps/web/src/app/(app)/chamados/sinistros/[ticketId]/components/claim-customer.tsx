@@ -1,27 +1,28 @@
-'use client'
+"use client";
 
-import { User, Phone, Mail, CreditCard } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { User, Phone, Mail, CreditCard } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ClaimCustomerProps {
   claimDetails: {
-    customer_name: string | null
-    customer_phone: string | null
-    customer_email: string | null
-    customer_cpf: string | null
-  } | null
+    customer_name: string | null;
+    customer_phone: string | null;
+    customer_email: string | null;
+    customer_cpf: string | null;
+  } | null;
 }
 
 export function ClaimCustomer({ claimDetails }: ClaimCustomerProps) {
-  if (!claimDetails) return null
-  
-  const { customer_name, customer_phone, customer_email, customer_cpf } = claimDetails
-  
+  if (!claimDetails) return null;
+
+  const { customer_name, customer_phone, customer_email, customer_cpf } =
+    claimDetails;
+
   // Se não tem dados do cliente, não renderiza
   if (!customer_name && !customer_phone && !customer_email && !customer_cpf) {
-    return null
+    return null;
   }
-  
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -41,7 +42,7 @@ export function ClaimCustomer({ claimDetails }: ClaimCustomerProps) {
               <p className="font-medium">{customer_name}</p>
             </div>
           )}
-          
+
           {customer_phone && (
             <div>
               <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -49,8 +50,8 @@ export function ClaimCustomer({ claimDetails }: ClaimCustomerProps) {
                 Telefone
               </p>
               <p className="font-medium">
-                <a 
-                  href={`tel:${customer_phone.replace(/\D/g, '')}`}
+                <a
+                  href={`tel:${customer_phone.replace(/\D/g, "")}`}
                   className="hover:underline text-primary"
                 >
                   {customer_phone}
@@ -58,7 +59,7 @@ export function ClaimCustomer({ claimDetails }: ClaimCustomerProps) {
               </p>
             </div>
           )}
-          
+
           {customer_email && (
             <div>
               <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -66,7 +67,7 @@ export function ClaimCustomer({ claimDetails }: ClaimCustomerProps) {
                 E-mail
               </p>
               <p className="font-medium">
-                <a 
+                <a
                   href={`mailto:${customer_email}`}
                   className="hover:underline text-primary"
                 >
@@ -75,7 +76,7 @@ export function ClaimCustomer({ claimDetails }: ClaimCustomerProps) {
               </p>
             </div>
           )}
-          
+
           {customer_cpf && (
             <div>
               <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -88,6 +89,5 @@ export function ClaimCustomer({ claimDetails }: ClaimCustomerProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-

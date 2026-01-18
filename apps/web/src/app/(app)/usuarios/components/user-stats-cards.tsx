@@ -1,19 +1,33 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Users, UserCheck, Clock, UserX, AlertCircle, Send } from 'lucide-react'
-import type { UsersStats } from '../actions'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Users,
+  UserCheck,
+  Clock,
+  UserX,
+  AlertCircle,
+  Send,
+} from "lucide-react";
+import type { UsersStats } from "../actions";
 
 interface ExtendedStats extends UsersStats {
-  invitationPending?: number
-  invitationExpired?: number
+  invitationPending?: number;
+  invitationExpired?: number;
 }
 
 interface UserStatsCardsProps {
-  stats: ExtendedStats
+  stats: ExtendedStats;
 }
 
 export function UserStatsCards({ stats }: UserStatsCardsProps) {
-  const hasInvitationStats = stats.invitationPending !== undefined || stats.invitationExpired !== undefined
+  const hasInvitationStats =
+    stats.invitationPending !== undefined ||
+    stats.invitationExpired !== undefined;
 
   return (
     <div className="grid gap-4 md:grid-cols-4">
@@ -50,7 +64,9 @@ export function UserStatsCards({ stats }: UserStatsCardsProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-warning">{stats.pending}</span>
+            <span className="text-2xl font-bold text-warning">
+              {stats.pending}
+            </span>
             {hasInvitationStats && (stats.invitationExpired ?? 0) > 0 && (
               <TooltipProvider>
                 <Tooltip>
@@ -84,10 +100,11 @@ export function UserStatsCards({ stats }: UserStatsCardsProps) {
           <UserX className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-muted-foreground">{stats.inactive}</div>
+          <div className="text-2xl font-bold text-muted-foreground">
+            {stats.inactive}
+          </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

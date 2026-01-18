@@ -1,46 +1,51 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Loader2, Save, Eye, EyeOff } from 'lucide-react'
-import { toast } from 'sonner'
-import { updateEmailSettings } from '../actions'
-import type { SystemSettingsMap } from '../actions'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Save, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import { updateEmailSettings } from "../actions";
+import type { SystemSettingsMap } from "../actions";
 
 interface EmailSettingsFormProps {
-  settings: SystemSettingsMap
-  onUpdate: () => void
+  settings: SystemSettingsMap;
+  onUpdate: () => void;
 }
 
-export function EmailSettingsForm({ settings, onUpdate }: EmailSettingsFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+export function EmailSettingsForm({
+  settings,
+  onUpdate,
+}: EmailSettingsFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [smtpHost, setSmtpHost] = useState(settings.email_smtp_host || '')
-  const [smtpPort, setSmtpPort] = useState(settings.email_smtp_port.toString())
-  const [smtpUser, setSmtpUser] = useState(settings.email_smtp_user || '')
-  const [smtpFrom, setSmtpFrom] = useState(settings.email_smtp_from || '')
-  const [smtpFromName, setSmtpFromName] = useState(settings.email_smtp_from_name)
+  const [smtpHost, setSmtpHost] = useState(settings.email_smtp_host || "");
+  const [smtpPort, setSmtpPort] = useState(settings.email_smtp_port.toString());
+  const [smtpUser, setSmtpUser] = useState(settings.email_smtp_user || "");
+  const [smtpFrom, setSmtpFrom] = useState(settings.email_smtp_from || "");
+  const [smtpFromName, setSmtpFromName] = useState(
+    settings.email_smtp_from_name
+  );
 
   const hasChanges =
-    smtpHost !== (settings.email_smtp_host || '') ||
+    smtpHost !== (settings.email_smtp_host || "") ||
     smtpPort !== settings.email_smtp_port.toString() ||
-    smtpUser !== (settings.email_smtp_user || '') ||
-    smtpFrom !== (settings.email_smtp_from || '') ||
-    smtpFromName !== settings.email_smtp_from_name
+    smtpUser !== (settings.email_smtp_user || "") ||
+    smtpFrom !== (settings.email_smtp_from || "") ||
+    smtpFromName !== settings.email_smtp_from_name;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const port = parseInt(smtpPort, 10)
+    const port = parseInt(smtpPort, 10);
     if (isNaN(port) || port < 1 || port > 65535) {
-      toast.error('Porta SMTP inválida')
-      return
+      toast.error("Porta SMTP inválida");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const result = await updateEmailSettings({
         email_smtp_host: smtpHost.trim() || null,
@@ -48,21 +53,21 @@ export function EmailSettingsForm({ settings, onUpdate }: EmailSettingsFormProps
         email_smtp_user: smtpUser.trim() || null,
         email_smtp_from: smtpFrom.trim() || null,
         email_smtp_from_name: smtpFromName.trim(),
-      })
+      });
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Configurações de email atualizadas com sucesso')
-        onUpdate()
+        toast.success("Configurações de email atualizadas com sucesso");
+        onUpdate();
       }
     } catch (error) {
-      console.error('Error updating email settings:', error)
-      toast.error('Erro ao atualizar configurações de email')
+      console.error("Error updating email settings:", error);
+      toast.error("Erro ao atualizar configurações de email");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -95,7 +100,7 @@ export function EmailSettingsForm({ settings, onUpdate }: EmailSettingsFormProps
           <div className="relative">
             <Input
               id="smtp_user"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               value={smtpUser}
               onChange={(e) => setSmtpUser(e.target.value)}
               placeholder="usuario@exemplo.com"
@@ -149,6 +154,5 @@ export function EmailSettingsForm({ settings, onUpdate }: EmailSettingsFormProps
         </Button>
       </div>
     </form>
-  )
+  );
 }
-

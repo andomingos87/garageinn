@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,16 +8,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,16 +27,23 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { MoreHorizontal, Pencil, Trash2, Package, AlertTriangle, PackageMinus } from 'lucide-react'
-import type { Uniform } from '../actions'
+} from "@/components/ui/alert-dialog";
+import {
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Package,
+  AlertTriangle,
+  PackageMinus,
+} from "lucide-react";
+import type { Uniform } from "../actions";
 
 interface UniformTableProps {
-  uniforms: Uniform[]
-  onEdit: (uniform: Uniform) => void
-  onDelete: (uniformId: string) => void
-  onAdjustStock: (uniform: Uniform) => void
-  isLoading?: boolean
+  uniforms: Uniform[];
+  onEdit: (uniform: Uniform) => void;
+  onDelete: (uniformId: string) => void;
+  onAdjustStock: (uniform: Uniform) => void;
+  isLoading?: boolean;
 }
 
 export function UniformTable({
@@ -46,14 +53,14 @@ export function UniformTable({
   onAdjustStock,
   isLoading,
 }: UniformTableProps) {
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleDelete = () => {
     if (deleteId) {
-      onDelete(deleteId)
-      setDeleteId(null)
+      onDelete(deleteId);
+      setDeleteId(null);
     }
-  }
+  };
 
   const getStockBadge = (uniform: Uniform) => {
     if (uniform.current_stock === 0) {
@@ -62,23 +69,26 @@ export function UniformTable({
           <PackageMinus className="h-3 w-3" />
           Sem estoque
         </Badge>
-      )
+      );
     }
     if (uniform.current_stock <= uniform.min_stock) {
       return (
-        <Badge variant="outline" className="gap-1 border-yellow-500 text-yellow-600 bg-yellow-50">
+        <Badge
+          variant="outline"
+          className="gap-1 border-yellow-500 text-yellow-600 bg-yellow-50"
+        >
           <AlertTriangle className="h-3 w-3" />
           Estoque baixo
         </Badge>
-      )
+      );
     }
     return (
       <Badge variant="secondary" className="gap-1">
         <Package className="h-3 w-3" />
         OK
       </Badge>
-    )
-  }
+    );
+  };
 
   if (uniforms.length === 0) {
     return (
@@ -91,7 +101,7 @@ export function UniformTable({
           Comece cadastrando os itens de uniforme do estoque.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -119,8 +129,8 @@ export function UniformTable({
                   </p>
                 )}
               </TableCell>
-              <TableCell>{uniform.type || '-'}</TableCell>
-              <TableCell>{uniform.size || '-'}</TableCell>
+              <TableCell>{uniform.type || "-"}</TableCell>
+              <TableCell>{uniform.size || "-"}</TableCell>
               <TableCell className="text-center font-semibold">
                 {uniform.current_stock}
               </TableCell>
@@ -160,23 +170,29 @@ export function UniformTable({
         </TableBody>
       </Table>
 
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir uniforme?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Uniformes com transações não podem ser excluídos.
+              Esta ação não pode ser desfeita. Uniformes com transações não
+              podem ser excluídos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
-

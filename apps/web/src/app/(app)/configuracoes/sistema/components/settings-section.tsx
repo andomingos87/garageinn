@@ -1,13 +1,19 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { LucideIcon } from 'lucide-react'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import type { LucideIcon } from "lucide-react";
 
 interface SettingsSectionProps {
-  title: string
-  description: string
-  icon: LucideIcon
-  children: React.ReactNode
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  children: React.ReactNode;
 }
 
 export function SettingsSection({
@@ -31,6 +37,5 @@ export function SettingsSection({
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
-  )
+  );
 }
-

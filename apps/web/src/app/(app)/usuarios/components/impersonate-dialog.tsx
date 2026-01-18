@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,18 +10,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { UserCog, Loader2, AlertTriangle } from 'lucide-react'
-import { impersonateUser } from '@/lib/services/impersonation-service'
-import { toast } from 'sonner'
+} from "@/components/ui/alert-dialog";
+import { UserCog, Loader2, AlertTriangle } from "lucide-react";
+import { impersonateUser } from "@/lib/services/impersonation-service";
+import { toast } from "sonner";
 
 interface ImpersonateDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  userId: string
-  userName: string
-  userEmail: string
-  currentUserId: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  currentUserId: string;
 }
 
 export function ImpersonateDialog({
@@ -32,18 +32,20 @@ export function ImpersonateDialog({
   userEmail,
   currentUserId,
 }: ImpersonateDialogProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleImpersonate() {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await impersonateUser(userId, currentUserId)
-      toast.success(`Entrando como ${userName}...`)
+      const result = await impersonateUser(userId, currentUserId);
+      toast.success(`Entrando como ${userName}...`);
       // Redirecionar para o magic link
-      window.location.href = result.link
+      window.location.href = result.link;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erro ao personificar usuário')
-      setIsLoading(false)
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao personificar usuário"
+      );
+      setIsLoading(false);
     }
   }
 
@@ -57,9 +59,7 @@ export function ImpersonateDialog({
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-4">
-              <p>
-                Você está prestes a entrar na sessão de:
-              </p>
+              <p>Você está prestes a entrar na sessão de:</p>
               <div className="rounded-lg border bg-muted/50 p-3">
                 <p className="font-medium text-foreground">{userName}</p>
                 <p className="text-sm text-muted-foreground">{userEmail}</p>
@@ -69,8 +69,9 @@ export function ImpersonateDialog({
                 <div className="text-sm text-amber-800 dark:text-amber-200">
                   <p className="font-medium">Atenção</p>
                   <p className="mt-1">
-                    Isso permite visualizar o sistema como este usuário para fins de suporte.
-                    Um banner será exibido indicando que você está em modo de personificação.
+                    Isso permite visualizar o sistema como este usuário para
+                    fins de suporte. Um banner será exibido indicando que você
+                    está em modo de personificação.
                   </p>
                 </div>
               </div>
@@ -79,8 +80,8 @@ export function ImpersonateDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={handleImpersonate} 
+          <AlertDialogAction
+            onClick={handleImpersonate}
             disabled={isLoading}
             className="bg-primary hover:bg-primary/90"
           >
@@ -99,6 +100,5 @@ export function ImpersonateDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
-

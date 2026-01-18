@@ -41,7 +41,8 @@ export function useImpersonation() {
       }
 
       // Validate if current user matches saved state
-      const isCurrentlyImpersonating = user.id === savedState.impersonatedUserId;
+      const isCurrentlyImpersonating =
+        user.id === savedState.impersonatedUserId;
       const isOriginalAdmin = user.id === savedState.originalUserId;
 
       // If current user doesn't match any of the saved IDs, it's an orphan state
@@ -73,4 +74,3 @@ export function useImpersonation() {
     exitImpersonation,
   };
 }
-

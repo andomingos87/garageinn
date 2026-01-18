@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useState } from "react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -13,7 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +23,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog";
 import {
   CheckCircle2,
   Clock,
@@ -31,105 +31,117 @@ import {
   Eye,
   Trash2,
   Building2,
-} from 'lucide-react'
-import { deleteExecutions } from '../actions'
-import type { ExecutionWithDetails } from '../actions'
+} from "lucide-react";
+import { deleteExecutions } from "../actions";
+import type { ExecutionWithDetails } from "../actions";
 
 interface ExecutionsTableProps {
-  executions: ExecutionWithDetails[]
-  isAdmin: boolean
+  executions: ExecutionWithDetails[];
+  isAdmin: boolean;
 }
 
 export function ExecutionsTable({ executions, isAdmin }: ExecutionsTableProps) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-  }
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
+    return new Date(dateString).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const getInitials = (name: string | null) => {
-    if (!name) return '??'
+    if (!name) return "??";
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
-      .slice(0, 2)
-  }
+      .slice(0, 2);
+  };
 
-  const getStatusBadge = (status: string, hasNonConformities: boolean | null) => {
-    if (status === 'completed') {
+  const getStatusBadge = (
+    status: string,
+    hasNonConformities: boolean | null
+  ) => {
+    if (status === "completed") {
       if (hasNonConformities) {
         return (
-          <Badge variant="outline" className="text-warning border-warning/30 bg-warning/10">
+          <Badge
+            variant="outline"
+            className="text-warning border-warning/30 bg-warning/10"
+          >
             <AlertTriangle className="mr-1 h-3 w-3" />
             Com pendências
           </Badge>
-        )
+        );
       }
       return (
-        <Badge variant="default" className="bg-success/10 text-success border-success/20">
+        <Badge
+          variant="default"
+          className="bg-success/10 text-success border-success/20"
+        >
           <CheckCircle2 className="mr-1 h-3 w-3" />
           Concluído
         </Badge>
-      )
+      );
     }
     return (
-      <Badge variant="secondary" className="bg-info/10 text-info border-info/20">
+      <Badge
+        variant="secondary"
+        className="bg-info/10 text-info border-info/20"
+      >
         <Clock className="mr-1 h-3 w-3" />
         Em andamento
       </Badge>
-    )
-  }
+    );
+  };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(executions.map((e) => e.id)))
+      setSelectedIds(new Set(executions.map((e) => e.id)));
     } else {
-      setSelectedIds(new Set())
+      setSelectedIds(new Set());
     }
-  }
+  };
 
   const handleSelectOne = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedIds)
+    const newSelected = new Set(selectedIds);
     if (checked) {
-      newSelected.add(id)
+      newSelected.add(id);
     } else {
-      newSelected.delete(id)
+      newSelected.delete(id);
     }
-    setSelectedIds(newSelected)
-  }
+    setSelectedIds(newSelected);
+  };
 
   const handleDeleteSelected = async () => {
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
-      const result = await deleteExecutions(Array.from(selectedIds))
+      const result = await deleteExecutions(Array.from(selectedIds));
       if (result.error) {
-        alert(result.error)
+        alert(result.error);
       } else {
-        setSelectedIds(new Set())
+        setSelectedIds(new Set());
       }
     } catch (error) {
-      console.error('Error deleting executions:', error)
-      alert('Erro ao excluir execuções')
+      console.error("Error deleting executions:", error);
+      alert("Erro ao excluir execuções");
     } finally {
-      setIsDeleting(false)
-      setShowDeleteDialog(false)
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
-  }
+  };
 
   if (executions.length === 0) {
     return (
@@ -142,11 +154,13 @@ export function ExecutionsTable({ executions, isAdmin }: ExecutionsTableProps) {
           Ajuste os filtros ou execute novos checklists
         </p>
       </div>
-    )
+    );
   }
 
-  const isAllSelected = executions.length > 0 && selectedIds.size === executions.length
-  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < executions.length
+  const isAllSelected =
+    executions.length > 0 && selectedIds.size === executions.length;
+  const isSomeSelected =
+    selectedIds.size > 0 && selectedIds.size < executions.length;
 
   return (
     <>
@@ -154,7 +168,8 @@ export function ExecutionsTable({ executions, isAdmin }: ExecutionsTableProps) {
       {isAdmin && selectedIds.size > 0 && (
         <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3 mb-4">
           <span className="text-sm">
-            {selectedIds.size} {selectedIds.size === 1 ? 'item selecionado' : 'itens selecionados'}
+            {selectedIds.size}{" "}
+            {selectedIds.size === 1 ? "item selecionado" : "itens selecionados"}
           </span>
           <Button
             variant="destructive"
@@ -178,14 +193,18 @@ export function ExecutionsTable({ executions, isAdmin }: ExecutionsTableProps) {
                   checked={isAllSelected}
                   onCheckedChange={handleSelectAll}
                   aria-label="Selecionar todos"
-                  className={isSomeSelected ? 'data-[state=checked]:bg-primary/50' : ''}
+                  className={
+                    isSomeSelected ? "data-[state=checked]:bg-primary/50" : ""
+                  }
                 />
               </TableHead>
             )}
             <TableHead>Data/Hora</TableHead>
             <TableHead>Unidade</TableHead>
             <TableHead className="hidden md:table-cell">Template</TableHead>
-            <TableHead className="hidden lg:table-cell">Executado por</TableHead>
+            <TableHead className="hidden lg:table-cell">
+              Executado por
+            </TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="hidden sm:table-cell">Não-Conf.</TableHead>
             <TableHead className="w-[80px]">Ações</TableHead>
@@ -206,27 +225,37 @@ export function ExecutionsTable({ executions, isAdmin }: ExecutionsTableProps) {
                 </TableCell>
               )}
               <TableCell>
-                <div className="font-medium">{formatDate(execution.started_at)}</div>
-                <div className="text-sm text-muted-foreground">{formatTime(execution.started_at)}</div>
+                <div className="font-medium">
+                  {formatDate(execution.started_at)}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {formatTime(execution.started_at)}
+                </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <div>
                     <div className="font-medium">{execution.unit_name}</div>
-                    <div className="text-sm text-muted-foreground">{execution.unit_code}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {execution.unit_code}
+                    </div>
                   </div>
                 </div>
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 <div className="text-sm">{execution.template_name}</div>
                 <Badge variant="outline" className="text-xs mt-1">
-                  {execution.template_type === 'opening' ? 'Abertura' : 'Supervisão'}
+                  {execution.template_type === "opening"
+                    ? "Abertura"
+                    : "Supervisão"}
                 </Badge>
               </TableCell>
               <TableCell className="hidden lg:table-cell">
                 <div className="flex items-center gap-2">
                   <Avatar className="h-7 w-7">
-                    <AvatarImage src={execution.executed_by_avatar || undefined} />
+                    <AvatarImage
+                      src={execution.executed_by_avatar || undefined}
+                    />
                     <AvatarFallback className="text-xs">
                       {getInitials(execution.executed_by_name)}
                     </AvatarFallback>
@@ -237,11 +266,18 @@ export function ExecutionsTable({ executions, isAdmin }: ExecutionsTableProps) {
                 </div>
               </TableCell>
               <TableCell>
-                {getStatusBadge(execution.status, execution.has_non_conformities)}
+                {getStatusBadge(
+                  execution.status,
+                  execution.has_non_conformities
+                )}
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                {execution.non_conformities_count && execution.non_conformities_count > 0 ? (
-                  <Badge variant="destructive" className="bg-destructive/10 text-destructive">
+                {execution.non_conformities_count &&
+                execution.non_conformities_count > 0 ? (
+                  <Badge
+                    variant="destructive"
+                    className="bg-destructive/10 text-destructive"
+                  >
                     {execution.non_conformities_count}
                   </Badge>
                 ) : (
@@ -267,25 +303,28 @@ export function ExecutionsTable({ executions, isAdmin }: ExecutionsTableProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir execuções?</AlertDialogTitle>
             <AlertDialogDescription>
-              Você está prestes a excluir {selectedIds.size}{' '}
-              {selectedIds.size === 1 ? 'execução' : 'execuções'} de checklist.
+              Você está prestes a excluir {selectedIds.size}{" "}
+              {selectedIds.size === 1 ? "execução" : "execuções"} de checklist.
               <br />
-              <strong className="text-destructive">Esta ação não pode ser desfeita.</strong>
+              <strong className="text-destructive">
+                Esta ação não pode ser desfeita.
+              </strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteSelected}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Excluindo...' : 'Excluir'}
+              {isDeleting ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
-

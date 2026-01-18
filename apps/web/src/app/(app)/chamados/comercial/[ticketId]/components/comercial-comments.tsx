@@ -1,53 +1,61 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
-import { MessageSquare, Send, Loader2 } from 'lucide-react'
-import { addComercialTicketComment } from '../../actions'
+import { useState, useTransition } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { MessageSquare, Send, Loader2 } from "lucide-react";
+import { addComercialTicketComment } from "../../actions";
 
 interface Comment {
-  id: string
-  content: string
-  is_internal: boolean
-  created_at: string
+  id: string;
+  content: string;
+  is_internal: boolean;
+  created_at: string;
   user?: {
-    id: string
-    full_name: string
-    avatar_url: string | null
-  } | null
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
 }
 
 interface ComercialCommentsProps {
-  ticketId: string
-  comments: Comment[]
-  canManage: boolean
+  ticketId: string;
+  comments: Comment[];
+  canManage: boolean;
 }
 
-export function ComercialComments({ ticketId, comments, canManage }: ComercialCommentsProps) {
-  const [content, setContent] = useState('')
-  const [isInternal, setIsInternal] = useState(false)
-  const [isPending, startTransition] = useTransition()
+export function ComercialComments({
+  ticketId,
+  comments,
+  canManage,
+}: ComercialCommentsProps) {
+  const [content, setContent] = useState("");
+  const [isInternal, setIsInternal] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!content.trim()) return
+    e.preventDefault();
+    if (!content.trim()) return;
 
     startTransition(async () => {
-      const result = await addComercialTicketComment(ticketId, content.trim(), isInternal)
+      const result = await addComercialTicketComment(
+        ticketId,
+        content.trim(),
+        isInternal
+      );
       if (result.success) {
-        setContent('')
-        setIsInternal(false)
+        setContent("");
+        setIsInternal(false);
       }
-    })
-  }
+    });
+  };
 
   return (
     <Card>
@@ -69,31 +77,40 @@ export function ComercialComments({ ticketId, comments, canManage }: ComercialCo
                 key={comment.id}
                 className={`flex gap-3 p-4 rounded-lg ${
                   comment.is_internal
-                    ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800'
-                    : 'bg-muted/50'
+                    ? "bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800"
+                    : "bg-muted/50"
                 }`}
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={comment.user?.avatar_url || undefined} />
                   <AvatarFallback className="text-xs">
-                    {comment.user?.full_name?.slice(0, 2).toUpperCase() || '?'}
+                    {comment.user?.full_name?.slice(0, 2).toUpperCase() || "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium text-sm">
-                      {comment.user?.full_name || 'Usuario'}
+                      {comment.user?.full_name || "Usuario"}
                     </span>
                     {comment.is_internal && (
-                      <Badge variant="outline" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
+                      <Badge
+                        variant="outline"
+                        className="text-xs bg-amber-100 text-amber-800 border-amber-300"
+                      >
                         Interno
                       </Badge>
                     )}
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(comment.created_at), "dd/MM/yyyy 'as' HH:mm", { locale: ptBR })}
+                      {format(
+                        new Date(comment.created_at),
+                        "dd/MM/yyyy 'as' HH:mm",
+                        { locale: ptBR }
+                      )}
                     </span>
                   </div>
-                  <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">
+                    {comment.content}
+                  </p>
                 </div>
               </div>
             ))}
@@ -144,5 +161,5 @@ export function ComercialComments({ ticketId, comments, canManage }: ComercialCo
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

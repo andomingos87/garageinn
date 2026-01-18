@@ -1,65 +1,65 @@
-'use client'
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Input } from '@/components/ui/input'
+import { useRouter, useSearchParams } from "next/navigation";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Search, X } from 'lucide-react'
-import { useCallback, useState, useTransition } from 'react'
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
+import { useCallback, useState, useTransition } from "react";
 
 export function TemplatesFilters() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  const [search, setSearch] = useState(searchParams.get('search') || '')
-  const type = searchParams.get('type') || 'all'
-  const status = searchParams.get('status') || 'all'
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const type = searchParams.get("type") || "all";
+  const status = searchParams.get("status") || "all";
 
   const createQueryString = useCallback(
     (updates: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString())
+      const params = new URLSearchParams(searchParams.toString());
 
       Object.entries(updates).forEach(([key, value]) => {
-        if (value === null || value === '' || value === 'all') {
-          params.delete(key)
+        if (value === null || value === "" || value === "all") {
+          params.delete(key);
         } else {
-          params.set(key, value)
+          params.set(key, value);
         }
-      })
+      });
 
-      return params.toString()
+      return params.toString();
     },
     [searchParams]
-  )
+  );
 
   const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     startTransition(() => {
-      router.push(`?${createQueryString({ search })}`)
-    })
-  }
+      router.push(`?${createQueryString({ search })}`);
+    });
+  };
 
   const handleFilterChange = (key: string, value: string) => {
     startTransition(() => {
-      router.push(`?${createQueryString({ [key]: value })}`)
-    })
-  }
+      router.push(`?${createQueryString({ [key]: value })}`);
+    });
+  };
 
   const handleClearFilters = () => {
-    setSearch('')
+    setSearch("");
     startTransition(() => {
-      router.push('/checklists/configurar')
-    })
-  }
+      router.push("/checklists/configurar");
+    });
+  };
 
-  const hasFilters = search || type !== 'all' || status !== 'all'
+  const hasFilters = search || type !== "all" || status !== "all";
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -78,7 +78,7 @@ export function TemplatesFilters() {
 
       <Select
         value={type}
-        onValueChange={(value) => handleFilterChange('type', value)}
+        onValueChange={(value) => handleFilterChange("type", value)}
         disabled={isPending}
       >
         <SelectTrigger className="w-full sm:w-[140px]">
@@ -93,7 +93,7 @@ export function TemplatesFilters() {
 
       <Select
         value={status}
-        onValueChange={(value) => handleFilterChange('status', value)}
+        onValueChange={(value) => handleFilterChange("status", value)}
         disabled={isPending}
       >
         <SelectTrigger className="w-full sm:w-[140px]">
@@ -119,6 +119,5 @@ export function TemplatesFilters() {
         </Button>
       )}
     </div>
-  )
+  );
 }
-

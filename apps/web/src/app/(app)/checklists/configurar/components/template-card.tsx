@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
+import Link from "next/link";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   ClipboardList,
   MoreVertical,
@@ -26,32 +26,46 @@ import {
   Building2,
   ListChecks,
   Power,
-} from 'lucide-react'
-import type { TemplateWithDetails } from '../actions'
+} from "lucide-react";
+import type { TemplateWithDetails } from "../actions";
 
 interface TemplateCardProps {
-  template: TemplateWithDetails
-  onDelete?: (templateId: string) => void
-  onToggleStatus?: (templateId: string, newStatus: 'active' | 'inactive') => void
+  template: TemplateWithDetails;
+  onDelete?: (templateId: string) => void;
+  onToggleStatus?: (
+    templateId: string,
+    newStatus: "active" | "inactive"
+  ) => void;
 }
 
-export function TemplateCard({ template, onDelete, onToggleStatus }: TemplateCardProps) {
+export function TemplateCard({
+  template,
+  onDelete,
+  onToggleStatus,
+}: TemplateCardProps) {
   const handleDelete = () => {
-    if (confirm('Tem certeza que deseja excluir este template? Esta ação não pode ser desfeita.')) {
-      onDelete?.(template.id)
+    if (
+      confirm(
+        "Tem certeza que deseja excluir este template? Esta ação não pode ser desfeita."
+      )
+    ) {
+      onDelete?.(template.id);
     }
-  }
+  };
 
   const handleToggleStatus = () => {
-    const newStatus = template.status === 'active' ? 'inactive' : 'active'
-    onToggleStatus?.(template.id, newStatus)
-  }
+    const newStatus = template.status === "active" ? "inactive" : "active";
+    onToggleStatus?.(template.id, newStatus);
+  };
 
   return (
     <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/20">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          <Link href={`/checklists/configurar/${template.id}`} className="flex-1 min-w-0">
+          <Link
+            href={`/checklists/configurar/${template.id}`}
+            className="flex-1 min-w-0"
+          >
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2 text-base">
                 <ClipboardList className="h-4 w-4 text-primary shrink-0" />
@@ -65,8 +79,10 @@ export function TemplateCard({ template, onDelete, onToggleStatus }: TemplateCar
             </div>
           </Link>
           <div className="flex items-center gap-2 shrink-0">
-            <Badge variant={template.status === 'active' ? 'default' : 'secondary'}>
-              {template.status === 'active' ? 'Ativo' : 'Inativo'}
+            <Badge
+              variant={template.status === "active" ? "default" : "secondary"}
+            >
+              {template.status === "active" ? "Ativo" : "Inativo"}
             </Badge>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -89,7 +105,9 @@ export function TemplateCard({ template, onDelete, onToggleStatus }: TemplateCar
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`/checklists/configurar/${template.id}/perguntas`}>
+                  <Link
+                    href={`/checklists/configurar/${template.id}/perguntas`}
+                  >
                     <ListChecks className="mr-2 h-4 w-4" />
                     Gerenciar Perguntas
                   </Link>
@@ -97,10 +115,13 @@ export function TemplateCard({ template, onDelete, onToggleStatus }: TemplateCar
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleToggleStatus}>
                   <Power className="mr-2 h-4 w-4" />
-                  {template.status === 'active' ? 'Desativar' : 'Ativar'}
+                  {template.status === "active" ? "Desativar" : "Ativar"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                <DropdownMenuItem
+                  onClick={handleDelete}
+                  className="text-destructive"
+                >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Excluir
                 </DropdownMenuItem>
@@ -114,7 +135,7 @@ export function TemplateCard({ template, onDelete, onToggleStatus }: TemplateCar
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1">
               <Badge variant="outline" className="font-normal">
-                {template.type === 'opening' ? 'Abertura' : 'Supervisão'}
+                {template.type === "opening" ? "Abertura" : "Supervisão"}
               </Badge>
               {template.is_default && (
                 <Badge variant="secondary" className="font-normal">
@@ -129,13 +150,14 @@ export function TemplateCard({ template, onDelete, onToggleStatus }: TemplateCar
             <ListChecks className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{template.questions_count}</span>
             <span className="text-muted-foreground">
-              pergunta{template.questions_count !== 1 ? 's' : ''}
+              pergunta{template.questions_count !== 1 ? "s" : ""}
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Building2 className="h-4 w-4" />
             <span>
-              {template.units.length} unidade{template.units.length !== 1 ? 's' : ''}
+              {template.units.length} unidade
+              {template.units.length !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -158,6 +180,5 @@ export function TemplateCard({ template, onDelete, onToggleStatus }: TemplateCar
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
-

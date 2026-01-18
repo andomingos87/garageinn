@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,28 +8,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { toast } from 'sonner'
-import { createCategory, updateCategory } from '../actions'
-import type { Department, TicketCategory } from '../actions'
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { createCategory, updateCategory } from "../actions";
+import type { Department, TicketCategory } from "../actions";
 
 interface CategoryFormDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  category: TicketCategory | null
-  departments: Department[]
-  defaultDepartmentId?: string | null
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  category: TicketCategory | null;
+  departments: Department[];
+  defaultDepartmentId?: string | null;
 }
 
 export function CategoryFormDialog({
@@ -39,45 +39,44 @@ export function CategoryFormDialog({
   departments,
   defaultDepartmentId,
 }: CategoryFormDialogProps) {
-  const [isPending, startTransition] = useTransition()
-  const [name, setName] = useState('')
-  const [departmentId, setDepartmentId] = useState('')
-  const [isActive, setIsActive] = useState(true)
+  const [isPending, startTransition] = useTransition();
+  const [name, setName] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [isActive, setIsActive] = useState(true);
 
-  const isEditing = !!category
+  const isEditing = !!category;
 
   // Reset form when dialog opens/closes or category changes
   useEffect(() => {
     if (open) {
       if (category) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- Intended: reset form state on dialog open
-        setName(category.name)
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDepartmentId(category.department_id)
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setIsActive(category.status === 'active')
+        setName(category.name);
+
+        setDepartmentId(category.department_id);
+
+        setIsActive(category.status === "active");
       } else {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setName('')
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDepartmentId(defaultDepartmentId || departments[0]?.id || '')
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setIsActive(true)
+        setName("");
+
+        setDepartmentId(defaultDepartmentId || departments[0]?.id || "");
+
+        setIsActive(true);
       }
     }
-  }, [open, category, defaultDepartmentId, departments])
+  }, [open, category, defaultDepartmentId, departments]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!name.trim()) {
-      toast.error('Nome é obrigatório')
-      return
+      toast.error("Nome é obrigatório");
+      return;
     }
 
     if (!departmentId) {
-      toast.error('Selecione um departamento')
-      return
+      toast.error("Selecione um departamento");
+      return;
     }
 
     startTransition(async () => {
@@ -85,30 +84,30 @@ export function CategoryFormDialog({
         const data = {
           name: name.trim(),
           department_id: departmentId,
-          status: isActive ? 'active' as const : 'inactive' as const,
-        }
+          status: isActive ? ("active" as const) : ("inactive" as const),
+        };
 
         const result = isEditing
           ? await updateCategory(category.id, data)
-          : await createCategory(data)
+          : await createCategory(data);
 
         if (result.error) {
-          toast.error(result.error)
-          return
+          toast.error(result.error);
+          return;
         }
 
         toast.success(
           isEditing
-            ? 'Categoria atualizada com sucesso'
-            : 'Categoria criada com sucesso'
-        )
-        onOpenChange(false)
+            ? "Categoria atualizada com sucesso"
+            : "Categoria criada com sucesso"
+        );
+        onOpenChange(false);
       } catch (error) {
-        console.error('Error saving category:', error)
-        toast.error('Erro ao salvar categoria')
+        console.error("Error saving category:", error);
+        toast.error("Erro ao salvar categoria");
       }
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,12 +115,12 @@ export function CategoryFormDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? 'Editar Categoria' : 'Nova Categoria'}
+              {isEditing ? "Editar Categoria" : "Nova Categoria"}
             </DialogTitle>
             <DialogDescription>
               {isEditing
-                ? 'Altere os dados da categoria de chamado.'
-                : 'Preencha os dados para criar uma nova categoria de chamado.'}
+                ? "Altere os dados da categoria de chamado."
+                : "Preencha os dados para criar uma nova categoria de chamado."}
             </DialogDescription>
           </DialogHeader>
 
@@ -178,12 +177,11 @@ export function CategoryFormDialog({
               Cancelar
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar'}
+              {isPending ? "Salvando..." : isEditing ? "Salvar" : "Criar"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

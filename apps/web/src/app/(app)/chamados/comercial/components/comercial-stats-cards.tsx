@@ -1,53 +1,53 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Clock, Zap, CheckCircle2 } from 'lucide-react'
-import type { ComercialStats } from '../actions'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, Clock, Zap, CheckCircle2 } from "lucide-react";
+import type { ComercialStats } from "../actions";
 
 interface ComercialStatsCardsProps {
-  stats: ComercialStats
+  stats: ComercialStats;
 }
 
 export function ComercialStatsCards({ stats }: ComercialStatsCardsProps) {
   const cards = [
     {
-      title: 'Total de Chamados',
+      title: "Total de Chamados",
       value: stats.total,
       icon: FileText,
-      description: 'Todos os chamados comerciais',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      description: "Todos os chamados comerciais",
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
     },
     {
-      title: 'Aguardando Triagem',
+      title: "Aguardando Triagem",
       value: stats.awaitingTriage,
       icon: Clock,
-      description: 'Aguardando analise inicial',
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-100',
+      description: "Aguardando analise inicial",
+      color: "text-amber-600",
+      bgColor: "bg-amber-100",
     },
     {
-      title: 'Em Andamento',
+      title: "Em Andamento",
       value: stats.inProgress,
       icon: Zap,
-      description: 'Sendo processados',
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100',
+      description: "Sendo processados",
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-100",
     },
     {
-      title: 'Resolvidos',
+      title: "Resolvidos",
       value: stats.resolved,
       icon: CheckCircle2,
-      description: 'Finalizados',
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-100',
+      description: "Finalizados",
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-100",
     },
-  ]
+  ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {cards.map((card) => {
-        const Icon = card.icon
+        const Icon = card.icon;
         return (
           <Card key={card.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -65,8 +65,8 @@ export function ComercialStatsCards({ stats }: ComercialStatsCardsProps) {
               </p>
             </CardContent>
           </Card>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

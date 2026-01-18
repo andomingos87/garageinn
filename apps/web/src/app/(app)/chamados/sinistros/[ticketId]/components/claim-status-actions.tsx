@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { 
-  ChevronRight, 
-  ArrowRight, 
-  XCircle, 
-  CheckCircle2, 
+import { useState, useTransition } from "react";
+import {
+  ChevronRight,
+  ArrowRight,
+  XCircle,
+  CheckCircle2,
   Loader2,
   AlertTriangle,
   Clock,
@@ -13,11 +13,17 @@ import {
   User,
   FileText,
   Wrench,
-  CreditCard
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+  CreditCard,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -25,118 +31,118 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import { toast } from 'sonner'
-import { changeClaimStatus } from '../../actions'
-import { statusTransitions, statusLabels } from '../../constants'
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { changeClaimStatus } from "../../actions";
+import { statusTransitions, statusLabels } from "../../constants";
 
 interface ClaimStatusActionsProps {
-  ticketId: string
-  currentStatus: string
-  canManage: boolean
+  ticketId: string;
+  currentStatus: string;
+  canManage: boolean;
 }
 
 // Ícones para cada status
 const statusIcons: Record<string, React.ElementType> = {
-  'awaiting_triage': Clock,
-  'in_analysis': Search,
-  'in_investigation': Search,
-  'awaiting_customer': User,
-  'awaiting_quotations': FileText,
-  'in_repair': Wrench,
-  'awaiting_payment': CreditCard,
-  'resolved': CheckCircle2,
-  'denied': XCircle,
-  'closed': CheckCircle2,
-}
+  awaiting_triage: Clock,
+  in_analysis: Search,
+  in_investigation: Search,
+  awaiting_customer: User,
+  awaiting_quotations: FileText,
+  in_repair: Wrench,
+  awaiting_payment: CreditCard,
+  resolved: CheckCircle2,
+  denied: XCircle,
+  closed: CheckCircle2,
+};
 
 // Cores para cada status
 const statusColors: Record<string, string> = {
-  'awaiting_triage': 'text-amber-600',
-  'in_analysis': 'text-blue-600',
-  'in_investigation': 'text-purple-600',
-  'awaiting_customer': 'text-orange-600',
-  'awaiting_quotations': 'text-cyan-600',
-  'in_repair': 'text-indigo-600',
-  'awaiting_payment': 'text-pink-600',
-  'resolved': 'text-green-600',
-  'denied': 'text-red-600',
-  'closed': 'text-gray-600',
-}
+  awaiting_triage: "text-amber-600",
+  in_analysis: "text-blue-600",
+  in_investigation: "text-purple-600",
+  awaiting_customer: "text-orange-600",
+  awaiting_quotations: "text-cyan-600",
+  in_repair: "text-indigo-600",
+  awaiting_payment: "text-pink-600",
+  resolved: "text-green-600",
+  denied: "text-red-600",
+  closed: "text-gray-600",
+};
 
-export function ClaimStatusActions({ 
-  ticketId, 
-  currentStatus, 
-  canManage 
+export function ClaimStatusActions({
+  ticketId,
+  currentStatus,
+  canManage,
 }: ClaimStatusActionsProps) {
-  const [isPending, startTransition] = useTransition()
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
-  const [reason, setReason] = useState('')
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  
+  const [isPending, startTransition] = useTransition();
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   // Obter transições permitidas
-  const allowedTransitions = statusTransitions[currentStatus] || []
-  
+  const allowedTransitions = statusTransitions[currentStatus] || [];
+
   // Se não pode gerenciar ou não há transições, não mostrar nada
   if (!canManage || allowedTransitions.length === 0) {
-    return null
+    return null;
   }
-  
+
   const handleStatusChange = (newStatus: string) => {
     // Se for negação, abrir dialog para motivo
-    if (newStatus === 'denied') {
-      setSelectedStatus(newStatus)
-      setReason('')
-      setIsDialogOpen(true)
-      return
+    if (newStatus === "denied") {
+      setSelectedStatus(newStatus);
+      setReason("");
+      setIsDialogOpen(true);
+      return;
     }
-    
+
     // Executar mudança direta
     startTransition(async () => {
-      const result = await changeClaimStatus(ticketId, newStatus)
-      
+      const result = await changeClaimStatus(ticketId, newStatus);
+
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success(`Status alterado para ${statusLabels[newStatus]}`)
+        toast.success(`Status alterado para ${statusLabels[newStatus]}`);
       }
-    })
-  }
-  
+    });
+  };
+
   const handleConfirmDenial = () => {
-    if (!selectedStatus || !reason.trim()) return
-    
+    if (!selectedStatus || !reason.trim()) return;
+
     startTransition(async () => {
-      const result = await changeClaimStatus(ticketId, selectedStatus, reason)
-      
+      const result = await changeClaimStatus(ticketId, selectedStatus, reason);
+
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Sinistro negado')
-        setIsDialogOpen(false)
-        setSelectedStatus(null)
-        setReason('')
+        toast.success("Sinistro negado");
+        setIsDialogOpen(false);
+        setSelectedStatus(null);
+        setReason("");
       }
-    })
-  }
-  
+    });
+  };
+
   const handleCloseDialog = () => {
-    setIsDialogOpen(false)
-    setSelectedStatus(null)
-    setReason('')
-  }
-  
+    setIsDialogOpen(false);
+    setSelectedStatus(null);
+    setReason("");
+  };
+
   // Separar transições normais das de negação
-  const normalTransitions = allowedTransitions.filter(s => s !== 'denied')
-  const canDeny = allowedTransitions.includes('denied')
-  
+  const normalTransitions = allowedTransitions.filter((s) => s !== "denied");
+  const canDeny = allowedTransitions.includes("denied");
+
   return (
     <>
       <Card>
@@ -154,8 +160,8 @@ export function ClaimStatusActions({
           {normalTransitions.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-between"
                   disabled={isPending}
                 >
@@ -174,9 +180,9 @@ export function ClaimStatusActions({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 {normalTransitions.map((status) => {
-                  const Icon = statusIcons[status] || ArrowRight
-                  const color = statusColors[status] || 'text-foreground'
-                  
+                  const Icon = statusIcons[status] || ArrowRight;
+                  const color = statusColors[status] || "text-foreground";
+
                   return (
                     <DropdownMenuItem
                       key={status}
@@ -186,20 +192,22 @@ export function ClaimStatusActions({
                       <Icon className={`h-4 w-4 ${color}`} />
                       {statusLabels[status] || status}
                     </DropdownMenuItem>
-                  )
+                  );
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          
+
           {/* Botão de negar separado */}
           {canDeny && (
             <>
-              {normalTransitions.length > 0 && <DropdownMenuSeparator className="my-2" />}
+              {normalTransitions.length > 0 && (
+                <DropdownMenuSeparator className="my-2" />
+              )}
               <Button
                 variant="outline"
                 className="w-full gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                onClick={() => handleStatusChange('denied')}
+                onClick={() => handleStatusChange("denied")}
                 disabled={isPending}
               >
                 <XCircle className="h-4 w-4" />
@@ -209,9 +217,12 @@ export function ClaimStatusActions({
           )}
         </CardContent>
       </Card>
-      
+
       {/* Dialog para motivo de negação */}
-      <Dialog open={isDialogOpen} onOpenChange={(open) => !open && handleCloseDialog()}>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => !open && handleCloseDialog()}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
@@ -219,15 +230,14 @@ export function ClaimStatusActions({
               Negar Sinistro
             </DialogTitle>
             <DialogDescription>
-              Informe o motivo da negação. Esta ação pode ser revertida posteriormente.
+              Informe o motivo da negação. Esta ação pode ser revertida
+              posteriormente.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Motivo da Negação *
-              </label>
+              <label className="text-sm font-medium">Motivo da Negação *</label>
               <Textarea
                 placeholder="Descreva o motivo pelo qual este sinistro está sendo negado..."
                 value={reason}
@@ -236,9 +246,13 @@ export function ClaimStatusActions({
               />
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button variant="outline" onClick={handleCloseDialog} disabled={isPending}>
+            <Button
+              variant="outline"
+              onClick={handleCloseDialog}
+              disabled={isPending}
+            >
               Cancelar
             </Button>
             <Button
@@ -252,13 +266,12 @@ export function ClaimStatusActions({
                   Processando...
                 </>
               ) : (
-                'Confirmar Negação'
+                "Confirmar Negação"
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
-

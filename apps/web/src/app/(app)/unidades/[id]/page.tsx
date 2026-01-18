@@ -1,9 +1,15 @@
-import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Building2,
   MapPin,
@@ -18,57 +24,64 @@ import {
   FileText,
   MapPinned,
   Briefcase,
-} from 'lucide-react'
-import { checkCanAccessUnits, checkCanEditUnits, getUnitById, getUnitStaff, getUnitMetrics, getUnitHistory } from '../actions'
-import { UnitStatusBadge } from '../components/unit-status-badge'
-import { UnitStatusActions } from './components/unit-status-actions'
-import { UnitMetricsCard } from './components/unit-metrics'
-import { UnitHistoryCard } from './components/unit-history'
+} from "lucide-react";
+import {
+  checkCanAccessUnits,
+  checkCanEditUnits,
+  getUnitById,
+  getUnitStaff,
+  getUnitMetrics,
+  getUnitHistory,
+} from "../actions";
+import { UnitStatusBadge } from "../components/unit-status-badge";
+import { UnitStatusActions } from "./components/unit-status-actions";
+import { UnitMetricsCard } from "./components/unit-metrics";
+import { UnitHistoryCard } from "./components/unit-history";
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default async function UnitDetailsPage({ params }: PageProps) {
-  const { id } = await params
-  
+  const { id } = await params;
+
   // Verificar permissão de acesso (units:read)
-  const canAccess = await checkCanAccessUnits()
+  const canAccess = await checkCanAccessUnits();
   if (!canAccess) {
-    redirect('/')
+    redirect("/");
   }
 
   // Verificar permissão de edição (units:update)
-  const canEdit = await checkCanEditUnits()
+  const canEdit = await checkCanEditUnits();
 
   const [unit, staff, metrics, history] = await Promise.all([
     getUnitById(id),
     getUnitStaff(id),
     getUnitMetrics(id),
     getUnitHistory(id),
-  ])
+  ]);
 
   if (!unit) {
-    notFound()
+    notFound();
   }
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Não informado'
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
+    if (!dateString) return "Não informado";
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
       .slice(0, 2)
-      .join('')
-      .toUpperCase()
-  }
+      .join("")
+      .toUpperCase();
+  };
 
   return (
     <div className="space-y-6">
@@ -76,11 +89,17 @@ export default async function UnitDetailsPage({ params }: PageProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Link href="/unidades" className="hover:text-foreground transition-colors">
+            <Link
+              href="/unidades"
+              className="hover:text-foreground transition-colors"
+            >
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <span>/</span>
-            <Link href="/unidades" className="hover:text-foreground transition-colors">
+            <Link
+              href="/unidades"
+              className="hover:text-foreground transition-colors"
+            >
               Unidades
             </Link>
             <span>/</span>
@@ -88,7 +107,9 @@ export default async function UnitDetailsPage({ params }: PageProps) {
           </div>
           <div className="flex items-center gap-3">
             <Building2 className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold tracking-tight">{unit.name}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {unit.name}
+            </h2>
             <UnitStatusBadge status={unit.status} />
           </div>
         </div>
@@ -123,7 +144,9 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                   <Hash className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium">Código</p>
-                    <p className="text-sm text-muted-foreground font-mono">{unit.code}</p>
+                    <p className="text-sm text-muted-foreground font-mono">
+                      {unit.code}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -131,7 +154,9 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                   <div>
                     <p className="text-sm font-medium">Capacidade</p>
                     <p className="text-sm text-muted-foreground">
-                      {unit.capacity ? `${unit.capacity.toLocaleString('pt-BR')} vagas` : 'Não informado'}
+                      {unit.capacity
+                        ? `${unit.capacity.toLocaleString("pt-BR")} vagas`
+                        : "Não informado"}
                     </p>
                   </div>
                 </div>
@@ -140,7 +165,7 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                   <div>
                     <p className="text-sm font-medium">CNPJ</p>
                     <p className="text-sm text-muted-foreground font-mono">
-                      {unit.cnpj || 'Não informado'}
+                      {unit.cnpj || "Não informado"}
                     </p>
                   </div>
                 </div>
@@ -149,7 +174,7 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                   <div>
                     <p className="text-sm font-medium">Telefone</p>
                     <p className="text-sm text-muted-foreground">
-                      {unit.phone || 'Não informado'}
+                      {unit.phone || "Não informado"}
                     </p>
                   </div>
                 </div>
@@ -159,11 +184,14 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                     <p className="text-sm font-medium">Email</p>
                     <p className="text-sm text-muted-foreground">
                       {unit.email ? (
-                        <a href={`mailto:${unit.email}`} className="hover:text-primary hover:underline">
+                        <a
+                          href={`mailto:${unit.email}`}
+                          className="hover:text-primary hover:underline"
+                        >
                           {unit.email}
                         </a>
                       ) : (
-                        'Não informado'
+                        "Não informado"
                       )}
                     </p>
                   </div>
@@ -173,7 +201,7 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                   <div>
                     <p className="text-sm font-medium">Administradora</p>
                     <p className="text-sm text-muted-foreground">
-                      {unit.administrator || 'Não informado'}
+                      {unit.administrator || "Não informado"}
                     </p>
                   </div>
                 </div>
@@ -202,7 +230,9 @@ export default async function UnitDetailsPage({ params }: PageProps) {
               <div className="space-y-2">
                 <p className="text-sm">{unit.address}</p>
                 <p className="text-sm text-muted-foreground">
-                  {[unit.neighborhood, unit.city, unit.state].filter(Boolean).join(', ') || 'Localização não informada'}
+                  {[unit.neighborhood, unit.city, unit.state]
+                    .filter(Boolean)
+                    .join(", ") || "Localização não informada"}
                 </p>
                 {unit.zip_code && (
                   <p className="text-sm text-muted-foreground font-mono">
@@ -228,7 +258,9 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                   <Users className="h-5 w-5 text-primary" />
                   Equipe Vinculada
                 </CardTitle>
-                <Badge variant="secondary">{staff.length} funcionário{staff.length !== 1 ? 's' : ''}</Badge>
+                <Badge variant="secondary">
+                  {staff.length} funcionário{staff.length !== 1 ? "s" : ""}
+                </Badge>
               </div>
               <CardDescription>
                 Funcionários vinculados a esta unidade
@@ -242,9 +274,7 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                     Nenhum funcionário vinculado a esta unidade
                   </p>
                   <Button variant="outline" size="sm" className="mt-4" asChild>
-                    <Link href="/usuarios">
-                      Gerenciar Usuários
-                    </Link>
+                    <Link href="/usuarios">Gerenciar Usuários</Link>
                   </Button>
                 </div>
               ) : (
@@ -256,24 +286,34 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                     >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={member.user_avatar || undefined} />
-                        <AvatarFallback>{getInitials(member.user_name)}</AvatarFallback>
+                        <AvatarFallback>
+                          {getInitials(member.user_name)}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm truncate">{member.user_name}</p>
+                          <p className="font-medium text-sm truncate">
+                            {member.user_name}
+                          </p>
                           {member.is_coverage && (
                             <Badge variant="outline" className="text-xs">
                               Cobertura
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{member.user_email}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {member.user_email}
+                        </p>
                       </div>
                       {member.role_name && (
                         <div className="text-right shrink-0">
-                          <p className="text-sm font-medium">{member.role_name}</p>
+                          <p className="text-sm font-medium">
+                            {member.role_name}
+                          </p>
                           {member.department_name && (
-                            <p className="text-xs text-muted-foreground">{member.department_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {member.department_name}
+                            </p>
                           )}
                         </div>
                       )}
@@ -301,14 +341,20 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                 <UnitStatusBadge status={unit.status} />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Capacidade</span>
+                <span className="text-sm text-muted-foreground">
+                  Capacidade
+                </span>
                 <span className="text-sm font-medium">
-                  {unit.capacity ? `${unit.capacity.toLocaleString('pt-BR')} vagas` : '-'}
+                  {unit.capacity
+                    ? `${unit.capacity.toLocaleString("pt-BR")} vagas`
+                    : "-"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Equipe</span>
-                <span className="text-sm font-medium">{staff.length} pessoa{staff.length !== 1 ? 's' : ''}</span>
+                <span className="text-sm font-medium">
+                  {staff.length} pessoa{staff.length !== 1 ? "s" : ""}
+                </span>
               </div>
               {unit.region && (
                 <div className="flex items-center justify-between">
@@ -318,8 +364,12 @@ export default async function UnitDetailsPage({ params }: PageProps) {
               )}
               {unit.supervisor_name && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Supervisor</span>
-                  <span className="text-sm font-medium">{unit.supervisor_name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Supervisor
+                  </span>
+                  <span className="text-sm font-medium">
+                    {unit.supervisor_name}
+                  </span>
                 </div>
               )}
             </CardContent>
@@ -335,13 +385,21 @@ export default async function UnitDetailsPage({ params }: PageProps) {
                 <CardTitle>Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start" asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  asChild
+                >
                   <Link href={`/unidades/${unit.id}/editar`}>
                     <Pencil className="mr-2 h-4 w-4" />
                     Editar Unidade
                   </Link>
                 </Button>
-                <Button variant="outline" className="w-full justify-start" asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  asChild
+                >
                   <Link href="/usuarios">
                     <Users className="mr-2 h-4 w-4" />
                     Gerenciar Usuários
@@ -353,6 +411,5 @@ export default async function UnitDetailsPage({ params }: PageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

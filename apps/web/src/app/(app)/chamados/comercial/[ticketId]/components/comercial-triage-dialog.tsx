@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,35 +10,35 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { ClipboardList, Loader2 } from 'lucide-react'
-import { PRIORITIES, COMERCIAL_TYPE_LABELS } from '../../constants'
-import { triageComercialTicket } from '../../actions'
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { ClipboardList, Loader2 } from "lucide-react";
+import { PRIORITIES, COMERCIAL_TYPE_LABELS } from "../../constants";
+import { triageComercialTicket } from "../../actions";
 
 interface DepartmentMember {
-  id: string
-  full_name: string
-  email: string
-  avatar_url: string | null
-  role: string
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url: string | null;
+  role: string;
 }
 
 interface ComercialTriageDialogProps {
-  ticketId: string
-  ticketNumber: number
-  ticketTitle: string
-  perceivedUrgency: string | null
-  comercialType: string | null | undefined
-  departmentMembers: DepartmentMember[]
+  ticketId: string;
+  ticketNumber: number;
+  ticketTitle: string;
+  perceivedUrgency: string | null;
+  comercialType: string | null | undefined;
+  departmentMembers: DepartmentMember[];
 }
 
 export function ComercialTriageDialog({
@@ -49,40 +49,45 @@ export function ComercialTriageDialog({
   comercialType,
   departmentMembers,
 }: ComercialTriageDialogProps) {
-  const [isPending, startTransition] = useTransition()
-  const [isOpen, setIsOpen] = useState(false)
-  const [priority, setPriority] = useState('')
-  const [assignedTo, setAssignedTo] = useState('')
-  const [dueDate, setDueDate] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition();
+  const [isOpen, setIsOpen] = useState(false);
+  const [priority, setPriority] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = () => {
     if (!priority) {
-      setError('Selecione a prioridade')
-      return
+      setError("Selecione a prioridade");
+      return;
     }
 
-    const formData = new FormData()
-    formData.set('priority', priority)
-    if (assignedTo) formData.set('assigned_to', assignedTo)
-    if (dueDate) formData.set('due_date', dueDate)
+    const formData = new FormData();
+    formData.set("priority", priority);
+    if (assignedTo) formData.set("assigned_to", assignedTo);
+    if (dueDate) formData.set("due_date", dueDate);
 
     startTransition(async () => {
-      const result = await triageComercialTicket(ticketId, formData)
+      const result = await triageComercialTicket(ticketId, formData);
       if (result.error) {
-        setError(result.error)
+        setError(result.error);
       } else {
-        setIsOpen(false)
-        setPriority('')
-        setAssignedTo('')
-        setDueDate('')
-        setError(null)
+        setIsOpen(false);
+        setPriority("");
+        setAssignedTo("");
+        setDueDate("");
+        setError(null);
       }
-    })
-  }
+    });
+  };
 
   // Sugerir prioridade baseado na urgencia percebida
-  const suggestedPriority = perceivedUrgency === 'alta' ? 'high' : perceivedUrgency === 'media' ? 'medium' : 'low'
+  const suggestedPriority =
+    perceivedUrgency === "alta"
+      ? "high"
+      : perceivedUrgency === "media"
+        ? "medium"
+        : "low";
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -117,8 +122,8 @@ export function ComercialTriageDialog({
             <Select
               value={priority}
               onValueChange={(value) => {
-                setPriority(value)
-                setError(null)
+                setPriority(value);
+                setError(null);
               }}
             >
               <SelectTrigger id="priority">
@@ -128,7 +133,7 @@ export function ComercialTriageDialog({
                 {PRIORITIES.map((p) => (
                   <SelectItem key={p.value} value={p.value}>
                     {p.label}
-                    {p.value === suggestedPriority && ' (Sugerido)'}
+                    {p.value === suggestedPriority && " (Sugerido)"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -183,11 +188,11 @@ export function ComercialTriageDialog({
                 Salvando...
               </>
             ) : (
-              'Confirmar Triagem'
+              "Confirmar Triagem"
             )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

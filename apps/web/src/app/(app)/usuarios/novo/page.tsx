@@ -1,10 +1,16 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import { getDepartments, getRoles, checkIsAdmin, getUnits } from '../actions'
-import { NewUserForm } from './components/new-user-form'
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { getDepartments, getRoles, checkIsAdmin, getUnits } from "../actions";
+import { NewUserForm } from "./components/new-user-form";
 
 export default async function NewUserPage() {
   const [departments, allRoles, units, isAdmin] = await Promise.all([
@@ -12,10 +18,10 @@ export default async function NewUserPage() {
     getRoles(),
     getUnits(),
     checkIsAdmin(),
-  ])
+  ]);
 
   if (!isAdmin) {
-    redirect('/')
+    redirect("/");
   }
 
   return (
@@ -29,7 +35,9 @@ export default async function NewUserPage() {
           </Link>
         </Button>
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Novo Usuário</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Novo Usuário
+          </h2>
           <p className="text-muted-foreground">
             Adicione um novo usuário ao sistema
           </p>
@@ -41,15 +49,19 @@ export default async function NewUserPage() {
           <CardHeader>
             <CardTitle>Informações do Usuário</CardTitle>
             <CardDescription>
-              Preencha os dados do novo usuário. Um email de convite será enviado automaticamente.
+              Preencha os dados do novo usuário. Um email de convite será
+              enviado automaticamente.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <NewUserForm departments={departments} allRoles={allRoles} units={units} />
+            <NewUserForm
+              departments={departments}
+              allRoles={allRoles}
+              units={units}
+            />
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

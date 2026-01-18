@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -11,18 +11,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { CheckCircle, XCircle, RefreshCw, ArrowRight, Upload } from 'lucide-react'
-import type { ImportResult } from '../actions'
+} from "@/components/ui/table";
+import {
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  ArrowRight,
+  Upload,
+} from "lucide-react";
+import type { ImportResult } from "../actions";
 
 interface ImportReportProps {
-  result: ImportResult
-  onNewImport: () => void
+  result: ImportResult;
+  onNewImport: () => void;
 }
 
 export function ImportReport({ result, onNewImport }: ImportReportProps) {
-  const total = result.imported + result.updated + result.errors.length
-  const successRate = total > 0 ? Math.round(((result.imported + result.updated) / total) * 100) : 0
+  const total = result.imported + result.updated + result.errors.length;
+  const successRate =
+    total > 0
+      ? Math.round(((result.imported + result.updated) / total) * 100)
+      : 0;
 
   return (
     <div className="space-y-6">
@@ -36,26 +45,38 @@ export function ImportReport({ result, onNewImport }: ImportReportProps) {
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-emerald-600">{result.imported}</div>
+            <div className="text-2xl font-bold text-emerald-600">
+              {result.imported}
+            </div>
             <p className="text-xs text-muted-foreground">Novos inseridos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-amber-600">{result.updated}</div>
+            <div className="text-2xl font-bold text-amber-600">
+              {result.updated}
+            </div>
             <p className="text-xs text-muted-foreground">Atualizados</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-destructive">{result.errors.length}</div>
+            <div className="text-2xl font-bold text-destructive">
+              {result.errors.length}
+            </div>
             <p className="text-xs text-muted-foreground">Com erro</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Success Message */}
-      <Card className={result.errors.length === 0 ? 'border-emerald-200 bg-emerald-50/50' : ''}>
+      <Card
+        className={
+          result.errors.length === 0
+            ? "border-emerald-200 bg-emerald-50/50"
+            : ""
+        }
+      >
         <CardHeader>
           <div className="flex items-center gap-3">
             {result.errors.length === 0 ? (
@@ -68,10 +89,10 @@ export function ImportReport({ result, onNewImport }: ImportReportProps) {
             <div>
               <CardTitle>
                 {result.errors.length === 0
-                  ? 'Importação concluída com sucesso!'
+                  ? "Importação concluída com sucesso!"
                   : result.imported + result.updated > 0
-                  ? 'Importação parcialmente concluída'
-                  : 'Importação falhou'}
+                    ? "Importação parcialmente concluída"
+                    : "Importação falhou"}
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 Taxa de sucesso: {successRate}%
@@ -82,13 +103,19 @@ export function ImportReport({ result, onNewImport }: ImportReportProps) {
         <CardContent>
           <div className="flex flex-wrap gap-3">
             {result.imported > 0 && (
-              <Badge variant="outline" className="text-emerald-600 border-emerald-200">
+              <Badge
+                variant="outline"
+                className="text-emerald-600 border-emerald-200"
+              >
                 <CheckCircle className="mr-1 h-3 w-3" />
                 {result.imported} nova(s) unidade(s) criada(s)
               </Badge>
             )}
             {result.updated > 0 && (
-              <Badge variant="outline" className="text-amber-600 border-amber-200">
+              <Badge
+                variant="outline"
+                className="text-amber-600 border-amber-200"
+              >
                 <RefreshCw className="mr-1 h-3 w-3" />
                 {result.updated} unidade(s) atualizada(s)
               </Badge>
@@ -107,7 +134,9 @@ export function ImportReport({ result, onNewImport }: ImportReportProps) {
       {result.errors.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-destructive">Erros na Importação</CardTitle>
+            <CardTitle className="text-destructive">
+              Erros na Importação
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="border rounded-md overflow-x-auto">
@@ -123,8 +152,12 @@ export function ImportReport({ result, onNewImport }: ImportReportProps) {
                   {result.errors.map((error, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-mono">{error.row}</TableCell>
-                      <TableCell className="font-medium">{error.name || '-'}</TableCell>
-                      <TableCell className="text-destructive text-sm">{error.error}</TableCell>
+                      <TableCell className="font-medium">
+                        {error.name || "-"}
+                      </TableCell>
+                      <TableCell className="text-destructive text-sm">
+                        {error.error}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -148,6 +181,5 @@ export function ImportReport({ result, onNewImport }: ImportReportProps) {
         </Button>
       </div>
     </div>
-  )
+  );
 }
-

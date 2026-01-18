@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ChamadosLoading() {
   return (
@@ -32,6 +32,5 @@ export default function ChamadosLoading() {
       {/* Table Skeleton */}
       <Skeleton className="h-[400px] rounded-lg" />
     </div>
-  )
+  );
 }
-

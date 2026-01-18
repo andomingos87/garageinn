@@ -1,12 +1,19 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useTransition } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useState, useEffect, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   Link2,
@@ -18,94 +25,102 @@ import {
   Loader2,
   Building2,
   Users,
-} from 'lucide-react'
-import { previewSupervisorLinks, linkSupervisorsFromImport } from '../actions'
-import type { SupervisorLinkPreview, SupervisorLinkResult } from '../actions'
+} from "lucide-react";
+import { previewSupervisorLinks, linkSupervisorsFromImport } from "../actions";
+import type { SupervisorLinkPreview, SupervisorLinkResult } from "../actions";
 
 export default function VincularSupervisoresPage() {
-  const router = useRouter()
-  const [preview, setPreview] = useState<SupervisorLinkPreview | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const router = useRouter();
+  const [preview, setPreview] = useState<SupervisorLinkPreview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [executionResult, setExecutionResult] = useState<{
-    linked: number
-    notFound: number
-    alreadyLinked: number
-    errors: number
-    results: SupervisorLinkResult[]
-  } | null>(null)
+    linked: number;
+    notFound: number;
+    alreadyLinked: number;
+    errors: number;
+    results: SupervisorLinkResult[];
+  } | null>(null);
 
   useEffect(() => {
-    loadPreview()
-  }, [])
+    loadPreview();
+  }, []);
 
   async function loadPreview() {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const data = await previewSupervisorLinks()
-      setPreview(data)
+      const data = await previewSupervisorLinks();
+      setPreview(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar preview')
+      setError(err instanceof Error ? err.message : "Erro ao carregar preview");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   function handleExecuteLink() {
     startTransition(async () => {
       try {
-        const result = await linkSupervisorsFromImport()
-        setExecutionResult(result)
+        const result = await linkSupervisorsFromImport();
+        setExecutionResult(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao vincular supervisores')
+        setError(
+          err instanceof Error ? err.message : "Erro ao vincular supervisores"
+        );
       }
-    })
+    });
   }
 
-  const getStatusBadge = (status: SupervisorLinkResult['status']) => {
+  const getStatusBadge = (status: SupervisorLinkResult["status"]) => {
     switch (status) {
-      case 'linked':
+      case "linked":
         return (
           <Badge variant="default" className="bg-green-500">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Vinculado
           </Badge>
-        )
-      case 'not_found':
+        );
+      case "not_found":
         return (
           <Badge variant="destructive">
             <UserX className="mr-1 h-3 w-3" />
             Não encontrado
           </Badge>
-        )
-      case 'already_linked':
+        );
+      case "already_linked":
         return (
           <Badge variant="secondary">
             <UserCheck className="mr-1 h-3 w-3" />
             Já vinculado
           </Badge>
-        )
-      case 'error':
+        );
+      case "error":
         return (
           <Badge variant="destructive">
             <XCircle className="mr-1 h-3 w-3" />
             Erro
           </Badge>
-        )
+        );
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Link href="/unidades" className="hover:text-foreground transition-colors">
+          <Link
+            href="/unidades"
+            className="hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <span>/</span>
-          <Link href="/unidades" className="hover:text-foreground transition-colors">
+          <Link
+            href="/unidades"
+            className="hover:text-foreground transition-colors"
+          >
             Unidades
           </Link>
           <span>/</span>
@@ -114,7 +129,9 @@ export default function VincularSupervisoresPage() {
 
         <div className="flex items-center gap-3">
           <Link2 className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-semibold tracking-tight">Vincular Supervisores</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Vincular Supervisores
+          </h2>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
@@ -143,18 +160,24 @@ export default function VincularSupervisoresPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Link href="/unidades" className="hover:text-foreground transition-colors">
+          <Link
+            href="/unidades"
+            className="hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <span>/</span>
-          <Link href="/unidades" className="hover:text-foreground transition-colors">
+          <Link
+            href="/unidades"
+            className="hover:text-foreground transition-colors"
+          >
             Unidades
           </Link>
           <span>/</span>
@@ -176,7 +199,7 @@ export default function VincularSupervisoresPage() {
           </CardFooter>
         </Card>
       </div>
-    )
+    );
   }
 
   // Resultado após execução
@@ -184,11 +207,17 @@ export default function VincularSupervisoresPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Link href="/unidades" className="hover:text-foreground transition-colors">
+          <Link
+            href="/unidades"
+            className="hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <span>/</span>
-          <Link href="/unidades" className="hover:text-foreground transition-colors">
+          <Link
+            href="/unidades"
+            className="hover:text-foreground transition-colors"
+          >
             Unidades
           </Link>
           <span>/</span>
@@ -197,55 +226,73 @@ export default function VincularSupervisoresPage() {
 
         <div className="flex items-center gap-3">
           <CheckCircle2 className="h-6 w-6 text-green-500" />
-          <h2 className="text-2xl font-semibold tracking-tight">Vinculação Concluída</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Vinculação Concluída
+          </h2>
         </div>
 
         {/* Result Stats */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="border-green-500/50 bg-green-500/5">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-green-600">Vinculados</CardTitle>
+              <CardTitle className="text-sm font-medium text-green-600">
+                Vinculados
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <span className="text-2xl font-bold text-green-600">{executionResult.linked}</span>
+                <span className="text-2xl font-bold text-green-600">
+                  {executionResult.linked}
+                </span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-blue-500/50 bg-blue-500/5">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-blue-600">Já Vinculados</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-600">
+                Já Vinculados
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <UserCheck className="h-5 w-5 text-blue-500" />
-                <span className="text-2xl font-bold text-blue-600">{executionResult.alreadyLinked}</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {executionResult.alreadyLinked}
+                </span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-yellow-500/50 bg-yellow-500/5">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-yellow-600">Não Encontrados</CardTitle>
+              <CardTitle className="text-sm font-medium text-yellow-600">
+                Não Encontrados
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <UserX className="h-5 w-5 text-yellow-500" />
-                <span className="text-2xl font-bold text-yellow-600">{executionResult.notFound}</span>
+                <span className="text-2xl font-bold text-yellow-600">
+                  {executionResult.notFound}
+                </span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-red-500/50 bg-red-500/5">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-red-600">Erros</CardTitle>
+              <CardTitle className="text-sm font-medium text-red-600">
+                Erros
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <XCircle className="h-5 w-5 text-red-500" />
-                <span className="text-2xl font-bold text-red-600">{executionResult.errors}</span>
+                <span className="text-2xl font-bold text-red-600">
+                  {executionResult.errors}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -269,7 +316,9 @@ export default function VincularSupervisoresPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
                     <div className="min-w-0">
-                      <p className="font-medium text-sm truncate">{result.unitName}</p>
+                      <p className="font-medium text-sm truncate">
+                        {result.unitName}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         Supervisor: {result.supervisorName}
                         {result.userName && ` → ${result.userName}`}
@@ -282,19 +331,22 @@ export default function VincularSupervisoresPage() {
             </div>
           </CardContent>
           <CardFooter className="flex gap-2">
-            <Button onClick={() => router.push('/unidades')}>
+            <Button onClick={() => router.push("/unidades")}>
               Voltar para Unidades
             </Button>
-            <Button variant="outline" onClick={() => {
-              setExecutionResult(null)
-              loadPreview()
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setExecutionResult(null);
+                loadPreview();
+              }}
+            >
               Nova Vinculação
             </Button>
           </CardFooter>
         </Card>
       </div>
-    )
+    );
   }
 
   // Preview state
@@ -302,11 +354,17 @@ export default function VincularSupervisoresPage() {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Link href="/unidades" className="hover:text-foreground transition-colors">
+        <Link
+          href="/unidades"
+          className="hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <span>/</span>
-        <Link href="/unidades" className="hover:text-foreground transition-colors">
+        <Link
+          href="/unidades"
+          className="hover:text-foreground transition-colors"
+        >
           Unidades
         </Link>
         <span>/</span>
@@ -318,7 +376,9 @@ export default function VincularSupervisoresPage() {
         <div className="flex items-center gap-3">
           <Link2 className="h-6 w-6 text-primary" />
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Vincular Supervisores</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Vincular Supervisores
+            </h2>
             <p className="text-muted-foreground">
               Vincule supervisores do CSV às suas respectivas unidades
             </p>
@@ -330,53 +390,75 @@ export default function VincularSupervisoresPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-muted-foreground" />
               <span className="text-2xl font-bold">{preview?.total || 0}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">unidades com supervisor</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              unidades com supervisor
+            </p>
           </CardContent>
         </Card>
 
         <Card className="border-green-500/50 bg-green-500/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-600">Podem ser Vinculados</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-600">
+              Podem ser Vinculados
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <UserCheck className="h-5 w-5 text-green-500" />
-              <span className="text-2xl font-bold text-green-600">{preview?.canLink || 0}</span>
+              <span className="text-2xl font-bold text-green-600">
+                {preview?.canLink || 0}
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">supervisores encontrados</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              supervisores encontrados
+            </p>
           </CardContent>
         </Card>
 
         <Card className="border-yellow-500/50 bg-yellow-500/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-600">Não Encontrados</CardTitle>
+            <CardTitle className="text-sm font-medium text-yellow-600">
+              Não Encontrados
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <UserX className="h-5 w-5 text-yellow-500" />
-              <span className="text-2xl font-bold text-yellow-600">{preview?.notFound || 0}</span>
+              <span className="text-2xl font-bold text-yellow-600">
+                {preview?.notFound || 0}
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">sem usuário correspondente</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              sem usuário correspondente
+            </p>
           </CardContent>
         </Card>
 
         <Card className="border-blue-500/50 bg-blue-500/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-600">Já Vinculados</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-600">
+              Já Vinculados
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <Link2 className="h-5 w-5 text-blue-500" />
-              <span className="text-2xl font-bold text-blue-600">{preview?.alreadyLinked || 0}</span>
+              <span className="text-2xl font-bold text-blue-600">
+                {preview?.alreadyLinked || 0}
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">vínculos existentes</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              vínculos existentes
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -406,26 +488,36 @@ export default function VincularSupervisoresPage() {
                 <div
                   key={result.unitId}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    result.status === 'linked' 
-                      ? 'bg-green-500/5 border-green-500/20' 
-                      : result.status === 'not_found'
-                        ? 'bg-yellow-500/5 border-yellow-500/20'
-                        : 'bg-card'
+                    result.status === "linked"
+                      ? "bg-green-500/5 border-green-500/20"
+                      : result.status === "not_found"
+                        ? "bg-yellow-500/5 border-yellow-500/20"
+                        : "bg-card"
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
                     <div className="min-w-0">
-                      <p className="font-medium text-sm truncate">{result.unitName}</p>
+                      <p className="font-medium text-sm truncate">
+                        {result.unitName}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        Supervisor CSV: <span className="font-medium">{result.supervisorName}</span>
+                        Supervisor CSV:{" "}
+                        <span className="font-medium">
+                          {result.supervisorName}
+                        </span>
                         {result.userName && (
-                          <span className="text-green-600"> → {result.userName}</span>
+                          <span className="text-green-600">
+                            {" "}
+                            → {result.userName}
+                          </span>
                         )}
                       </p>
                     </div>
                   </div>
-                  {getStatusBadge(result.status === 'linked' ? 'linked' : result.status)}
+                  {getStatusBadge(
+                    result.status === "linked" ? "linked" : result.status
+                  )}
                 </div>
               ))}
             </div>
@@ -438,8 +530,8 @@ export default function VincularSupervisoresPage() {
               Cancelar
             </Link>
           </Button>
-          <Button 
-            onClick={handleExecuteLink} 
+          <Button
+            onClick={handleExecuteLink}
             disabled={isPending || !preview?.canLink}
           >
             {isPending ? (
@@ -450,7 +542,8 @@ export default function VincularSupervisoresPage() {
             ) : (
               <>
                 <Link2 className="mr-2 h-4 w-4" />
-                Vincular {preview?.canLink || 0} Supervisor{(preview?.canLink || 0) !== 1 ? 'es' : ''}
+                Vincular {preview?.canLink || 0} Supervisor
+                {(preview?.canLink || 0) !== 1 ? "es" : ""}
               </>
             )}
           </Button>
@@ -468,25 +561,41 @@ export default function VincularSupervisoresPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              {preview.notFound} supervisor{preview.notFound !== 1 ? 'es' : ''} do CSV não 
-              {preview.notFound !== 1 ? ' foram encontrados' : ' foi encontrado'} no sistema. 
-              Para vinculá-los, primeiro cadastre os usuários correspondentes em{' '}
-              <Link href="/usuarios/novo" className="text-primary hover:underline">
+              {preview.notFound} supervisor{preview.notFound !== 1 ? "es" : ""}{" "}
+              do CSV não
+              {preview.notFound !== 1
+                ? " foram encontrados"
+                : " foi encontrado"}{" "}
+              no sistema. Para vinculá-los, primeiro cadastre os usuários
+              correspondentes em{" "}
+              <Link
+                href="/usuarios/novo"
+                className="text-primary hover:underline"
+              >
                 Usuários → Novo Usuário
-              </Link>.
+              </Link>
+              .
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {preview.results
-                .filter(r => r.status === 'not_found')
+                .filter((r) => r.status === "not_found")
                 .slice(0, 10)
-                .map(r => (
-                  <Badge key={r.unitId} variant="outline" className="text-yellow-700">
+                .map((r) => (
+                  <Badge
+                    key={r.unitId}
+                    variant="outline"
+                    className="text-yellow-700"
+                  >
                     {r.supervisorName}
                   </Badge>
                 ))}
-              {preview.results.filter(r => r.status === 'not_found').length > 10 && (
+              {preview.results.filter((r) => r.status === "not_found").length >
+                10 && (
                 <Badge variant="outline" className="text-yellow-700">
-                  +{preview.results.filter(r => r.status === 'not_found').length - 10} mais
+                  +
+                  {preview.results.filter((r) => r.status === "not_found")
+                    .length - 10}{" "}
+                  mais
                 </Badge>
               )}
             </div>
@@ -494,6 +603,5 @@ export default function VincularSupervisoresPage() {
         </Card>
       )}
     </div>
-  )
+  );
 }
-

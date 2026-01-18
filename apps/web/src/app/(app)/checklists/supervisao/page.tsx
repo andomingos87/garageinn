@@ -1,24 +1,28 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Suspense } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ClipboardCheck,
   PlayCircle,
   History,
   ArrowLeft,
-  ShieldCheck
-} from 'lucide-react'
-import { getSupervisionChecklists } from '../executar/actions'
+  ShieldCheck,
+} from "lucide-react";
+import { getSupervisionChecklists } from "../executar/actions";
 
 async function SupervisionStats() {
-  const checklists = await getSupervisionChecklists()
+  const checklists = await getSupervisionChecklists();
 
-  const total = checklists.length
-  const pending = checklists.filter(c => !c.todayExecution).length
-  const completed = checklists.filter(c => c.todayExecution?.status === 'completed').length
-  const inProgress = checklists.filter(c => c.todayExecution?.status === 'in_progress').length
+  const total = checklists.length;
+  const pending = checklists.filter((c) => !c.todayExecution).length;
+  const completed = checklists.filter(
+    (c) => c.todayExecution?.status === "completed"
+  ).length;
+  const inProgress = checklists.filter(
+    (c) => c.todayExecution?.status === "in_progress"
+  ).length;
 
   return (
     <div className="grid gap-4 md:grid-cols-4">
@@ -67,7 +71,7 @@ async function SupervisionStats() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 function StatsLoading() {
@@ -85,7 +89,7 @@ function StatsLoading() {
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
 export default function SupervisaoPage() {
@@ -105,7 +109,8 @@ export default function SupervisaoPage() {
               Supervisão
             </h2>
             <p className="text-muted-foreground">
-              Gerencie os checklists de supervisão das unidades sob sua cobertura
+              Gerencie os checklists de supervisão das unidades sob sua
+              cobertura
             </p>
           </div>
         </div>
@@ -127,7 +132,8 @@ export default function SupervisaoPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Inicie um novo checklist de supervisão para as unidades sob sua cobertura.
+              Inicie um novo checklist de supervisão para as unidades sob sua
+              cobertura.
             </p>
             <Button asChild className="w-full">
               <Link href="/checklists/supervisao/executar">
@@ -159,5 +165,5 @@ export default function SupervisaoPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

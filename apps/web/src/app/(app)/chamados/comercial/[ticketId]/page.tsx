@@ -1,10 +1,10 @@
-import { notFound } from 'next/navigation'
-import { Metadata } from 'next'
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import {
   getComercialTicket,
   canTriageComercialTicket,
   getComercialDepartmentMembers,
-} from '../actions'
+} from "../actions";
 import {
   ComercialHeader,
   ComercialInfo,
@@ -14,103 +14,110 @@ import {
   ComercialTimeline,
   ComercialStatusActions,
   ComercialTriageDialog,
-} from './components'
-import { DeleteTicketButton } from '../../components'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from "./components";
+import { DeleteTicketButton } from "../../components";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FileText,
   MessageSquare,
   Clock,
   Building2,
   DollarSign,
-} from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
 interface PageProps {
-  params: Promise<{ ticketId: string }>
+  params: Promise<{ ticketId: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { ticketId } = await params
-  const ticket = await getComercialTicket(ticketId)
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { ticketId } = await params;
+  const ticket = await getComercialTicket(ticketId);
 
   if (!ticket) {
-    return { title: 'Chamado nao encontrado' }
+    return { title: "Chamado nao encontrado" };
   }
 
   return {
     title: `#${ticket.ticket_number} - ${ticket.title} | Comercial`,
-    description: ticket.description?.slice(0, 160)
-  }
+    description: ticket.description?.slice(0, 160),
+  };
 }
 
 async function canManageComercial(): Promise<boolean> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!user) return false
+  if (!user) return false;
 
   const { data: userRoles } = await supabase
-    .from('user_roles')
-    .select(`
+    .from("user_roles")
+    .select(
+      `
       role:roles!role_id(name)
-    `)
-    .eq('user_id', user.id)
+    `
+    )
+    .eq("user_id", user.id);
 
-  if (!userRoles) return false
+  if (!userRoles) return false;
 
   const manageRoles = [
-    'Desenvolvedor',
-    'Administrador',
-    'Diretor',
-    'Gerente',
-    'Supervisor',
-    'Analista',
-    'Encarregado'
-  ]
+    "Desenvolvedor",
+    "Administrador",
+    "Diretor",
+    "Gerente",
+    "Supervisor",
+    "Analista",
+    "Encarregado",
+  ];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return userRoles.some(ur => manageRoles.includes((ur.role as any)?.name))
+  return userRoles.some((ur) => manageRoles.includes((ur.role as any)?.name));
 }
 
 async function checkIsAdminUser(): Promise<boolean> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('is_admin')
-  if (error) return false
-  return data === true
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("is_admin");
+  if (error) return false;
+  return data === true;
 }
 
 export default async function ComercialDetailsPage({ params }: PageProps) {
-  const { ticketId } = await params
+  const { ticketId } = await params;
 
-  const [ticket, canManage, canTriage, departmentMembers, isAdmin] = await Promise.all([
-    getComercialTicket(ticketId),
-    canManageComercial(),
-    canTriageComercialTicket(),
-    getComercialDepartmentMembers(),
-    checkIsAdminUser()
-  ])
+  const [ticket, canManage, canTriage, departmentMembers, isAdmin] =
+    await Promise.all([
+      getComercialTicket(ticketId),
+      canManageComercial(),
+      canTriageComercialTicket(),
+      getComercialDepartmentMembers(),
+      checkIsAdminUser(),
+    ]);
 
   if (!ticket) {
-    notFound()
+    notFound();
   }
 
-  const comercialDetails = ticket.comercial_details?.[0] || null
-  const isAwaitingTriage = ticket.status === 'awaiting_triage'
+  const comercialDetails = ticket.comercial_details?.[0] || null;
+  const isAwaitingTriage = ticket.status === "awaiting_triage";
 
-  const hasClientInfo = comercialDetails && (
-    comercialDetails.client_name ||
-    comercialDetails.client_cnpj ||
-    comercialDetails.client_phone ||
-    comercialDetails.client_email
-  )
+  const hasClientInfo =
+    comercialDetails &&
+    (comercialDetails.client_name ||
+      comercialDetails.client_cnpj ||
+      comercialDetails.client_phone ||
+      comercialDetails.client_email);
 
-  const hasContractInfo = comercialDetails && (
-    comercialDetails.contract_value ||
-    comercialDetails.contract_start_date ||
-    comercialDetails.contract_end_date ||
-    comercialDetails.proposal_deadline
-  )
+  const hasContractInfo =
+    comercialDetails &&
+    (comercialDetails.contract_value ||
+      comercialDetails.contract_start_date ||
+      comercialDetails.contract_end_date ||
+      comercialDetails.proposal_deadline);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -159,7 +166,10 @@ export default async function ComercialDetailsPage({ params }: PageProps) {
             {/* Coluna Principal */}
             <div className="lg:col-span-2 space-y-6">
               {/* Informacoes do Chamado */}
-              <ComercialInfo ticket={ticket} comercialDetails={comercialDetails} />
+              <ComercialInfo
+                ticket={ticket}
+                comercialDetails={comercialDetails}
+              />
 
               {/* Dados do Cliente */}
               {hasClientInfo && (
@@ -189,7 +199,7 @@ export default async function ComercialDetailsPage({ params }: PageProps) {
                   )}
                   {comercialDetails.client_phone && (
                     <a
-                      href={`tel:${comercialDetails.client_phone.replace(/\D/g, '')}`}
+                      href={`tel:${comercialDetails.client_phone.replace(/\D/g, "")}`}
                       className="text-sm text-primary hover:underline"
                     >
                       {comercialDetails.client_phone}
@@ -206,9 +216,9 @@ export default async function ComercialDetailsPage({ params }: PageProps) {
                     Valor do Contrato
                   </div>
                   <p className="text-xl font-bold text-green-600">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
+                    {new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
                     }).format(comercialDetails.contract_value)}
                   </p>
                 </div>
@@ -254,5 +264,5 @@ export default async function ComercialDetailsPage({ params }: PageProps) {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

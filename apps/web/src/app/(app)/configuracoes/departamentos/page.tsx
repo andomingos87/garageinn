@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useTransition } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Building2, Globe, Plus, Users } from 'lucide-react'
-import { toast } from 'sonner'
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Building2, Globe, Plus, Users } from "lucide-react";
+import { toast } from "sonner";
 import {
   DepartmentCard,
   DepartmentFormDialog,
   RolesList,
   RoleFormDialog,
-} from './components'
-import type { Department, Role } from './actions'
-import { getDepartments, getGlobalRoles, checkIsAdmin } from './actions'
+} from "./components";
+import type { Department, Role } from "./actions";
+import { getDepartments, getGlobalRoles, checkIsAdmin } from "./actions";
 
 function LoadingSkeleton() {
   return (
@@ -42,21 +42,23 @@ function LoadingSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export default function DepartamentosPage() {
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [globalRoles, setGlobalRoles] = useState<Role[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [globalRoles, setGlobalRoles] = useState<Role[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // Dialog states
-  const [showDepartmentDialog, setShowDepartmentDialog] = useState(false)
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null)
-  const [showRoleDialog, setShowRoleDialog] = useState(false)
-  const [editingRole, setEditingRole] = useState<Role | null>(null)
+  const [showDepartmentDialog, setShowDepartmentDialog] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(
+    null
+  );
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   const loadData = async () => {
     try {
@@ -64,50 +66,50 @@ export default function DepartamentosPage() {
         getDepartments(),
         getGlobalRoles(),
         checkIsAdmin(),
-      ])
-      setDepartments(depts)
-      setGlobalRoles(roles)
-      setIsAdmin(admin)
+      ]);
+      setDepartments(depts);
+      setGlobalRoles(roles);
+      setIsAdmin(admin);
     } catch (error) {
-      console.error('Error loading data:', error)
-      toast.error('Erro ao carregar dados')
+      console.error("Error loading data:", error);
+      toast.error("Erro ao carregar dados");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   // Reload data when dialogs close
   useEffect(() => {
     if (!showDepartmentDialog && !showRoleDialog) {
       startTransition(() => {
-        loadData()
-      })
+        loadData();
+      });
     }
-  }, [showDepartmentDialog, showRoleDialog])
+  }, [showDepartmentDialog, showRoleDialog]);
 
   const handleEditDepartment = (department: Department) => {
-    setEditingDepartment(department)
-    setShowDepartmentDialog(true)
-  }
+    setEditingDepartment(department);
+    setShowDepartmentDialog(true);
+  };
 
   const handleNewDepartment = () => {
-    setEditingDepartment(null)
-    setShowDepartmentDialog(true)
-  }
+    setEditingDepartment(null);
+    setShowDepartmentDialog(true);
+  };
 
   const handleEditRole = (role: Role) => {
-    setEditingRole(role)
-    setShowRoleDialog(true)
-  }
+    setEditingRole(role);
+    setShowRoleDialog(true);
+  };
 
   const handleNewGlobalRole = () => {
-    setEditingRole(null)
-    setShowRoleDialog(true)
-  }
+    setEditingRole(null);
+    setShowRoleDialog(true);
+  };
 
   if (!isAdmin && !isLoading) {
     return (
@@ -120,12 +122,14 @@ export default function DepartamentosPage() {
           <Link href="/dashboard">Voltar ao Início</Link>
         </Button>
       </div>
-    )
+    );
   }
 
-  const totalRoles = departments.reduce((sum, d) => sum + d.roles_count, 0) + globalRoles.length
-  const totalUsers = departments.reduce((sum, d) => sum + d.users_count, 0) +
-    globalRoles.reduce((sum, r) => sum + r.users_count, 0)
+  const totalRoles =
+    departments.reduce((sum, d) => sum + d.roles_count, 0) + globalRoles.length;
+  const totalUsers =
+    departments.reduce((sum, d) => sum + d.users_count, 0) +
+    globalRoles.reduce((sum, r) => sum + r.users_count, 0);
 
   return (
     <div className="space-y-6">
@@ -261,10 +265,7 @@ export default function DepartamentosPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <RolesList
-                  roles={globalRoles}
-                  onEdit={handleEditRole}
-                />
+                <RolesList roles={globalRoles} onEdit={handleEditRole} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -284,6 +285,5 @@ export default function DepartamentosPage() {
         role={editingRole}
       />
     </div>
-  )
+  );
 }
-

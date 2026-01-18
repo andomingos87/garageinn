@@ -1,110 +1,124 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Loader2, Save, ArrowLeft, Users, AlertTriangle } from 'lucide-react'
-import Link from 'next/link'
-import type { RHCategory, Uniform } from '../actions'
-import type { UserUnit } from '@/lib/units'
-import { RH_TYPES, WITHDRAWAL_REASONS } from '../constants'
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Loader2, Save, ArrowLeft, Users, AlertTriangle } from "lucide-react";
+import Link from "next/link";
+import type { RHCategory, Uniform } from "../actions";
+import type { UserUnit } from "@/lib/units";
+import { RH_TYPES, WITHDRAWAL_REASONS } from "../constants";
 
 interface RHTicketFormProps {
-  categories: RHCategory[]
-  units: UserUnit[]
-  fixedUnit?: UserUnit | null  // Unidade fixa para Manobrista/Encarregado
-  uniforms: Uniform[]
-  onSubmit: (formData: FormData) => Promise<{ error?: string; ticketId?: string } | void>
+  categories: RHCategory[];
+  units: UserUnit[];
+  fixedUnit?: UserUnit | null; // Unidade fixa para Manobrista/Encarregado
+  uniforms: Uniform[];
+  onSubmit: (
+    formData: FormData
+  ) => Promise<{ error?: string; ticketId?: string } | void>;
 }
 
-export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit }: RHTicketFormProps) {
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+export function RHTicketForm({
+  categories,
+  units,
+  fixedUnit,
+  uniforms,
+  onSubmit,
+}: RHTicketFormProps) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   // Flags de comportamento baseado no role do usuário
-  const isUnitFixed = !!fixedUnit  // Unidade fixa para Manobrista/Encarregado
-  const hasUnits = units.length > 0  // Usuário tem unidades disponíveis
-  const isUnitRequired = hasUnits  // Obrigatório se tem unidades
-  const showUnitWarning = !hasUnits && !isUnitFixed  // Aviso se sem unidades
+  const isUnitFixed = !!fixedUnit; // Unidade fixa para Manobrista/Encarregado
+  const hasUnits = units.length > 0; // Usuário tem unidades disponíveis
+  const isUnitRequired = hasUnits; // Obrigatório se tem unidades
+  const showUnitWarning = !hasUnits && !isUnitFixed; // Aviso se sem unidades
 
   const [formData, setFormData] = useState({
-    title: '',
-    category_id: '',
-    unit_id: fixedUnit?.id || '',  // Auto-preencher se tiver unidade fixa
-    rh_type: '',
-    withdrawal_reason: '',
-    uniform_id: '',
-    quantity: '1',
-    description: '',
-    perceived_urgency: '',
-  })
+    title: "",
+    category_id: "",
+    unit_id: fixedUnit?.id || "", // Auto-preencher se tiver unidade fixa
+    rh_type: "",
+    withdrawal_reason: "",
+    uniform_id: "",
+    quantity: "1",
+    description: "",
+    perceived_urgency: "",
+  });
 
   const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    setError(null)
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setError(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validação básica
     if (!formData.title.trim() || formData.title.length < 5) {
-      setError('Título deve ter pelo menos 5 caracteres')
-      return
+      setError("Título deve ter pelo menos 5 caracteres");
+      return;
     }
     if (!formData.rh_type) {
-      setError('Tipo de chamado de RH é obrigatório')
-      return
+      setError("Tipo de chamado de RH é obrigatório");
+      return;
     }
-    if (formData.rh_type === 'uniform') {
+    if (formData.rh_type === "uniform") {
       if (!formData.uniform_id) {
-        setError('Selecione um uniforme')
-        return
+        setError("Selecione um uniforme");
+        return;
       }
       if (!formData.withdrawal_reason) {
-        setError('Selecione o motivo da retirada')
-        return
+        setError("Selecione o motivo da retirada");
+        return;
       }
     }
     if (!formData.description.trim() || formData.description.length < 10) {
-      setError('Descrição deve ter pelo menos 10 caracteres')
-      return
+      setError("Descrição deve ter pelo menos 10 caracteres");
+      return;
     }
 
     // Validação de unidade (obrigatória se usuário tem unidades disponíveis)
     if (isUnitRequired && !formData.unit_id) {
-      setError('Selecione uma unidade para continuar')
-      return
+      setError("Selecione uma unidade para continuar");
+      return;
     }
 
-    const data = new FormData()
-    data.set('title', formData.title)
-    data.set('category_id', formData.category_id)
-    data.set('unit_id', formData.unit_id)
-    data.set('rh_type', formData.rh_type)
-    data.set('withdrawal_reason', formData.withdrawal_reason)
-    data.set('uniform_id', formData.uniform_id)
-    data.set('quantity', formData.quantity)
-    data.set('description', formData.description)
-    data.set('perceived_urgency', formData.perceived_urgency)
+    const data = new FormData();
+    data.set("title", formData.title);
+    data.set("category_id", formData.category_id);
+    data.set("unit_id", formData.unit_id);
+    data.set("rh_type", formData.rh_type);
+    data.set("withdrawal_reason", formData.withdrawal_reason);
+    data.set("uniform_id", formData.uniform_id);
+    data.set("quantity", formData.quantity);
+    data.set("description", formData.description);
+    data.set("perceived_urgency", formData.perceived_urgency);
 
     startTransition(async () => {
-      const result = await onSubmit(data)
+      const result = await onSubmit(data);
       if (result?.error) {
-        setError(result.error)
+        setError(result.error);
       }
-    })
-  }
+    });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -133,7 +147,7 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => handleChange('title', e.target.value)}
+              onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Ex: Solicitação de novo uniforme"
               disabled={isPending}
               maxLength={100}
@@ -145,7 +159,7 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
               <Label htmlFor="rh_type">Tipo de Solicitação *</Label>
               <Select
                 value={formData.rh_type}
-                onValueChange={(value) => handleChange('rh_type', value)}
+                onValueChange={(value) => handleChange("rh_type", value)}
                 disabled={isPending}
               >
                 <SelectTrigger id="rh_type">
@@ -164,7 +178,7 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
               <Label htmlFor="category_id">Categoria</Label>
               <Select
                 value={formData.category_id}
-                onValueChange={(value) => handleChange('category_id', value)}
+                onValueChange={(value) => handleChange("category_id", value)}
                 disabled={isPending}
               >
                 <SelectTrigger id="category_id">
@@ -184,7 +198,7 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
       </Card>
 
       {/* Uniform Specific Fields */}
-      {formData.rh_type === 'uniform' && (
+      {formData.rh_type === "uniform" && (
         <Card className="border-green-200 bg-green-50/30">
           <CardHeader>
             <CardTitle>Detalhes do Uniforme</CardTitle>
@@ -198,7 +212,7 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
                 <Label htmlFor="uniform_id">Item do Uniforme *</Label>
                 <Select
                   value={formData.uniform_id}
-                  onValueChange={(value) => handleChange('uniform_id', value)}
+                  onValueChange={(value) => handleChange("uniform_id", value)}
                   disabled={isPending}
                 >
                   <SelectTrigger id="uniform_id">
@@ -207,7 +221,8 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
                   <SelectContent>
                     {uniforms.map((u) => (
                       <SelectItem key={u.id} value={u.id}>
-                        {u.name} {u.size ? `(${u.size})` : ''} - Estoque: {u.current_stock}
+                        {u.name} {u.size ? `(${u.size})` : ""} - Estoque:{" "}
+                        {u.current_stock}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -217,7 +232,9 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
                 <Label htmlFor="withdrawal_reason">Motivo da Retirada *</Label>
                 <Select
                   value={formData.withdrawal_reason}
-                  onValueChange={(value) => handleChange('withdrawal_reason', value)}
+                  onValueChange={(value) =>
+                    handleChange("withdrawal_reason", value)
+                  }
                   disabled={isPending}
                 >
                   <SelectTrigger id="withdrawal_reason">
@@ -240,7 +257,7 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
                 type="number"
                 min="1"
                 value={formData.quantity}
-                onChange={(e) => handleChange('quantity', e.target.value)}
+                onChange={(e) => handleChange("quantity", e.target.value)}
                 disabled={isPending}
               />
             </div>
@@ -260,21 +277,23 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="unit_id">
-                Unidade {isUnitRequired && <span className="text-destructive">*</span>}
+                Unidade{" "}
+                {isUnitRequired && <span className="text-destructive">*</span>}
               </Label>
 
               {showUnitWarning ? (
                 <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 p-3 rounded-md flex items-start gap-2">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>
-                    Você não possui unidades vinculadas. Entre em contato com o administrador.
+                    Você não possui unidades vinculadas. Entre em contato com o
+                    administrador.
                   </span>
                 </div>
               ) : (
                 <>
                   <Select
                     value={formData.unit_id}
-                    onValueChange={(value) => handleChange('unit_id', value)}
+                    onValueChange={(value) => handleChange("unit_id", value)}
                     disabled={isPending || isUnitFixed}
                   >
                     <SelectTrigger id="unit_id">
@@ -282,7 +301,7 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
                         placeholder={
                           isUnitFixed
                             ? `${fixedUnit?.code} - ${fixedUnit?.name}`
-                            : 'Selecione a unidade'
+                            : "Selecione a unidade"
                         }
                       />
                     </SelectTrigger>
@@ -306,7 +325,9 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
               <Label htmlFor="perceived_urgency">Urgência Percebida</Label>
               <Select
                 value={formData.perceived_urgency}
-                onValueChange={(value) => handleChange('perceived_urgency', value)}
+                onValueChange={(value) =>
+                  handleChange("perceived_urgency", value)
+                }
                 disabled={isPending}
               >
                 <SelectTrigger id="perceived_urgency">
@@ -337,7 +358,7 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
+              onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Descreva detalhadamente sua solicitação..."
               disabled={isPending}
               rows={4}
@@ -373,6 +394,5 @@ export function RHTicketForm({ categories, units, fixedUnit, uniforms, onSubmit 
         </Button>
       </div>
     </form>
-  )
+  );
 }
-

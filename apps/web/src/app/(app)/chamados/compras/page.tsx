@@ -1,31 +1,31 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, ShoppingCart } from 'lucide-react'
+import { Suspense } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, ShoppingCart } from "lucide-react";
 import {
   getPurchaseTickets,
   getPurchaseStats,
   getPurchaseCategories,
   getUserUnits,
   type TicketFilters,
-} from './actions'
+} from "./actions";
 import {
   TicketsStatsCards,
   TicketsFilters,
   TicketsTable,
   TicketsPagination,
-} from './components'
+} from "./components";
 
 interface PageProps {
   searchParams: Promise<{
-    search?: string
-    status?: string
-    priority?: string
-    category_id?: string
-    unit_id?: string
-    page?: string
-  }>
+    search?: string;
+    status?: string;
+    priority?: string;
+    category_id?: string;
+    unit_id?: string;
+    page?: string;
+  }>;
 }
 
 // Loading skeleton components
@@ -36,32 +36,30 @@ function StatsCardsSkeleton() {
         <Skeleton key={i} className="h-[120px] rounded-lg" />
       ))}
     </div>
-  )
+  );
 }
 
 function TableSkeleton() {
-  return (
-    <Skeleton className="h-[400px] rounded-lg" />
-  )
+  return <Skeleton className="h-[400px] rounded-lg" />;
 }
 
 // Server components for data fetching
 async function TicketsStatsSection() {
-  const stats = await getPurchaseStats()
-  return <TicketsStatsCards stats={stats} />
+  const stats = await getPurchaseStats();
+  return <TicketsStatsCards stats={stats} />;
 }
 
 async function TicketsFiltersSection() {
   const [categories, units] = await Promise.all([
     getPurchaseCategories(),
     getUserUnits(),
-  ])
-  return <TicketsFilters categories={categories} units={units} />
+  ]);
+  return <TicketsFilters categories={categories} units={units} />;
 }
 
 async function TicketsListSection({ filters }: { filters: TicketFilters }) {
-  const result = await getPurchaseTickets(filters)
-  
+  const result = await getPurchaseTickets(filters);
+
   return (
     <>
       <TicketsTable tickets={result.data} />
@@ -71,12 +69,12 @@ async function TicketsListSection({ filters }: { filters: TicketFilters }) {
         limit={result.limit}
       />
     </>
-  )
+  );
 }
 
 export default async function ChamadosComprasPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  
+  const params = await searchParams;
+
   const filters: TicketFilters = {
     search: params.search,
     status: params.status,
@@ -85,7 +83,7 @@ export default async function ChamadosComprasPage({ searchParams }: PageProps) {
     unit_id: params.unit_id,
     page: params.page ? parseInt(params.page) : 1,
     limit: 20,
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -94,7 +92,9 @@ export default async function ChamadosComprasPage({ searchParams }: PageProps) {
         <div>
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold tracking-tight">Chamados de Compras</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Chamados de Compras
+            </h2>
           </div>
           <p className="text-muted-foreground mt-1">
             Solicite materiais, equipamentos e compras em geral
@@ -123,6 +123,5 @@ export default async function ChamadosComprasPage({ searchParams }: PageProps) {
         <TicketsListSection filters={filters} />
       </Suspense>
     </div>
-  )
+  );
 }
-

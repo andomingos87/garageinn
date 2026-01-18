@@ -1,27 +1,27 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { formatDistanceToNow, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { 
-  Receipt, 
-  Plus, 
-  Check, 
-  Trash2, 
-  Building2, 
-  Phone, 
+import { useState, useTransition } from "react";
+import { formatDistanceToNow, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  Receipt,
+  Plus,
+  Check,
+  Trash2,
+  Building2,
+  Phone,
   Calendar,
   DollarSign,
   Package,
   FileText,
-  CheckCircle2
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+  CheckCircle2,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,100 +41,103 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { toast } from 'sonner'
-import { addQuotation, selectQuotation, deleteQuotation } from '../../actions'
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { addQuotation, selectQuotation, deleteQuotation } from "../../actions";
 
 interface Quotation {
-  id: string
-  supplier_name: string
-  supplier_cnpj: string | null
-  supplier_contact: string | null
-  unit_price: number
-  total_price: number
-  quantity: number
-  payment_terms: string | null
-  delivery_deadline: string | null
-  validity_date: string | null
-  notes: string | null
-  status: string
-  is_selected: boolean
-  created_at: string
+  id: string;
+  supplier_name: string;
+  supplier_cnpj: string | null;
+  supplier_contact: string | null;
+  unit_price: number;
+  total_price: number;
+  quantity: number;
+  payment_terms: string | null;
+  delivery_deadline: string | null;
+  validity_date: string | null;
+  notes: string | null;
+  status: string;
+  is_selected: boolean;
+  created_at: string;
   creator: {
-    id: string
-    full_name: string
-    avatar_url: string | null
-  } | null
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
 }
 
 interface TicketQuotationsProps {
-  ticketId: string
-  quotations: Quotation[]
-  canManage: boolean
-  ticketStatus: string
-  itemQuantity: number | null
+  ticketId: string;
+  quotations: Quotation[];
+  canManage: boolean;
+  ticketStatus: string;
+  itemQuantity: number | null;
 }
 
-export function TicketQuotations({ 
-  ticketId, 
-  quotations, 
-  canManage, 
+export function TicketQuotations({
+  ticketId,
+  quotations,
+  canManage,
   ticketStatus,
-  itemQuantity 
+  itemQuantity,
 }: TicketQuotationsProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isPending, startTransition] = useTransition()
-  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value)
-  }
-  
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
   const handleAddQuotation = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
     startTransition(async () => {
-      const result = await addQuotation(ticketId, formData)
-      
+      const result = await addQuotation(ticketId, formData);
+
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Cotação adicionada com sucesso')
-        setIsDialogOpen(false)
+        toast.success("Cotação adicionada com sucesso");
+        setIsDialogOpen(false);
       }
-    })
-  }
-  
+    });
+  };
+
   const handleSelectQuotation = (quotationId: string) => {
     startTransition(async () => {
-      const result = await selectQuotation(ticketId, quotationId)
-      
+      const result = await selectQuotation(ticketId, quotationId);
+
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Cotação selecionada com sucesso')
+        toast.success("Cotação selecionada com sucesso");
       }
-    })
-  }
-  
+    });
+  };
+
   const handleDeleteQuotation = (quotationId: string) => {
     startTransition(async () => {
-      const result = await deleteQuotation(ticketId, quotationId)
-      
+      const result = await deleteQuotation(ticketId, quotationId);
+
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Cotação removida')
+        toast.success("Cotação removida");
       }
-    })
-  }
-  
-  const canAddQuotation = canManage && ['awaiting_triage', 'in_progress', 'quoting'].includes(ticketStatus)
-  const canSelectQuotation = canManage && ['quoting', 'awaiting_approval'].includes(ticketStatus)
-  
+    });
+  };
+
+  const canAddQuotation =
+    canManage &&
+    ["awaiting_triage", "in_progress", "quoting"].includes(ticketStatus);
+  const canSelectQuotation =
+    canManage && ["quoting", "awaiting_approval"].includes(ticketStatus);
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -146,7 +149,7 @@ export function TicketQuotations({
               <Badge variant="secondary">{quotations.length}</Badge>
             )}
           </CardTitle>
-          
+
           {canAddQuotation && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
@@ -162,7 +165,7 @@ export function TicketQuotations({
                     Preencha os dados do fornecedor e valores da cotação.
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <form onSubmit={handleAddQuotation} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 space-y-2">
@@ -174,7 +177,7 @@ export function TicketQuotations({
                         required
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="supplier_cnpj">CNPJ</Label>
                       <Input
@@ -183,7 +186,7 @@ export function TicketQuotations({
                         placeholder="00.000.000/0000-00"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="supplier_contact">Contato</Label>
                       <Input
@@ -192,7 +195,7 @@ export function TicketQuotations({
                         placeholder="Telefone ou email"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="unit_price">Preço Unitário *</Label>
                       <Input
@@ -205,7 +208,7 @@ export function TicketQuotations({
                         required
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="quantity">Quantidade *</Label>
                       <Input
@@ -217,7 +220,7 @@ export function TicketQuotations({
                         required
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="payment_terms">Forma de Pagamento</Label>
                       <Input
@@ -226,16 +229,18 @@ export function TicketQuotations({
                         placeholder="Ex: 30/60/90 dias"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <Label htmlFor="delivery_deadline">Prazo de Entrega</Label>
+                      <Label htmlFor="delivery_deadline">
+                        Prazo de Entrega
+                      </Label>
                       <Input
                         id="delivery_deadline"
                         name="delivery_deadline"
                         type="date"
                       />
                     </div>
-                    
+
                     <div className="col-span-2 space-y-2">
                       <Label htmlFor="validity_date">Validade da Cotação</Label>
                       <Input
@@ -244,7 +249,7 @@ export function TicketQuotations({
                         type="date"
                       />
                     </div>
-                    
+
                     <div className="col-span-2 space-y-2">
                       <Label htmlFor="notes">Observações</Label>
                       <Textarea
@@ -255,13 +260,17 @@ export function TicketQuotations({
                       />
                     </div>
                   </div>
-                  
+
                   <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
                       Cancelar
                     </Button>
                     <Button type="submit" disabled={isPending}>
-                      {isPending ? 'Salvando...' : 'Adicionar'}
+                      {isPending ? "Salvando..." : "Adicionar"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -278,19 +287,21 @@ export function TicketQuotations({
         ) : (
           <div className="space-y-3">
             {quotations.map((quotation) => (
-              <div 
-                key={quotation.id} 
+              <div
+                key={quotation.id}
                 className={`p-4 rounded-lg border ${
-                  quotation.is_selected 
-                    ? 'border-green-500 bg-green-50 dark:bg-green-950/20' 
-                    : 'border-border'
+                  quotation.is_selected
+                    ? "border-green-500 bg-green-50 dark:bg-green-950/20"
+                    : "border-border"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{quotation.supplier_name}</span>
+                      <span className="font-medium">
+                        {quotation.supplier_name}
+                      </span>
                       {quotation.is_selected && (
                         <Badge className="bg-green-500 gap-1">
                           <CheckCircle2 className="h-3 w-3" />
@@ -298,16 +309,18 @@ export function TicketQuotations({
                         </Badge>
                       )}
                     </div>
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                       <div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <DollarSign className="h-3 w-3" />
                           Preço Unitário
                         </p>
-                        <p className="font-medium">{formatCurrency(quotation.unit_price)}</p>
+                        <p className="font-medium">
+                          {formatCurrency(quotation.unit_price)}
+                        </p>
                       </div>
-                      
+
                       <div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Package className="h-3 w-3" />
@@ -315,12 +328,14 @@ export function TicketQuotations({
                         </p>
                         <p className="font-medium">{quotation.quantity}</p>
                       </div>
-                      
+
                       <div>
                         <p className="text-xs text-muted-foreground">Total</p>
-                        <p className="font-semibold text-primary">{formatCurrency(quotation.total_price)}</p>
+                        <p className="font-semibold text-primary">
+                          {formatCurrency(quotation.total_price)}
+                        </p>
                       </div>
-                      
+
                       {quotation.delivery_deadline && (
                         <div>
                           <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -328,39 +343,44 @@ export function TicketQuotations({
                             Prazo
                           </p>
                           <p className="font-medium">
-                            {format(new Date(quotation.delivery_deadline), 'dd/MM/yyyy')}
+                            {format(
+                              new Date(quotation.delivery_deadline),
+                              "dd/MM/yyyy"
+                            )}
                           </p>
                         </div>
                       )}
                     </div>
-                    
+
                     {quotation.supplier_contact && (
                       <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                         <Phone className="h-3 w-3" />
                         {quotation.supplier_contact}
                       </p>
                     )}
-                    
+
                     {quotation.notes && (
                       <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1">
                         <FileText className="h-3 w-3 mt-0.5" />
                         {quotation.notes}
                       </p>
                     )}
-                    
+
                     <p className="text-xs text-muted-foreground mt-2">
-                      Adicionada {formatDistanceToNow(new Date(quotation.created_at), { 
-                        addSuffix: true, 
-                        locale: ptBR 
-                      })} por {quotation.creator?.full_name || 'Desconhecido'}
+                      Adicionada{" "}
+                      {formatDistanceToNow(new Date(quotation.created_at), {
+                        addSuffix: true,
+                        locale: ptBR,
+                      })}{" "}
+                      por {quotation.creator?.full_name || "Desconhecido"}
                     </p>
                   </div>
-                  
+
                   {canManage && !quotation.is_selected && (
                     <div className="flex flex-col gap-2">
                       {canSelectQuotation && (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           className="gap-1"
                           onClick={() => handleSelectQuotation(quotation.id)}
@@ -370,11 +390,11 @@ export function TicketQuotations({
                           Selecionar
                         </Button>
                       )}
-                      
+
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="ghost"
                             className="gap-1 text-destructive hover:text-destructive"
                           >
@@ -384,15 +404,21 @@ export function TicketQuotations({
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Remover cotação?</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              Remover cotação?
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta ação não pode ser desfeita. A cotação de {quotation.supplier_name} será removida permanentemente.
+                              Esta ação não pode ser desfeita. A cotação de{" "}
+                              {quotation.supplier_name} será removida
+                              permanentemente.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => handleDeleteQuotation(quotation.id)}
+                              onClick={() =>
+                                handleDeleteQuotation(quotation.id)
+                              }
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
                               Remover
@@ -409,6 +435,5 @@ export function TicketQuotations({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
-

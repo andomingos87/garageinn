@@ -1,41 +1,58 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { UserPlus } from 'lucide-react'
-import { getUsers, getUsersStatsExtended, getDepartments, checkIsAdmin, getCurrentUserId } from './actions'
-import { UsersTable, UsersFilters, UserStatsCards, UsersPagination } from './components'
-import type { UserStatus } from '@/lib/supabase/custom-types'
-import { redirect } from 'next/navigation'
+import { Suspense } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { UserPlus } from "lucide-react";
+import {
+  getUsers,
+  getUsersStatsExtended,
+  getDepartments,
+  checkIsAdmin,
+  getCurrentUserId,
+} from "./actions";
+import {
+  UsersTable,
+  UsersFilters,
+  UserStatsCards,
+  UsersPagination,
+} from "./components";
+import type { UserStatus } from "@/lib/supabase/custom-types";
+import { redirect } from "next/navigation";
 
 interface PageProps {
   searchParams: Promise<{
-    search?: string
-    status?: string
-    department?: string
-    page?: string
-    limit?: string
-  }>
+    search?: string;
+    status?: string;
+    department?: string;
+    page?: string;
+    limit?: string;
+  }>;
 }
 
-async function UsersContent({ searchParams }: { searchParams: PageProps['searchParams'] }) {
-  const params = await searchParams
-  
+async function UsersContent({
+  searchParams,
+}: {
+  searchParams: PageProps["searchParams"];
+}) {
+  const params = await searchParams;
+
   const filters = {
     search: params.search,
-    status: (params.status || 'all') as UserStatus | 'all',
+    status: (params.status || "all") as UserStatus | "all",
     departmentId: params.department,
     page: params.page ? parseInt(params.page, 10) : 1,
     limit: params.limit ? parseInt(params.limit, 10) : 20,
-  }
+  };
 
-  const [paginatedUsers, stats, departments, currentUserId] = await Promise.all([
-    getUsers(filters),
-    getUsersStatsExtended(),
-    getDepartments(),
-    getCurrentUserId(),
-  ])
+  const [paginatedUsers, stats, departments, currentUserId] = await Promise.all(
+    [
+      getUsers(filters),
+      getUsersStatsExtended(),
+      getDepartments(),
+      getCurrentUserId(),
+    ]
+  );
 
   return (
     <>
@@ -53,7 +70,10 @@ async function UsersContent({ searchParams }: { searchParams: PageProps['searchP
           </div>
         </CardHeader>
         <CardContent>
-          <UsersTable users={paginatedUsers.users} currentUserId={currentUserId} />
+          <UsersTable
+            users={paginatedUsers.users}
+            currentUserId={currentUserId}
+          />
           <UsersPagination
             page={paginatedUsers.page}
             totalPages={paginatedUsers.totalPages}
@@ -63,7 +83,7 @@ async function UsersContent({ searchParams }: { searchParams: PageProps['searchP
         </CardContent>
       </Card>
     </>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -109,15 +129,15 @@ function LoadingSkeleton() {
         </CardContent>
       </Card>
     </>
-  )
+  );
 }
 
 export default async function UsuariosPage({ searchParams }: PageProps) {
   // Verificar se o usuário é admin
-  const isAdmin = await checkIsAdmin()
-  
+  const isAdmin = await checkIsAdmin();
+
   if (!isAdmin) {
-    redirect('/')
+    redirect("/");
   }
 
   return (
@@ -132,8 +152,8 @@ export default async function UsuariosPage({ searchParams }: PageProps) {
         </div>
         <Button asChild>
           <Link href="/usuarios/novo">
-          <UserPlus className="mr-2 h-4 w-4" />
-          Novo Usuário
+            <UserPlus className="mr-2 h-4 w-4" />
+            Novo Usuário
           </Link>
         </Button>
       </div>
@@ -142,5 +162,5 @@ export default async function UsuariosPage({ searchParams }: PageProps) {
         <UsersContent searchParams={searchParams} />
       </Suspense>
     </div>
-  )
+  );
 }

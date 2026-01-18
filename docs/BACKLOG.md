@@ -190,7 +190,7 @@
   - ✅ Subtarefa: Validar dependencias (checkIsAdmin via RPC is_admin, deleteExecution/deleteExecutions)
   - ✅ Subtarefa: Registro no historico (revalidatePath, audit_logs disponivel)
 
-## 3. Fase 2 — Entrega 2 (Sinistros, Comercial, Supervisao) ⚠️
+## 3. Fase 2 — Entrega 2 (Sinistros, Comercial, Supervisao) ✅
 
 ### Épico 2.1 — Chamados de Sinistros ✅
 **Contexto**: fluxo especifico e tabelas dedicadas.

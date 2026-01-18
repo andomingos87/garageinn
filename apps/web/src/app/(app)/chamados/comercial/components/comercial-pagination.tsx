@@ -1,14 +1,19 @@
-'use client'
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useTransition } from 'react'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 interface ComercialPaginationProps {
-  currentPage: number
-  totalCount: number
-  limit: number
+  currentPage: number;
+  totalCount: number;
+  limit: number;
 }
 
 export function ComercialPagination({
@@ -16,38 +21,38 @@ export function ComercialPagination({
   totalCount,
   limit,
 }: ComercialPaginationProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  const totalPages = Math.ceil(totalCount / limit)
-  const hasNextPage = currentPage < totalPages
-  const hasPrevPage = currentPage > 1
+  const totalPages = Math.ceil(totalCount / limit);
+  const hasNextPage = currentPage < totalPages;
+  const hasPrevPage = currentPage > 1;
 
   const goToPage = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
     if (page > 1) {
-      params.set('page', page.toString())
+      params.set("page", page.toString());
     } else {
-      params.delete('page')
+      params.delete("page");
     }
     startTransition(() => {
-      router.push(`/chamados/comercial?${params.toString()}`)
-    })
-  }
+      router.push(`/chamados/comercial?${params.toString()}`);
+    });
+  };
 
   if (totalCount <= limit) {
-    return null
+    return null;
   }
 
-  const start = (currentPage - 1) * limit + 1
-  const end = Math.min(currentPage * limit, totalCount)
+  const start = (currentPage - 1) * limit + 1;
+  const end = Math.min(currentPage * limit, totalCount);
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
       <p className="text-sm text-muted-foreground">
-        Mostrando <span className="font-medium">{start}</span> a{' '}
-        <span className="font-medium">{end}</span> de{' '}
+        Mostrando <span className="font-medium">{start}</span> a{" "}
+        <span className="font-medium">{end}</span> de{" "}
         <span className="font-medium">{totalCount}</span> resultados
       </p>
 
@@ -95,5 +100,5 @@ export function ComercialPagination({
         </Button>
       </div>
     </div>
-  )
+  );
 }

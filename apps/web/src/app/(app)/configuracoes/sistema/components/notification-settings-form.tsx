@@ -1,54 +1,58 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Loader2, Save } from 'lucide-react'
-import { toast } from 'sonner'
-import { updateNotificationSettings } from '../actions'
-import type { SystemSettingsMap } from '../actions'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, Save } from "lucide-react";
+import { toast } from "sonner";
+import { updateNotificationSettings } from "../actions";
+import type { SystemSettingsMap } from "../actions";
 
 interface NotificationSettingsFormProps {
-  settings: SystemSettingsMap
-  onUpdate: () => void
+  settings: SystemSettingsMap;
+  onUpdate: () => void;
 }
 
 export function NotificationSettingsForm({
   settings,
   onUpdate,
 }: NotificationSettingsFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [emailEnabled, setEmailEnabled] = useState(settings.notifications_email_enabled)
-  const [pushEnabled, setPushEnabled] = useState(settings.notifications_push_enabled)
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailEnabled, setEmailEnabled] = useState(
+    settings.notifications_email_enabled
+  );
+  const [pushEnabled, setPushEnabled] = useState(
+    settings.notifications_push_enabled
+  );
 
   const hasChanges =
     emailEnabled !== settings.notifications_email_enabled ||
-    pushEnabled !== settings.notifications_push_enabled
+    pushEnabled !== settings.notifications_push_enabled;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const result = await updateNotificationSettings({
         notifications_email_enabled: emailEnabled,
         notifications_push_enabled: pushEnabled,
-      })
+      });
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Configurações de notificação atualizadas com sucesso')
-        onUpdate()
+        toast.success("Configurações de notificação atualizadas com sucesso");
+        onUpdate();
       }
     } catch (error) {
-      console.error('Error updating notification settings:', error)
-      toast.error('Erro ao atualizar configurações de notificação')
+      console.error("Error updating notification settings:", error);
+      toast.error("Erro ao atualizar configurações de notificação");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -98,6 +102,5 @@ export function NotificationSettingsForm({
         </Button>
       </div>
     </form>
-  )
+  );
 }
-

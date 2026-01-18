@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { Building2 } from 'lucide-react'
-import type { Department, TicketCategory } from '../actions'
-import { CategoryTable } from './category-table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Building2 } from "lucide-react";
+import type { Department, TicketCategory } from "../actions";
+import { CategoryTable } from "./category-table";
 
 interface DepartmentTabsProps {
-  departments: Department[]
-  categories: TicketCategory[]
-  selectedDepartment: string | null
-  onDepartmentChange: (departmentId: string) => void
-  onEditCategory: (category: TicketCategory) => void
-  onToggleStatus: (categoryId: string) => void
-  onDeleteCategory: (categoryId: string) => void
-  isLoading?: boolean
+  departments: Department[];
+  categories: TicketCategory[];
+  selectedDepartment: string | null;
+  onDepartmentChange: (departmentId: string) => void;
+  onEditCategory: (category: TicketCategory) => void;
+  onToggleStatus: (categoryId: string) => void;
+  onDeleteCategory: (categoryId: string) => void;
+  isLoading?: boolean;
 }
 
 export function DepartmentTabs({
@@ -29,14 +29,18 @@ export function DepartmentTabs({
 }: DepartmentTabsProps) {
   // Filtrar departamentos que têm categorias ou são relevantes
   const departmentsWithCategories = departments.filter(
-    (d) => d.categories_count > 0 || categories.some((c) => c.department_id === d.id)
-  )
+    (d) =>
+      d.categories_count > 0 || categories.some((c) => c.department_id === d.id)
+  );
 
   // Se não há departamentos, mostrar todos
-  const displayDepartments = departmentsWithCategories.length > 0 ? departmentsWithCategories : departments
+  const displayDepartments =
+    departmentsWithCategories.length > 0
+      ? departmentsWithCategories
+      : departments;
 
   // Valor padrão para a tab
-  const defaultValue = selectedDepartment || displayDepartments[0]?.id || 'all'
+  const defaultValue = selectedDepartment || displayDepartments[0]?.id || "all";
 
   return (
     <Tabs
@@ -53,7 +57,9 @@ export function DepartmentTabs({
           </Badge>
         </TabsTrigger>
         {displayDepartments.map((dept) => {
-          const deptCategories = categories.filter((c) => c.department_id === dept.id)
+          const deptCategories = categories.filter(
+            (c) => c.department_id === dept.id
+          );
           return (
             <TabsTrigger key={dept.id} value={dept.id} className="gap-2">
               {dept.name}
@@ -61,7 +67,7 @@ export function DepartmentTabs({
                 {deptCategories.length}
               </Badge>
             </TabsTrigger>
-          )
+          );
         })}
       </TabsList>
 
@@ -77,7 +83,9 @@ export function DepartmentTabs({
       </TabsContent>
 
       {displayDepartments.map((dept) => {
-        const deptCategories = categories.filter((c) => c.department_id === dept.id)
+        const deptCategories = categories.filter(
+          (c) => c.department_id === dept.id
+        );
         return (
           <TabsContent key={dept.id} value={dept.id} className="mt-4">
             <CategoryTable
@@ -90,9 +98,8 @@ export function DepartmentTabs({
               emptyMessage={`Nenhuma categoria cadastrada para ${dept.name}`}
             />
           </TabsContent>
-        )
+        );
       })}
     </Tabs>
-  )
+  );
 }
-

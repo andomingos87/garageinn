@@ -1,32 +1,32 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Briefcase } from 'lucide-react'
+import { Suspense } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Briefcase } from "lucide-react";
 import {
   getComercialTickets,
   getComercialStats,
   getComercialCategories,
   type ComercialFilters,
-} from './actions'
-import { getUserUnits } from '@/lib/units'
+} from "./actions";
+import { getUserUnits } from "@/lib/units";
 import {
   ComercialStatsCards,
   ComercialFilters as ComercialFiltersComponent,
   ComercialTable,
   ComercialPagination,
-} from './components'
+} from "./components";
 
 interface PageProps {
   searchParams: Promise<{
-    search?: string
-    status?: string
-    priority?: string
-    comercial_type?: string
-    category_id?: string
-    unit_id?: string
-    page?: string
-  }>
+    search?: string;
+    status?: string;
+    priority?: string;
+    comercial_type?: string;
+    category_id?: string;
+    unit_id?: string;
+    page?: string;
+  }>;
 }
 
 // Loading skeleton components
@@ -37,31 +37,33 @@ function StatsCardsSkeleton() {
         <Skeleton key={i} className="h-[120px] rounded-lg" />
       ))}
     </div>
-  )
+  );
 }
 
 function TableSkeleton() {
-  return (
-    <Skeleton className="h-[400px] rounded-lg" />
-  )
+  return <Skeleton className="h-[400px] rounded-lg" />;
 }
 
 // Server components for data fetching
 async function ComercialStatsSection() {
-  const stats = await getComercialStats()
-  return <ComercialStatsCards stats={stats} />
+  const stats = await getComercialStats();
+  return <ComercialStatsCards stats={stats} />;
 }
 
 async function ComercialFiltersSection() {
   const [categories, units] = await Promise.all([
     getComercialCategories(),
     getUserUnits(),
-  ])
-  return <ComercialFiltersComponent categories={categories} units={units} />
+  ]);
+  return <ComercialFiltersComponent categories={categories} units={units} />;
 }
 
-async function ComercialListSection({ filters }: { filters: ComercialFilters }) {
-  const result = await getComercialTickets(filters)
+async function ComercialListSection({
+  filters,
+}: {
+  filters: ComercialFilters;
+}) {
+  const result = await getComercialTickets(filters);
 
   return (
     <>
@@ -72,11 +74,13 @@ async function ComercialListSection({ filters }: { filters: ComercialFilters }) 
         limit={result.limit}
       />
     </>
-  )
+  );
 }
 
-export default async function ChamadosComercialPage({ searchParams }: PageProps) {
-  const params = await searchParams
+export default async function ChamadosComercialPage({
+  searchParams,
+}: PageProps) {
+  const params = await searchParams;
 
   const filters: ComercialFilters = {
     search: params.search,
@@ -87,7 +91,7 @@ export default async function ChamadosComercialPage({ searchParams }: PageProps)
     unit_id: params.unit_id,
     page: params.page ? parseInt(params.page) : 1,
     limit: 20,
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -96,7 +100,9 @@ export default async function ChamadosComercialPage({ searchParams }: PageProps)
         <div>
           <div className="flex items-center gap-2">
             <Briefcase className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold tracking-tight">Chamados Comerciais</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Chamados Comerciais
+            </h2>
           </div>
           <p className="text-muted-foreground mt-1">
             Gerencie contratos, propostas e solicitacoes comerciais
@@ -125,5 +131,5 @@ export default async function ChamadosComercialPage({ searchParams }: PageProps)
         <ComercialListSection filters={filters} />
       </Suspense>
     </div>
-  )
+  );
 }

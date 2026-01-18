@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,19 +8,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
-import type { Department } from '../actions'
-import { createDepartment, updateDepartment } from '../actions'
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import type { Department } from "../actions";
+import { createDepartment, updateDepartment } from "../actions";
 
 interface DepartmentFormDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  department?: Department | null
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  department?: Department | null;
 }
 
 export function DepartmentFormDialog({
@@ -28,59 +28,61 @@ export function DepartmentFormDialog({
   onOpenChange,
   department,
 }: DepartmentFormDialogProps) {
-  const [isPending, startTransition] = useTransition()
-  const [name, setName] = useState('')
-  const [error, setError] = useState('')
-  const isEditing = !!department
+  const [isPending, startTransition] = useTransition();
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const isEditing = !!department;
 
   useEffect(() => {
     if (open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Intended: reset form state on dialog open
-      setName(department?.name || '')
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError('')
+      setName(department?.name || "");
+
+      setError("");
     }
-  }, [open, department])
+  }, [open, department]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
-    const trimmedName = name.trim()
+    const trimmedName = name.trim();
     if (trimmedName.length < 2) {
-      setError('Nome deve ter pelo menos 2 caracteres')
-      return
+      setError("Nome deve ter pelo menos 2 caracteres");
+      return;
     }
     if (trimmedName.length > 100) {
-      setError('Nome muito longo')
-      return
+      setError("Nome muito longo");
+      return;
     }
 
     startTransition(async () => {
       const result = isEditing
         ? await updateDepartment(department!.id, trimmedName)
-        : await createDepartment(trimmedName)
+        : await createDepartment(trimmedName);
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success(isEditing ? 'Departamento atualizado' : 'Departamento criado')
-        onOpenChange(false)
+        toast.success(
+          isEditing ? "Departamento atualizado" : "Departamento criado"
+        );
+        onOpenChange(false);
       }
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? 'Editar Departamento' : 'Novo Departamento'}
+            {isEditing ? "Editar Departamento" : "Novo Departamento"}
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? 'Atualize as informações do departamento.'
-              : 'Preencha as informações para criar um novo departamento.'}
+              ? "Atualize as informações do departamento."
+              : "Preencha as informações para criar um novo departamento."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,9 +98,7 @@ export function DepartmentFormDialog({
               minLength={2}
               maxLength={100}
             />
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
           <DialogFooter>
             <Button
@@ -111,11 +111,11 @@ export function DepartmentFormDialog({
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? 'Salvar' : 'Criar'}
+              {isEditing ? "Salvar" : "Criar"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

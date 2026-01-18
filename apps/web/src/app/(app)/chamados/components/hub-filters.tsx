@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useTransition, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Search, X, SlidersHorizontal } from 'lucide-react'
+} from "@/components/ui/select";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -19,90 +19,104 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
-import { Label } from '@/components/ui/label'
-import { STATUS_LABELS, PRIORITY_LABELS } from './status-badge'
-import type { Department, Unit } from '../actions'
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { STATUS_LABELS, PRIORITY_LABELS } from "./status-badge";
+import type { Department, Unit } from "../actions";
 
 interface HubFiltersProps {
-  departments: Department[]
-  units: Unit[]
+  departments: Department[];
+  units: Unit[];
 }
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'Todos os status' },
-  { value: 'awaiting_triage', label: STATUS_LABELS['awaiting_triage'] },
-  { value: 'in_progress', label: STATUS_LABELS['in_progress'] },
-  { value: 'quoting', label: STATUS_LABELS['quoting'] },
-  { value: 'approved', label: STATUS_LABELS['approved'] },
-  { value: 'executing', label: STATUS_LABELS['executing'] },
-  { value: 'resolved', label: STATUS_LABELS['resolved'] },
-  { value: 'closed', label: STATUS_LABELS['closed'] },
-  { value: 'cancelled', label: STATUS_LABELS['cancelled'] },
-  { value: 'denied', label: STATUS_LABELS['denied'] },
-]
+  { value: "all", label: "Todos os status" },
+  { value: "awaiting_triage", label: STATUS_LABELS["awaiting_triage"] },
+  { value: "in_progress", label: STATUS_LABELS["in_progress"] },
+  { value: "quoting", label: STATUS_LABELS["quoting"] },
+  { value: "approved", label: STATUS_LABELS["approved"] },
+  { value: "executing", label: STATUS_LABELS["executing"] },
+  { value: "resolved", label: STATUS_LABELS["resolved"] },
+  { value: "closed", label: STATUS_LABELS["closed"] },
+  { value: "cancelled", label: STATUS_LABELS["cancelled"] },
+  { value: "denied", label: STATUS_LABELS["denied"] },
+];
 
 const PRIORITY_OPTIONS = [
-  { value: 'all', label: 'Todas prioridades' },
-  { value: 'low', label: PRIORITY_LABELS['low'] },
-  { value: 'medium', label: PRIORITY_LABELS['medium'] },
-  { value: 'high', label: PRIORITY_LABELS['high'] },
-  { value: 'urgent', label: PRIORITY_LABELS['urgent'] },
-]
+  { value: "all", label: "Todas prioridades" },
+  { value: "low", label: PRIORITY_LABELS["low"] },
+  { value: "medium", label: PRIORITY_LABELS["medium"] },
+  { value: "high", label: PRIORITY_LABELS["high"] },
+  { value: "urgent", label: PRIORITY_LABELS["urgent"] },
+];
 
 export function HubFilters({ departments, units }: HubFiltersProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
-  const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const [isOpen, setIsOpen] = useState(false);
 
   // Current filter values
-  const search = searchParams.get('search') || ''
-  const status = searchParams.get('status') || 'all'
-  const priority = searchParams.get('priority') || 'all'
-  const department_id = searchParams.get('department_id') || 'all'
-  const unit_id = searchParams.get('unit_id') || 'all'
+  const search = searchParams.get("search") || "";
+  const status = searchParams.get("status") || "all";
+  const priority = searchParams.get("priority") || "all";
+  const department_id = searchParams.get("department_id") || "all";
+  const unit_id = searchParams.get("unit_id") || "all";
 
-  const [localSearch, setLocalSearch] = useState(search)
+  const [localSearch, setLocalSearch] = useState(search);
 
-  const updateFilters = useCallback((updates: Record<string, string>) => {
-    const params = new URLSearchParams(searchParams.toString())
-    
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== 'all') {
-        params.set(key, value)
-      } else {
-        params.delete(key)
-      }
-    })
+  const updateFilters = useCallback(
+    (updates: Record<string, string>) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    // Reset to page 1 when filters change
-    params.delete('page')
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value && value !== "all") {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
+      });
 
-    startTransition(() => {
-      router.push(`/chamados?${params.toString()}`)
-    })
-  }, [router, searchParams])
+      // Reset to page 1 when filters change
+      params.delete("page");
+
+      startTransition(() => {
+        router.push(`/chamados?${params.toString()}`);
+      });
+    },
+    [router, searchParams]
+  );
 
   const handleSearch = () => {
-    updateFilters({ search: localSearch })
-  }
+    updateFilters({ search: localSearch });
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch()
+    if (e.key === "Enter") {
+      handleSearch();
     }
-  }
+  };
 
   const clearFilters = () => {
-    setLocalSearch('')
+    setLocalSearch("");
     startTransition(() => {
-      router.push('/chamados')
-    })
-  }
+      router.push("/chamados");
+    });
+  };
 
-  const hasActiveFilters = search || status !== 'all' || priority !== 'all' || department_id !== 'all' || unit_id !== 'all'
-  const activeFilterCount = [search, status !== 'all', priority !== 'all', department_id !== 'all', unit_id !== 'all'].filter(Boolean).length
+  const hasActiveFilters =
+    search ||
+    status !== "all" ||
+    priority !== "all" ||
+    department_id !== "all" ||
+    unit_id !== "all";
+  const activeFilterCount = [
+    search,
+    status !== "all",
+    priority !== "all",
+    department_id !== "all",
+    unit_id !== "all",
+  ].filter(Boolean).length;
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -197,9 +211,7 @@ export function HubFilters({ departments, units }: HubFiltersProps) {
           <SheetContent>
             <SheetHeader>
               <SheetTitle>Filtros</SheetTitle>
-              <SheetDescription>
-                Refine a listagem de chamados
-              </SheetDescription>
+              <SheetDescription>Refine a listagem de chamados</SheetDescription>
             </SheetHeader>
             <div className="space-y-4 mt-6">
               <div className="space-y-2">
@@ -207,7 +219,7 @@ export function HubFilters({ departments, units }: HubFiltersProps) {
                 <Select
                   value={department_id}
                   onValueChange={(value) => {
-                    updateFilters({ department_id: value })
+                    updateFilters({ department_id: value });
                   }}
                 >
                   <SelectTrigger>
@@ -229,7 +241,7 @@ export function HubFilters({ departments, units }: HubFiltersProps) {
                 <Select
                   value={status}
                   onValueChange={(value) => {
-                    updateFilters({ status: value })
+                    updateFilters({ status: value });
                   }}
                 >
                   <SelectTrigger>
@@ -250,7 +262,7 @@ export function HubFilters({ departments, units }: HubFiltersProps) {
                 <Select
                   value={priority}
                   onValueChange={(value) => {
-                    updateFilters({ priority: value })
+                    updateFilters({ priority: value });
                   }}
                 >
                   <SelectTrigger>
@@ -271,7 +283,7 @@ export function HubFilters({ departments, units }: HubFiltersProps) {
                 <Select
                   value={unit_id}
                   onValueChange={(value) => {
-                    updateFilters({ unit_id: value })
+                    updateFilters({ unit_id: value });
                   }}
                 >
                   <SelectTrigger>
@@ -292,8 +304,8 @@ export function HubFilters({ departments, units }: HubFiltersProps) {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    clearFilters()
-                    setIsOpen(false)
+                    clearFilters();
+                    setIsOpen(false);
                   }}
                   className="w-full"
                 >
@@ -319,6 +331,5 @@ export function HubFilters({ departments, units }: HubFiltersProps) {
         )}
       </div>
     </div>
-  )
+  );
 }
-

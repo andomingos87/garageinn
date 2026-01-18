@@ -11,7 +11,9 @@ export interface ActionResult {
 /**
  * Server action to update user password.
  */
-export async function updatePassword(formData: FormData): Promise<ActionResult> {
+export async function updatePassword(
+  formData: FormData
+): Promise<ActionResult> {
   const supabase = await createClient();
 
   const password = formData.get("password") as string;
@@ -43,4 +45,3 @@ export async function updatePassword(formData: FormData): Promise<ActionResult> 
 
   redirect("/login?message=password_updated");
 }
-

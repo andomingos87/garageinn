@@ -1,19 +1,29 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowLeft, ClipboardList, Building2, AlertTriangle, ShieldCheck } from 'lucide-react'
-import { getSupervisionChecklists } from '../../executar/actions'
-import { SupervisionStartCard } from './components/supervision-start-card'
+import { Suspense } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ArrowLeft,
+  ClipboardList,
+  Building2,
+  AlertTriangle,
+  ShieldCheck,
+} from "lucide-react";
+import { getSupervisionChecklists } from "../../executar/actions";
+import { SupervisionStartCard } from "./components/supervision-start-card";
 
 async function SupervisionChecklistsContent() {
-  const checklists = await getSupervisionChecklists()
+  const checklists = await getSupervisionChecklists();
 
   // Agrupar por status
-  const pending = checklists.filter(c => !c.todayExecution)
-  const inProgress = checklists.filter(c => c.todayExecution?.status === 'in_progress')
-  const completed = checklists.filter(c => c.todayExecution?.status === 'completed')
+  const pending = checklists.filter((c) => !c.todayExecution);
+  const inProgress = checklists.filter(
+    (c) => c.todayExecution?.status === "in_progress"
+  );
+  const completed = checklists.filter(
+    (c) => c.todayExecution?.status === "completed"
+  );
 
   if (checklists.length === 0) {
     return (
@@ -24,7 +34,9 @@ async function SupervisionChecklistsContent() {
               <AlertTriangle className="h-6 w-6 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg">Nenhum checklist de supervisão disponível</h3>
+              <h3 className="font-semibold text-lg">
+                Nenhum checklist de supervisão disponível
+              </h3>
               <p className="text-muted-foreground text-sm mt-1">
                 Você não tem unidades com cobertura de supervisão configuradas.
               </p>
@@ -35,7 +47,7 @@ async function SupervisionChecklistsContent() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -93,7 +105,7 @@ async function SupervisionChecklistsContent() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -122,7 +134,7 @@ function LoadingSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function ExecutarSupervisaoPage() {
@@ -192,21 +204,28 @@ export default function ExecutarSupervisaoPage() {
         <SupervisionChecklistsContent />
       </Suspense>
     </div>
-  )
+  );
 }
 
-async function SupervisionStats({ type }: { type: 'total' | 'pending' | 'completed' }) {
-  const checklists = await getSupervisionChecklists()
+async function SupervisionStats({
+  type,
+}: {
+  type: "total" | "pending" | "completed";
+}) {
+  const checklists = await getSupervisionChecklists();
 
-  const total = checklists.length
-  const pending = checklists.filter(c => !c.todayExecution).length
-  const completed = checklists.filter(c => c.todayExecution?.status === 'completed').length
+  const total = checklists.length;
+  const pending = checklists.filter((c) => !c.todayExecution).length;
+  const completed = checklists.filter(
+    (c) => c.todayExecution?.status === "completed"
+  ).length;
 
-  const value = type === 'total' ? total : type === 'pending' ? pending : completed
+  const value =
+    type === "total" ? total : type === "pending" ? pending : completed;
 
   return (
     <div className="text-2xl font-bold">
-      {type === 'completed' ? `${completed}/${total}` : value}
+      {type === "completed" ? `${completed}/${total}` : value}
     </div>
-  )
+  );
 }

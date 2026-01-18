@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { formatDistanceToNow, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import Link from "next/link";
+import { formatDistanceToNow, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   Table,
   TableBody,
@@ -10,41 +10,41 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ClaimStatusBadge, PriorityBadge } from './claim-status-badge'
-import { ClaimTypeBadge, OccurrenceTypeBadge } from './claim-type-badge'
-import { FileText, MessageSquare, Paperclip, Car } from 'lucide-react'
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ClaimStatusBadge, PriorityBadge } from "./claim-status-badge";
+import { ClaimTypeBadge, OccurrenceTypeBadge } from "./claim-type-badge";
+import { FileText, MessageSquare, Paperclip, Car } from "lucide-react";
 
 interface ClaimTicket {
-  id: string
-  ticket_number: number
-  title: string
-  status: string
-  priority: string | null
-  perceived_urgency: string | null
-  created_at: string
-  category_name: string | null
-  unit_name: string | null
-  unit_code: string | null
+  id: string;
+  ticket_number: number;
+  title: string;
+  status: string;
+  priority: string | null;
+  perceived_urgency: string | null;
+  created_at: string;
+  category_name: string | null;
+  unit_name: string | null;
+  unit_code: string | null;
   // Claim specific fields
-  occurrence_type: string | null
-  occurrence_date: string | null
-  vehicle_plate: string | null
-  customer_name: string | null
-  has_third_party: boolean | null
+  occurrence_type: string | null;
+  occurrence_date: string | null;
+  vehicle_plate: string | null;
+  customer_name: string | null;
+  has_third_party: boolean | null;
   // Creator info
-  created_by_id: string
-  created_by_name: string
-  created_by_avatar: string | null
+  created_by_id: string;
+  created_by_name: string;
+  created_by_avatar: string | null;
   // Counts
-  comments_count: number | null
-  attachments_count: number | null
+  comments_count: number | null;
+  attachments_count: number | null;
 }
 
 interface ClaimsTableProps {
-  tickets: ClaimTicket[]
+  tickets: ClaimTicket[];
 }
 
 export function ClaimsTable({ tickets }: ClaimsTableProps) {
@@ -59,7 +59,7 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
           </p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -74,12 +74,20 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
               <TableRow>
                 <TableHead className="w-[80px]">#</TableHead>
                 <TableHead>Título / Veículo</TableHead>
-                <TableHead className="hidden md:table-cell">Categoria</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Categoria
+                </TableHead>
                 <TableHead className="hidden lg:table-cell">Unidade</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="hidden sm:table-cell">Prioridade</TableHead>
-                <TableHead className="hidden lg:table-cell">Solicitante</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Data</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  Prioridade
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Solicitante
+                </TableHead>
+                <TableHead className="hidden md:table-cell text-right">
+                  Data
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,12 +106,16 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
                       href={`/chamados/sinistros/${ticket.id}`}
                       className="block group-hover:text-primary transition-colors"
                     >
-                      <div className="font-medium line-clamp-1">{ticket.title}</div>
+                      <div className="font-medium line-clamp-1">
+                        {ticket.title}
+                      </div>
                       <div className="flex items-center gap-2 mt-1">
                         {ticket.vehicle_plate && (
                           <span className="flex items-center gap-1 text-sm text-muted-foreground">
                             <Car className="h-3 w-3" />
-                            <span className="font-mono">{ticket.vehicle_plate}</span>
+                            <span className="font-mono">
+                              {ticket.vehicle_plate}
+                            </span>
                           </span>
                         )}
                         {ticket.customer_name && (
@@ -114,7 +126,10 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-muted-foreground">
                         {ticket.occurrence_type && (
-                          <OccurrenceTypeBadge type={ticket.occurrence_type} size="sm" />
+                          <OccurrenceTypeBadge
+                            type={ticket.occurrence_type}
+                            size="sm"
+                          />
                         )}
                         {ticket.has_third_party && (
                           <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
@@ -138,7 +153,10 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {ticket.category_name ? (
-                      <ClaimTypeBadge category={ticket.category_name} size="sm" />
+                      <ClaimTypeBadge
+                        category={ticket.category_name}
+                        size="sm"
+                      />
                     ) : (
                       <span className="text-muted-foreground text-sm">-</span>
                     )}
@@ -146,7 +164,9 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
                   <TableCell className="hidden lg:table-cell">
                     {ticket.unit_code ? (
                       <span className="text-sm">
-                        <span className="font-mono text-muted-foreground">{ticket.unit_code}</span>
+                        <span className="font-mono text-muted-foreground">
+                          {ticket.unit_code}
+                        </span>
                         {ticket.unit_name && (
                           <span className="hidden xl:inline ml-1 text-muted-foreground">
                             - {ticket.unit_name}
@@ -166,13 +186,17 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
                   <TableCell className="hidden lg:table-cell">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-7 w-7">
-                        <AvatarImage src={ticket.created_by_avatar || undefined} />
+                        <AvatarImage
+                          src={ticket.created_by_avatar || undefined}
+                        />
                         <AvatarFallback className="text-xs">
-                          {ticket.created_by_name?.slice(0, 2).toUpperCase() || '?'}
+                          {ticket.created_by_name?.slice(0, 2).toUpperCase() ||
+                            "?"}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm line-clamp-1">
-                        {ticket.created_by_name?.split(' ')[0] || 'Desconhecido'}
+                        {ticket.created_by_name?.split(" ")[0] ||
+                          "Desconhecido"}
                       </span>
                     </div>
                   </TableCell>
@@ -180,7 +204,11 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
                     <div className="text-sm">
                       {ticket.occurrence_date ? (
                         <span className="text-foreground">
-                          {format(new Date(ticket.occurrence_date), 'dd/MM/yyyy', { locale: ptBR })}
+                          {format(
+                            new Date(ticket.occurrence_date),
+                            "dd/MM/yyyy",
+                            { locale: ptBR }
+                          )}
                         </span>
                       ) : (
                         <span className="text-muted-foreground">
@@ -199,6 +227,5 @@ export function ClaimsTable({ tickets }: ClaimsTableProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-

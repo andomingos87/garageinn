@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -20,122 +20,148 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { MoreHorizontal, Eye, Pencil, UserCheck, UserX, Users, Trash2, Send, Mail, UserCog } from 'lucide-react'
-import { updateUserStatus } from '../actions'
-import { InvitationStatusBadge } from './invitation-status-badge'
-import { DeleteUserDialog } from './delete-user-dialog'
-import { EditEmailDialog } from './edit-email-dialog'
-import { ResendInviteDialog } from './resend-invite-dialog'
-import { ImpersonateDialog } from './impersonate-dialog'
-import { usePermissions } from '@/hooks/use-permissions'
-import type { UserWithRoles, UserStatus } from '@/lib/supabase/custom-types'
-import { getInvitationStatus } from '@/lib/supabase/custom-types'
+} from "@/components/ui/table";
+import {
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  UserCheck,
+  UserX,
+  Users,
+  Trash2,
+  Send,
+  Mail,
+  UserCog,
+} from "lucide-react";
+import { updateUserStatus } from "../actions";
+import { InvitationStatusBadge } from "./invitation-status-badge";
+import { DeleteUserDialog } from "./delete-user-dialog";
+import { EditEmailDialog } from "./edit-email-dialog";
+import { ResendInviteDialog } from "./resend-invite-dialog";
+import { ImpersonateDialog } from "./impersonate-dialog";
+import { usePermissions } from "@/hooks/use-permissions";
+import type { UserWithRoles, UserStatus } from "@/lib/supabase/custom-types";
+import { getInvitationStatus } from "@/lib/supabase/custom-types";
 
 interface UsersTableProps {
-  users: UserWithRoles[]
-  currentUserId?: string
+  users: UserWithRoles[];
+  currentUserId?: string;
 }
 
 function getInitials(name: string) {
   return name
-    .split(' ')
+    .split(" ")
     .map((n) => n[0])
-    .join('')
+    .join("")
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2);
 }
 
 function getStatusConfig(status: UserStatus) {
   switch (status) {
-    case 'active':
-      return { label: 'Ativo', variant: 'default' as const, className: 'bg-success hover:bg-success/90' }
-    case 'pending':
-      return { label: 'Pendente', variant: 'secondary' as const, className: 'bg-warning hover:bg-warning/90 text-warning-foreground' }
-    case 'inactive':
-      return { label: 'Inativo', variant: 'outline' as const, className: '' }
+    case "active":
+      return {
+        label: "Ativo",
+        variant: "default" as const,
+        className: "bg-success hover:bg-success/90",
+      };
+    case "pending":
+      return {
+        label: "Pendente",
+        variant: "secondary" as const,
+        className: "bg-warning hover:bg-warning/90 text-warning-foreground",
+      };
+    case "inactive":
+      return { label: "Inativo", variant: "outline" as const, className: "" };
     default:
-      return { label: status, variant: 'outline' as const, className: '' }
+      return { label: status, variant: "outline" as const, className: "" };
   }
 }
 
-function formatRoles(roles: UserWithRoles['roles']) {
-  if (roles.length === 0) return 'Sem cargo'
+function formatRoles(roles: UserWithRoles["roles"]) {
+  if (roles.length === 0) return "Sem cargo";
 
   // Agrupar por departamento
-  const globalRoles = roles.filter(r => r.is_global)
-  const deptRoles = roles.filter(r => !r.is_global)
+  const globalRoles = roles.filter((r) => r.is_global);
+  const deptRoles = roles.filter((r) => !r.is_global);
 
-  const parts: string[] = []
+  const parts: string[] = [];
 
   if (globalRoles.length > 0) {
-    parts.push(globalRoles.map(r => r.role_name).join(', '))
+    parts.push(globalRoles.map((r) => r.role_name).join(", "));
   }
 
   // Agrupar roles por departamento
-  const byDept = deptRoles.reduce((acc, r) => {
-    const dept = r.department_name || 'Sem departamento'
-    if (!acc[dept]) acc[dept] = []
-    acc[dept].push(r.role_name)
-    return acc
-  }, {} as Record<string, string[]>)
+  const byDept = deptRoles.reduce(
+    (acc, r) => {
+      const dept = r.department_name || "Sem departamento";
+      if (!acc[dept]) acc[dept] = [];
+      acc[dept].push(r.role_name);
+      return acc;
+    },
+    {} as Record<string, string[]>
+  );
 
   for (const [dept, roleNames] of Object.entries(byDept)) {
-    parts.push(`${roleNames.join(', ')} (${dept})`)
+    parts.push(`${roleNames.join(", ")} (${dept})`);
   }
 
-  return parts.join(' · ')
+  return parts.join(" · ");
 }
 
-function getDepartments(roles: UserWithRoles['roles']) {
-  const departments = new Set<string>()
-  
+function getDepartments(roles: UserWithRoles["roles"]) {
+  const departments = new Set<string>();
+
   for (const role of roles) {
     if (role.is_global) {
-      departments.add('Global')
+      departments.add("Global");
     } else if (role.department_name) {
-      departments.add(role.department_name)
+      departments.add(role.department_name);
     }
   }
 
-  return Array.from(departments)
+  return Array.from(departments);
 }
 
 interface DialogState {
-  type: 'delete' | 'edit-email' | 'resend-invite' | 'impersonate' | null
-  user: UserWithRoles | null
+  type: "delete" | "edit-email" | "resend-invite" | "impersonate" | null;
+  user: UserWithRoles | null;
 }
 
 export function UsersTable({ users, currentUserId }: UsersTableProps) {
-  const router = useRouter()
-  const [loadingUserId, setLoadingUserId] = useState<string | null>(null)
-  const [dialogState, setDialogState] = useState<DialogState>({ type: null, user: null })
-  const { can, isLoading: permissionsLoading, isAdmin } = usePermissions()
-  
+  const router = useRouter();
+  const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
+  const [dialogState, setDialogState] = useState<DialogState>({
+    type: null,
+    user: null,
+  });
+  const { can, isLoading: permissionsLoading, isAdmin } = usePermissions();
+
   // Admin sempre pode impersonar, ou usuário com permissão específica
-  const canImpersonate = !permissionsLoading && (isAdmin || can('users:impersonate'))
+  const canImpersonate =
+    !permissionsLoading && (isAdmin || can("users:impersonate"));
 
   async function handleStatusChange(userId: string, newStatus: UserStatus) {
-    setLoadingUserId(userId)
+    setLoadingUserId(userId);
     try {
-      await updateUserStatus(userId, newStatus)
+      await updateUserStatus(userId, newStatus);
     } catch (error) {
-      console.error('Error updating status:', error)
+      console.error("Error updating status:", error);
     } finally {
-      setLoadingUserId(null)
+      setLoadingUserId(null);
     }
   }
 
-  function openDialog(type: DialogState['type'], user: UserWithRoles) {
-    setDialogState({ type, user })
+  function openDialog(type: DialogState["type"], user: UserWithRoles) {
+    setDialogState({ type, user });
   }
 
   function closeDialog() {
-    setDialogState({ type: null, user: null })
+    setDialogState({ type: null, user: null });
   }
 
   function handleDialogSuccess() {
-    router.refresh()
+    router.refresh();
   }
 
   if (users.length === 0) {
@@ -147,7 +173,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
           Ajuste os filtros ou adicione um novo usuário.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -165,18 +191,27 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
         </TableHeader>
         <TableBody>
           {users.map((user) => {
-            const statusConfig = getStatusConfig(user.status)
-            const departments = getDepartments(user.roles)
-            const isLoading = loadingUserId === user.id
-            const invitationStatus = getInvitationStatus(user)
-            const canResendInvite = user.status === 'pending' && (invitationStatus === 'expired' || invitationStatus === 'pending')
+            const statusConfig = getStatusConfig(user.status);
+            const departments = getDepartments(user.roles);
+            const isLoading = loadingUserId === user.id;
+            const invitationStatus = getInvitationStatus(user);
+            const canResendInvite =
+              user.status === "pending" &&
+              (invitationStatus === "expired" ||
+                invitationStatus === "pending");
 
             return (
               <TableRow key={user.id} className="cursor-pointer group">
                 <TableCell>
-                  <Link href={`/usuarios/${user.id}`} className="flex items-center gap-3">
+                  <Link
+                    href={`/usuarios/${user.id}`}
+                    className="flex items-center gap-3"
+                  >
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user.avatar_url || undefined} alt={user.full_name} />
+                      <AvatarImage
+                        src={user.avatar_url || undefined}
+                        alt={user.full_name}
+                      />
                       <AvatarFallback className="text-xs bg-primary/10 text-primary">
                         {getInitials(user.full_name)}
                       </AvatarFallback>
@@ -210,7 +245,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Badge 
+                  <Badge
                     variant={statusConfig.variant}
                     className={statusConfig.className}
                   >
@@ -251,35 +286,46 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
                           Editar
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => openDialog('edit-email', user)}>
+                      <DropdownMenuItem
+                        onClick={() => openDialog("edit-email", user)}
+                      >
                         <Mail className="mr-2 h-4 w-4" />
                         Alterar Email
                       </DropdownMenuItem>
-                      {canImpersonate && currentUserId && user.id !== currentUserId && user.status === 'active' && (
-                        <DropdownMenuItem onClick={() => openDialog('impersonate', user)}>
-                          <UserCog className="mr-2 h-4 w-4" />
-                          Personificar
-                        </DropdownMenuItem>
-                      )}
+                      {canImpersonate &&
+                        currentUserId &&
+                        user.id !== currentUserId &&
+                        user.status === "active" && (
+                          <DropdownMenuItem
+                            onClick={() => openDialog("impersonate", user)}
+                          >
+                            <UserCog className="mr-2 h-4 w-4" />
+                            Personificar
+                          </DropdownMenuItem>
+                        )}
                       <DropdownMenuSeparator />
                       {canResendInvite && (
-                        <DropdownMenuItem onClick={() => openDialog('resend-invite', user)}>
+                        <DropdownMenuItem
+                          onClick={() => openDialog("resend-invite", user)}
+                        >
                           <Send className="mr-2 h-4 w-4" />
                           Reenviar Convite
                         </DropdownMenuItem>
                       )}
-                      {user.status !== 'active' && (
+                      {user.status !== "active" && (
                         <DropdownMenuItem
-                          onClick={() => handleStatusChange(user.id, 'active')}
+                          onClick={() => handleStatusChange(user.id, "active")}
                           className="text-success"
                         >
                           <UserCheck className="mr-2 h-4 w-4" />
                           Ativar
                         </DropdownMenuItem>
                       )}
-                      {user.status !== 'inactive' && (
+                      {user.status !== "inactive" && (
                         <DropdownMenuItem
-                          onClick={() => handleStatusChange(user.id, 'inactive')}
+                          onClick={() =>
+                            handleStatusChange(user.id, "inactive")
+                          }
                           className="text-destructive"
                         >
                           <UserX className="mr-2 h-4 w-4" />
@@ -288,7 +334,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
                       )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => openDialog('delete', user)}
+                        onClick={() => openDialog("delete", user)}
                         className="text-destructive"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
@@ -298,7 +344,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            )
+            );
           })}
         </TableBody>
       </Table>
@@ -307,14 +353,14 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
       {dialogState.user && (
         <>
           <DeleteUserDialog
-            open={dialogState.type === 'delete'}
+            open={dialogState.type === "delete"}
             onOpenChange={(open) => !open && closeDialog()}
             userId={dialogState.user.id}
             userName={dialogState.user.full_name}
             onSuccess={handleDialogSuccess}
           />
           <EditEmailDialog
-            open={dialogState.type === 'edit-email'}
+            open={dialogState.type === "edit-email"}
             onOpenChange={(open) => !open && closeDialog()}
             userId={dialogState.user.id}
             currentEmail={dialogState.user.email}
@@ -322,7 +368,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
             onSuccess={handleDialogSuccess}
           />
           <ResendInviteDialog
-            open={dialogState.type === 'resend-invite'}
+            open={dialogState.type === "resend-invite"}
             onOpenChange={(open) => !open && closeDialog()}
             userId={dialogState.user.id}
             userName={dialogState.user.full_name}
@@ -331,7 +377,7 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
           />
           {currentUserId && (
             <ImpersonateDialog
-              open={dialogState.type === 'impersonate'}
+              open={dialogState.type === "impersonate"}
               onOpenChange={(open) => !open && closeDialog()}
               userId={dialogState.user.id}
               userName={dialogState.user.full_name}
@@ -342,6 +388,5 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
         </>
       )}
     </>
-  )
+  );
 }
-

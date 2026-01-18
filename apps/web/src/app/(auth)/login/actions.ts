@@ -49,4 +49,3 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
   redirect("/login");
 }
-

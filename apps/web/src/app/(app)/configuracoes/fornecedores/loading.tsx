@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FornecedoresLoading() {
   return (
@@ -11,7 +11,7 @@ export default function FornecedoresLoading() {
         </div>
         <Skeleton className="h-10 w-40" />
       </div>
-      
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <Skeleton className="h-10 flex-1" />
@@ -19,7 +19,7 @@ export default function FornecedoresLoading() {
         <Skeleton className="h-10 w-[140px]" />
         <Skeleton className="h-10 w-24" />
       </div>
-      
+
       {/* Table */}
       <div className="border rounded-lg overflow-hidden">
         <div className="p-4 border-b bg-muted/30">
@@ -45,6 +45,5 @@ export default function FornecedoresLoading() {
         ))}
       </div>
     </div>
-  )
+  );
 }
-

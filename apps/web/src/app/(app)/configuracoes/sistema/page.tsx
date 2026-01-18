@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useTransition } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { ArrowLeft, Building2, Mail, Bell, Upload } from 'lucide-react'
-import { toast } from 'sonner'
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ArrowLeft, Building2, Mail, Bell, Upload } from "lucide-react";
+import { toast } from "sonner";
 import {
   SettingsSection,
   GeneralSettingsForm,
   EmailSettingsForm,
   NotificationSettingsForm,
   UploadSettingsForm,
-} from './components'
-import { getSystemSettings, checkIsAdmin } from './actions'
-import type { SystemSettingsMap } from './actions'
+} from "./components";
+import { getSystemSettings, checkIsAdmin } from "./actions";
+import type { SystemSettingsMap } from "./actions";
 
 function LoadingSkeleton() {
   return (
@@ -47,40 +47,40 @@ function LoadingSkeleton() {
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
 export default function SistemaPage() {
-  const [settings, setSettings] = useState<SystemSettingsMap | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [, startTransition] = useTransition()
+  const [settings, setSettings] = useState<SystemSettingsMap | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [, startTransition] = useTransition();
 
   const loadData = async () => {
     try {
       const [settingsData, admin] = await Promise.all([
         getSystemSettings(),
         checkIsAdmin(),
-      ])
-      setSettings(settingsData)
-      setIsAdmin(admin)
+      ]);
+      setSettings(settingsData);
+      setIsAdmin(admin);
     } catch (error) {
-      console.error('Error loading data:', error)
-      toast.error('Erro ao carregar configurações')
+      console.error("Error loading data:", error);
+      toast.error("Erro ao carregar configurações");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   const handleUpdate = () => {
     startTransition(() => {
-      loadData()
-    })
-  }
+      loadData();
+    });
+  };
 
   if (!isAdmin && !isLoading) {
     return (
@@ -93,7 +93,7 @@ export default function SistemaPage() {
           <Link href="/dashboard">Voltar ao Início</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -146,7 +146,10 @@ export default function SistemaPage() {
             description="Configurações de notificações do sistema"
             icon={Bell}
           >
-            <NotificationSettingsForm settings={settings} onUpdate={handleUpdate} />
+            <NotificationSettingsForm
+              settings={settings}
+              onUpdate={handleUpdate}
+            />
           </SettingsSection>
 
           {/* Upload Settings */}
@@ -160,6 +163,5 @@ export default function SistemaPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
-

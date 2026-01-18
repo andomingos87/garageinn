@@ -1,10 +1,10 @@
-import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   Mail,
@@ -14,83 +14,86 @@ import {
   Pencil,
   Shield,
   Send,
-} from 'lucide-react'
-import { getUserById, checkIsAdmin } from '../actions'
-import { UserStatusActions } from './components/user-status-actions'
-import { InvitationStatusBadge } from '../components/invitation-status-badge'
-import type { UserStatus } from '@/lib/supabase/custom-types'
-import { getInvitationStatus } from '@/lib/supabase/custom-types'
+} from "lucide-react";
+import { getUserById, checkIsAdmin } from "../actions";
+import { UserStatusActions } from "./components/user-status-actions";
+import { InvitationStatusBadge } from "../components/invitation-status-badge";
+import type { UserStatus } from "@/lib/supabase/custom-types";
+import { getInvitationStatus } from "@/lib/supabase/custom-types";
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 function getInitials(name: string) {
   return name
-    .split(' ')
+    .split(" ")
     .map((n) => n[0])
-    .join('')
+    .join("")
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2);
 }
 
 function getStatusConfig(status: UserStatus) {
   switch (status) {
-    case 'active':
-      return { label: 'Ativo', className: 'bg-success hover:bg-success/90' }
-    case 'pending':
-      return { label: 'Pendente', className: 'bg-warning hover:bg-warning/90 text-warning-foreground' }
-    case 'inactive':
-      return { label: 'Inativo', className: '' }
+    case "active":
+      return { label: "Ativo", className: "bg-success hover:bg-success/90" };
+    case "pending":
+      return {
+        label: "Pendente",
+        className: "bg-warning hover:bg-warning/90 text-warning-foreground",
+      };
+    case "inactive":
+      return { label: "Inativo", className: "" };
     default:
-      return { label: status, className: '' }
+      return { label: status, className: "" };
   }
 }
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
+  return new Date(dateString).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 function formatCPF(cpf: string | null) {
-  if (!cpf) return '-'
+  if (!cpf) return "-";
   // Mostrar apenas os últimos 2 dígitos
-  return `***.***.***-${cpf.slice(-2)}`
+  return `***.***.***-${cpf.slice(-2)}`;
 }
 
 export default async function UserDetailPage({ params }: PageProps) {
-  const { id } = await params
-  
-  const [user, isAdmin] = await Promise.all([
-    getUserById(id),
-    checkIsAdmin(),
-  ])
+  const { id } = await params;
+
+  const [user, isAdmin] = await Promise.all([getUserById(id), checkIsAdmin()]);
 
   if (!isAdmin) {
-    redirect('/')
+    redirect("/");
   }
 
   if (!user) {
-    notFound()
+    notFound();
   }
 
-  const statusConfig = getStatusConfig(user.status)
-  const invitationStatus = getInvitationStatus(user)
+  const statusConfig = getStatusConfig(user.status);
+  const invitationStatus = getInvitationStatus(user);
 
   // Agrupar roles por tipo
-  const globalRoles = user.roles.filter((r) => r.is_global)
-  const departmentRoles = user.roles.filter((r) => !r.is_global)
+  const globalRoles = user.roles.filter((r) => r.is_global);
+  const departmentRoles = user.roles.filter((r) => !r.is_global);
 
   // Agrupar por departamento
-  const rolesByDepartment = departmentRoles.reduce((acc, role) => {
-    const dept = role.department_name || 'Sem departamento'
-    if (!acc[dept]) acc[dept] = []
-    acc[dept].push(role)
-    return acc
-  }, {} as Record<string, typeof departmentRoles>)
+  const rolesByDepartment = departmentRoles.reduce(
+    (acc, role) => {
+      const dept = role.department_name || "Sem departamento";
+      if (!acc[dept]) acc[dept] = [];
+      acc[dept].push(role);
+      return acc;
+    },
+    {} as Record<string, typeof departmentRoles>
+  );
 
   return (
     <div className="space-y-6">
@@ -103,7 +106,9 @@ export default async function UserDetailPage({ params }: PageProps) {
           </Link>
         </Button>
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Detalhes do Usuário</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Detalhes do Usuário
+          </h2>
           <p className="text-muted-foreground">
             Visualize as informações do usuário
           </p>
@@ -122,7 +127,10 @@ export default async function UserDetailPage({ params }: PageProps) {
           <CardHeader>
             <div className="flex items-start gap-6">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user.avatar_url || undefined} alt={user.full_name} />
+                <AvatarImage
+                  src={user.avatar_url || undefined}
+                  alt={user.full_name}
+                />
                 <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                   {getInitials(user.full_name)}
                 </AvatarFallback>
@@ -159,7 +167,7 @@ export default async function UserDetailPage({ params }: PageProps) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Telefone</p>
-                  <p className="font-medium">{user.phone || '-'}</p>
+                  <p className="font-medium">{user.phone || "-"}</p>
                 </div>
               </div>
             </div>
@@ -176,7 +184,9 @@ export default async function UserDetailPage({ params }: PageProps) {
               {/* Global Roles */}
               {globalRoles.length > 0 && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Cargos Globais</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Cargos Globais
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {globalRoles.map((role) => (
                       <Badge key={role.role_id} variant="default">
@@ -222,7 +232,9 @@ export default async function UserDetailPage({ params }: PageProps) {
                   <p className="font-medium">{formatCPF(user.cpf)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Data de Cadastro</p>
+                  <p className="text-sm text-muted-foreground">
+                    Data de Cadastro
+                  </p>
                   <p className="font-medium">{formatDate(user.created_at)}</p>
                 </div>
               </div>
@@ -237,8 +249,8 @@ export default async function UserDetailPage({ params }: PageProps) {
               <CardTitle className="text-base">Ações</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <UserStatusActions 
-                userId={user.id} 
+              <UserStatusActions
+                userId={user.id}
                 userName={user.full_name}
                 userEmail={user.email}
                 currentStatus={user.status}
@@ -256,11 +268,11 @@ export default async function UserDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-2">
               <p>
-                <span className="font-medium">Criado em:</span>{' '}
+                <span className="font-medium">Criado em:</span>{" "}
                 {formatDate(user.created_at)}
               </p>
               <p>
-                <span className="font-medium">Atualizado em:</span>{' '}
+                <span className="font-medium">Atualizado em:</span>{" "}
                 {formatDate(user.updated_at)}
               </p>
             </CardContent>
@@ -268,6 +280,5 @@ export default async function UserDetailPage({ params }: PageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

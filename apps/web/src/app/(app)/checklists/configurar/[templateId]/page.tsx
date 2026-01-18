@@ -1,8 +1,14 @@
-import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Pencil,
@@ -10,34 +16,38 @@ import {
   Building2,
   CalendarDays,
   Clock,
-} from 'lucide-react'
-import { checkCanConfigureChecklists, getTemplateById, getQuestions } from '../actions'
-import { UnitAssignmentButton } from './components/unit-assignment-button'
+} from "lucide-react";
+import {
+  checkCanConfigureChecklists,
+  getTemplateById,
+  getQuestions,
+} from "../actions";
+import { UnitAssignmentButton } from "./components/unit-assignment-button";
 
 interface PageProps {
   params: Promise<{
-    templateId: string
-  }>
+    templateId: string;
+  }>;
 }
 
 export default async function TemplateDetailsPage({ params }: PageProps) {
-  const { templateId } = await params
-  const canConfigure = await checkCanConfigureChecklists()
+  const { templateId } = await params;
+  const canConfigure = await checkCanConfigureChecklists();
 
   if (!canConfigure) {
-    redirect('/')
+    redirect("/");
   }
 
   const [template, questions] = await Promise.all([
     getTemplateById(templateId),
     getQuestions(templateId),
-  ])
+  ]);
 
   if (!template) {
-    notFound()
+    notFound();
   }
 
-  const activeQuestions = questions.filter((q) => q.status === 'active')
+  const activeQuestions = questions.filter((q) => q.status === "active");
 
   return (
     <div className="space-y-6">
@@ -54,12 +64,14 @@ export default async function TemplateDetailsPage({ params }: PageProps) {
               <h2 className="text-2xl font-semibold tracking-tight">
                 {template.name}
               </h2>
-              <Badge variant={template.status === 'active' ? 'default' : 'secondary'}>
-                {template.status === 'active' ? 'Ativo' : 'Inativo'}
+              <Badge
+                variant={template.status === "active" ? "default" : "secondary"}
+              >
+                {template.status === "active" ? "Ativo" : "Inativo"}
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              {template.description || 'Sem descrição'}
+              {template.description || "Sem descrição"}
             </p>
           </div>
         </div>
@@ -89,24 +101,26 @@ export default async function TemplateDetailsPage({ params }: PageProps) {
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Tipo</span>
               <Badge variant="outline">
-                {template.type === 'opening' ? 'Abertura' : 'Supervisão'}
+                {template.type === "opening" ? "Abertura" : "Supervisão"}
               </Badge>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Template Padrão</span>
-              <span>{template.is_default ? 'Sim' : 'Não'}</span>
+              <span>{template.is_default ? "Sim" : "Não"}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Perguntas</span>
               <div className="flex items-center gap-1">
                 <ListChecks className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  {activeQuestions.length} ativa{activeQuestions.length !== 1 ? 's' : ''}
+                  {activeQuestions.length} ativa
+                  {activeQuestions.length !== 1 ? "s" : ""}
                 </span>
                 {questions.length > activeQuestions.length && (
                   <span className="text-muted-foreground">
                     ({questions.length - activeQuestions.length} inativa
-                    {questions.length - activeQuestions.length !== 1 ? 's' : ''})
+                    {questions.length - activeQuestions.length !== 1 ? "s" : ""}
+                    )
                   </span>
                 )}
               </div>
@@ -116,8 +130,8 @@ export default async function TemplateDetailsPage({ params }: PageProps) {
               <div className="flex items-center gap-1 text-sm">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
                 {template.created_at
-                  ? new Date(template.created_at).toLocaleDateString('pt-BR')
-                  : '-'}
+                  ? new Date(template.created_at).toLocaleDateString("pt-BR")
+                  : "-"}
               </div>
             </div>
             <div className="flex items-center justify-between">
@@ -125,8 +139,8 @@ export default async function TemplateDetailsPage({ params }: PageProps) {
               <div className="flex items-center gap-1 text-sm">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 {template.updated_at
-                  ? new Date(template.updated_at).toLocaleDateString('pt-BR')
-                  : '-'}
+                  ? new Date(template.updated_at).toLocaleDateString("pt-BR")
+                  : "-"}
               </div>
             </div>
           </CardContent>
@@ -138,8 +152,8 @@ export default async function TemplateDetailsPage({ params }: PageProps) {
             <div>
               <CardTitle className="text-lg">Unidades Vinculadas</CardTitle>
               <CardDescription>
-                {template.units.length} unidade{template.units.length !== 1 ? 's' : ''} usando
-                este template
+                {template.units.length} unidade
+                {template.units.length !== 1 ? "s" : ""} usando este template
               </CardDescription>
             </div>
             <UnitAssignmentButton templateId={templateId} />
@@ -157,20 +171,24 @@ export default async function TemplateDetailsPage({ params }: PageProps) {
               </div>
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {template.units.map((unit: { id: string; name: string; code: string }) => (
-                  <div
-                    key={unit.id}
-                    className="flex items-center justify-between p-3 rounded-lg border"
-                  >
-                    <div>
-                      <p className="font-medium">{unit.name}</p>
-                      <p className="text-xs text-muted-foreground">{unit.code}</p>
+                {template.units.map(
+                  (unit: { id: string; name: string; code: string }) => (
+                    <div
+                      key={unit.id}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                    >
+                      <div>
+                        <p className="font-medium">{unit.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {unit.code}
+                        </p>
+                      </div>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/unidades/${unit.id}`}>Ver</Link>
+                      </Button>
                     </div>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/unidades/${unit.id}`}>Ver</Link>
-                    </Button>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             )}
           </CardContent>
@@ -237,6 +255,5 @@ export default async function TemplateDetailsPage({ params }: PageProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

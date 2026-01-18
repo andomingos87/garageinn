@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Table,
@@ -7,32 +7,36 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { useRouter } from 'next/navigation'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { StatusBadge, PriorityBadge, UrgencyBadge } from '../../compras/components/status-badge'
-import { ClipboardList } from 'lucide-react'
+} from "@/components/ui/table";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  StatusBadge,
+  PriorityBadge,
+  UrgencyBadge,
+} from "../../compras/components/status-badge";
+import { ClipboardList } from "lucide-react";
 
 interface RHTicket {
-  id: string
-  ticket_number: string
-  title: string
-  category_name?: string
-  unit_code?: string
-  unit_name?: string
-  status: string
-  priority?: string | null
-  perceived_urgency?: string | null
-  created_at?: string
+  id: string;
+  ticket_number: string;
+  title: string;
+  category_name?: string;
+  unit_code?: string;
+  unit_name?: string;
+  status: string;
+  priority?: string | null;
+  perceived_urgency?: string | null;
+  created_at?: string;
 }
 
 interface RHTicketsTableProps {
-  tickets: RHTicket[]
+  tickets: RHTicket[];
 }
 
 export function RHTicketsTable({ tickets }: RHTicketsTableProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   if (tickets.length === 0) {
     return (
@@ -43,7 +47,7 @@ export function RHTicketsTable({ tickets }: RHTicketsTableProps) {
           Não há chamados de RH para exibir com os filtros atuais.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -67,12 +71,14 @@ export function RHTicketsTable({ tickets }: RHTicketsTableProps) {
               className="cursor-pointer hover:bg-muted/50 transition-colors"
               onClick={() => router.push(`/chamados/rh/${ticket.id}`)}
             >
-              <TableCell className="font-medium">#{ticket.ticket_number}</TableCell>
+              <TableCell className="font-medium">
+                #{ticket.ticket_number}
+              </TableCell>
               <TableCell>
                 <div className="flex flex-col">
                   <span className="font-medium">{ticket.title}</span>
                   <span className="text-xs text-muted-foreground line-clamp-1">
-                    {ticket.category_name || 'Sem categoria'}
+                    {ticket.category_name || "Sem categoria"}
                   </span>
                 </div>
               </TableCell>
@@ -98,13 +104,15 @@ export function RHTicketsTable({ tickets }: RHTicketsTableProps) {
                 <UrgencyBadge urgency={ticket.perceived_urgency ?? null} />
               </TableCell>
               <TableCell>
-                {ticket.created_at && format(new Date(ticket.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                {ticket.created_at &&
+                  format(new Date(ticket.created_at), "dd/MM/yyyy HH:mm", {
+                    locale: ptBR,
+                  })}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
-

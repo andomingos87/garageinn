@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useTransition } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Plus, Tag, CheckCircle, XCircle } from 'lucide-react'
-import { toast } from 'sonner'
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Plus, Tag, CheckCircle, XCircle } from "lucide-react";
+import { toast } from "sonner";
 import {
   CategoryTable,
   CategoryFormDialog,
   DepartmentTabs,
-} from './components'
-import type { Department, TicketCategory, CategoryStats } from './actions'
+} from "./components";
+import type { Department, TicketCategory, CategoryStats } from "./actions";
 import {
   getCategories,
   getDepartmentsWithCategories,
@@ -22,7 +22,7 @@ import {
   toggleCategoryStatus,
   deleteCategory,
   checkIsAdmin,
-} from './actions'
+} from "./actions";
 
 function LoadingSkeleton() {
   return (
@@ -59,21 +59,25 @@ function LoadingSkeleton() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
 export default function ChamadosConfigPage() {
-  const [categories, setCategories] = useState<TicketCategory[]>([])
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [stats, setStats] = useState<CategoryStats | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const [categories, setCategories] = useState<TicketCategory[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [stats, setStats] = useState<CategoryStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // Dialog states
-  const [showCategoryDialog, setShowCategoryDialog] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<TicketCategory | null>(null)
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>('all')
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<TicketCategory | null>(
+    null
+  );
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(
+    "all"
+  );
 
   const loadData = async () => {
     try {
@@ -82,73 +86,73 @@ export default function ChamadosConfigPage() {
         getDepartmentsWithCategories(),
         getCategoryStats(),
         checkIsAdmin(),
-      ])
-      setCategories(cats)
-      setDepartments(depts)
-      setStats(categoryStats)
-      setIsAdmin(admin)
+      ]);
+      setCategories(cats);
+      setDepartments(depts);
+      setStats(categoryStats);
+      setIsAdmin(admin);
     } catch (error) {
-      console.error('Error loading data:', error)
-      toast.error('Erro ao carregar dados')
+      console.error("Error loading data:", error);
+      toast.error("Erro ao carregar dados");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   // Reload data when dialog closes
   useEffect(() => {
     if (!showCategoryDialog) {
       startTransition(() => {
-        loadData()
-      })
+        loadData();
+      });
     }
-  }, [showCategoryDialog])
+  }, [showCategoryDialog]);
 
   const handleEditCategory = (category: TicketCategory) => {
-    setEditingCategory(category)
-    setShowCategoryDialog(true)
-  }
+    setEditingCategory(category);
+    setShowCategoryDialog(true);
+  };
 
   const handleNewCategory = () => {
-    setEditingCategory(null)
-    setShowCategoryDialog(true)
-  }
+    setEditingCategory(null);
+    setShowCategoryDialog(true);
+  };
 
   const handleToggleStatus = async (categoryId: string) => {
     startTransition(async () => {
-      const result = await toggleCategoryStatus(categoryId)
+      const result = await toggleCategoryStatus(categoryId);
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
         toast.success(
-          result.newStatus === 'active'
-            ? 'Categoria ativada'
-            : 'Categoria desativada'
-        )
-        loadData()
+          result.newStatus === "active"
+            ? "Categoria ativada"
+            : "Categoria desativada"
+        );
+        loadData();
       }
-    })
-  }
+    });
+  };
 
   const handleDeleteCategory = async (categoryId: string) => {
     startTransition(async () => {
-      const result = await deleteCategory(categoryId)
+      const result = await deleteCategory(categoryId);
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Categoria excluída com sucesso')
-        loadData()
+        toast.success("Categoria excluída com sucesso");
+        loadData();
       }
-    })
-  }
+    });
+  };
 
   const handleDepartmentChange = (departmentId: string) => {
-    setSelectedDepartment(departmentId === 'all' ? null : departmentId)
-  }
+    setSelectedDepartment(departmentId === "all" ? null : departmentId);
+  };
 
   if (!isAdmin && !isLoading) {
     return (
@@ -161,7 +165,7 @@ export default function ChamadosConfigPage() {
           <Link href="/dashboard">Voltar ao Início</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -205,7 +209,9 @@ export default function ChamadosConfigPage() {
               <CardContent>
                 <div className="flex items-center gap-2">
                   <Tag className="h-4 w-4 text-primary" />
-                  <span className="text-2xl font-bold">{stats?.total || 0}</span>
+                  <span className="text-2xl font-bold">
+                    {stats?.total || 0}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -218,9 +224,17 @@ export default function ChamadosConfigPage() {
               <CardContent>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-2xl font-bold">{stats?.active || 0}</span>
-                  <Badge variant="secondary" className="ml-2 bg-green-500/10 text-green-600">
-                    {stats?.total ? Math.round((stats.active / stats.total) * 100) : 0}%
+                  <span className="text-2xl font-bold">
+                    {stats?.active || 0}
+                  </span>
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 bg-green-500/10 text-green-600"
+                  >
+                    {stats?.total
+                      ? Math.round((stats.active / stats.total) * 100)
+                      : 0}
+                    %
                   </Badge>
                 </div>
               </CardContent>
@@ -234,7 +248,9 @@ export default function ChamadosConfigPage() {
               <CardContent>
                 <div className="flex items-center gap-2">
                   <XCircle className="h-4 w-4 text-gray-400" />
-                  <span className="text-2xl font-bold">{stats?.inactive || 0}</span>
+                  <span className="text-2xl font-bold">
+                    {stats?.inactive || 0}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -286,6 +302,5 @@ export default function ChamadosConfigPage() {
         defaultDepartmentId={selectedDepartment}
       />
     </div>
-  )
+  );
 }
-

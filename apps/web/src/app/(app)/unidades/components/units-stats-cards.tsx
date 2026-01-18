@@ -1,42 +1,42 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, CheckCircle, XCircle, CarFront } from 'lucide-react'
-import type { UnitsStats } from '../actions'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Building2, CheckCircle, XCircle, CarFront } from "lucide-react";
+import type { UnitsStats } from "../actions";
 
 interface UnitsStatsCardsProps {
-  stats: UnitsStats
+  stats: UnitsStats;
 }
 
 export function UnitsStatsCards({ stats }: UnitsStatsCardsProps) {
   const cards = [
     {
-      title: 'Total de Unidades',
+      title: "Total de Unidades",
       value: stats.total,
       icon: Building2,
-      description: 'unidades cadastradas',
-      className: 'text-primary',
+      description: "unidades cadastradas",
+      className: "text-primary",
     },
     {
-      title: 'Unidades Ativas',
+      title: "Unidades Ativas",
       value: stats.active,
       icon: CheckCircle,
-      description: 'em operação',
-      className: 'text-emerald-600',
+      description: "em operação",
+      className: "text-emerald-600",
     },
     {
-      title: 'Unidades Inativas',
+      title: "Unidades Inativas",
       value: stats.inactive,
       icon: XCircle,
-      description: 'desativadas',
-      className: 'text-zinc-500',
+      description: "desativadas",
+      className: "text-zinc-500",
     },
     {
-      title: 'Capacidade Total',
-      value: stats.totalCapacity.toLocaleString('pt-BR'),
+      title: "Capacidade Total",
+      value: stats.totalCapacity.toLocaleString("pt-BR"),
       icon: CarFront,
-      description: 'vagas disponíveis',
-      className: 'text-blue-600',
+      description: "vagas disponíveis",
+      className: "text-blue-600",
     },
-  ]
+  ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -55,6 +55,5 @@ export function UnitsStatsCards({ stats }: UnitsStatsCardsProps) {
         </Card>
       ))}
     </div>
-  )
+  );
 }
-

@@ -1,19 +1,19 @@
-import { redirect } from 'next/navigation'
-import { checkIsAdmin, generateUnitCode, createUnit } from '../actions'
-import { UnitForm, type UnitFormData } from '../components/unit-form'
+import { redirect } from "next/navigation";
+import { checkIsAdmin, generateUnitCode, createUnit } from "../actions";
+import { UnitForm, type UnitFormData } from "../components/unit-form";
 
 export default async function NovaUnidadePage() {
-  const isAdmin = await checkIsAdmin()
+  const isAdmin = await checkIsAdmin();
 
   if (!isAdmin) {
-    redirect('/')
+    redirect("/");
   }
 
-  const suggestedCode = await generateUnitCode()
+  const suggestedCode = await generateUnitCode();
 
   async function handleCreateUnit(data: UnitFormData) {
-    'use server'
-    return createUnit(data)
+    "use server";
+    return createUnit(data);
   }
 
   return (
@@ -31,6 +31,5 @@ export default async function NovaUnidadePage() {
         <UnitForm suggestedCode={suggestedCode} onSubmit={handleCreateUnit} />
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -14,121 +14,125 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Plus, Pencil, Loader2, Building2 } from 'lucide-react'
-import { createSupplier, updateSupplier } from '../actions'
-import { SUPPLIER_CATEGORIES } from '../constants'
-import { toast } from 'sonner'
+} from "@/components/ui/select";
+import { Plus, Pencil, Loader2, Building2 } from "lucide-react";
+import { createSupplier, updateSupplier } from "../actions";
+import { SUPPLIER_CATEGORIES } from "../constants";
+import { toast } from "sonner";
 
 interface Supplier {
-  id: string
-  name: string
-  cnpj: string | null
-  contact_name: string | null
-  phone: string | null
-  email: string | null
-  address: string | null
-  category: string | null
-  notes: string | null
+  id: string;
+  name: string;
+  cnpj: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  category: string | null;
+  notes: string | null;
 }
 
 interface SupplierFormDialogProps {
-  supplier?: Supplier | null
-  trigger?: React.ReactNode
-  onSuccess?: () => void
+  supplier?: Supplier | null;
+  trigger?: React.ReactNode;
+  onSuccess?: () => void;
 }
 
-export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFormDialogProps) {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  
-  const isEditing = !!supplier
-  
+export function SupplierFormDialog({
+  supplier,
+  trigger,
+  onSuccess,
+}: SupplierFormDialogProps) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const isEditing = !!supplier;
+
   // Form fields
-  const [name, setName] = useState('')
-  const [cnpj, setCnpj] = useState('')
-  const [contactName, setContactName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
-  const [address, setAddress] = useState('')
-  const [category, setCategory] = useState('')
-  const [notes, setNotes] = useState('')
-  
+  const [name, setName] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [category, setCategory] = useState("");
+  const [notes, setNotes] = useState("");
+
   // Load supplier data when editing
   useEffect(() => {
     if (supplier && open) {
-      setName(supplier.name || '')
-      setCnpj(formatCnpj(supplier.cnpj || ''))
-      setContactName(supplier.contact_name || '')
-      setPhone(formatPhone(supplier.phone || ''))
-      setEmail(supplier.email || '')
-      setAddress(supplier.address || '')
-      setCategory(supplier.category || '')
-      setNotes(supplier.notes || '')
+      setName(supplier.name || "");
+      setCnpj(formatCnpj(supplier.cnpj || ""));
+      setContactName(supplier.contact_name || "");
+      setPhone(formatPhone(supplier.phone || ""));
+      setEmail(supplier.email || "");
+      setAddress(supplier.address || "");
+      setCategory(supplier.category || "");
+      setNotes(supplier.notes || "");
     }
-  }, [supplier, open])
-  
+  }, [supplier, open]);
+
   // Reset form
   const resetForm = () => {
-    setName('')
-    setCnpj('')
-    setContactName('')
-    setPhone('')
-    setEmail('')
-    setAddress('')
-    setCategory('')
-    setNotes('')
-  }
-  
+    setName("");
+    setCnpj("");
+    setContactName("");
+    setPhone("");
+    setEmail("");
+    setAddress("");
+    setCategory("");
+    setNotes("");
+  };
+
   // Format CNPJ
   const formatCnpj = (value: string) => {
-    const numbers = value.replace(/\D/g, '')
+    const numbers = value.replace(/\D/g, "");
     if (numbers.length <= 14) {
       return numbers
-        .replace(/(\d{2})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1/$2')
-        .replace(/(\d{4})(\d)/, '$1-$2')
+        .replace(/(\d{2})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1/$2")
+        .replace(/(\d{4})(\d)/, "$1-$2");
     }
-    return value
-  }
-  
+    return value;
+  };
+
   // Format phone
   const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '')
+    const numbers = value.replace(/\D/g, "");
     if (numbers.length <= 11) {
       if (numbers.length <= 10) {
         return numbers
-          .replace(/(\d{2})(\d)/, '($1) $2')
-          .replace(/(\d{4})(\d)/, '$1-$2')
+          .replace(/(\d{2})(\d)/, "($1) $2")
+          .replace(/(\d{4})(\d)/, "$1-$2");
       }
       return numbers
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2");
     }
-    return value
-  }
-  
+    return value;
+  };
+
   // Submit
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     // Validações
     if (!name.trim()) {
-      toast.error('Nome do fornecedor é obrigatório')
-      return
+      toast.error("Nome do fornecedor é obrigatório");
+      return;
     }
-    
-    setLoading(true)
-    
+
+    setLoading(true);
+
     try {
       const data = {
         name: name.trim(),
@@ -139,35 +143,40 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
         address: address.trim() || undefined,
         category: category || undefined,
         notes: notes.trim() || undefined,
-      }
-      
+      };
+
       const result = isEditing
         ? await updateSupplier(supplier.id, data)
-        : await createSupplier(data)
-      
+        : await createSupplier(data);
+
       if (result.error) {
-        toast.error(result.error)
-        return
+        toast.error(result.error);
+        return;
       }
-      
-      toast.success(isEditing ? 'Fornecedor atualizado!' : 'Fornecedor cadastrado!')
-      setOpen(false)
-      if (!isEditing) resetForm()
-      router.refresh()
-      onSuccess?.()
+
+      toast.success(
+        isEditing ? "Fornecedor atualizado!" : "Fornecedor cadastrado!"
+      );
+      setOpen(false);
+      if (!isEditing) resetForm();
+      router.refresh();
+      onSuccess?.();
     } catch (error) {
-      console.error('Error saving supplier:', error)
-      toast.error('Erro ao salvar fornecedor')
+      console.error("Error saving supplier:", error);
+      toast.error("Erro ao salvar fornecedor");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-  
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      setOpen(isOpen)
-      if (!isOpen && !isEditing) resetForm()
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen && !isEditing) resetForm();
+      }}
+    >
       <DialogTrigger asChild>
         {trigger || (
           <Button className="gap-2">
@@ -189,16 +198,15 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            {isEditing ? 'Editar Fornecedor' : 'Novo Fornecedor'}
+            {isEditing ? "Editar Fornecedor" : "Novo Fornecedor"}
           </DialogTitle>
           <DialogDescription>
-            {isEditing 
-              ? 'Atualize os dados do fornecedor credenciado.'
-              : 'Cadastre um novo fornecedor credenciado no sistema.'
-            }
+            {isEditing
+              ? "Atualize os dados do fornecedor credenciado."
+              : "Cadastre um novo fornecedor credenciado no sistema."}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nome */}
           <div className="space-y-2">
@@ -211,7 +219,7 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
               required
             />
           </div>
-          
+
           {/* CNPJ */}
           <div className="space-y-2">
             <Label htmlFor="cnpj">CNPJ</Label>
@@ -223,7 +231,7 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
               maxLength={18}
             />
           </div>
-          
+
           {/* Categoria */}
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
@@ -232,7 +240,7 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
-                {SUPPLIER_CATEGORIES.map(cat => (
+                {SUPPLIER_CATEGORIES.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
                     {cat.label}
                   </SelectItem>
@@ -240,7 +248,7 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
               </SelectContent>
             </Select>
           </div>
-          
+
           {/* Contato */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -252,7 +260,7 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
                 onChange={(e) => setContactName(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone</Label>
               <Input
@@ -264,7 +272,7 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
               />
             </div>
           </div>
-          
+
           {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
@@ -276,7 +284,7 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          
+
           {/* Endereço */}
           <div className="space-y-2">
             <Label htmlFor="address">Endereço</Label>
@@ -287,7 +295,7 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
               onChange={(e) => setAddress(e.target.value)}
             />
           </div>
-          
+
           {/* Observações */}
           <div className="space-y-2">
             <Label htmlFor="notes">Observações</Label>
@@ -299,11 +307,11 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
               rows={3}
             />
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setOpen(false)}
               disabled={loading}
             >
@@ -311,12 +319,11 @@ export function SupplierFormDialog({ supplier, trigger, onSuccess }: SupplierFor
             </Button>
             <Button type="submit" disabled={loading} className="gap-2">
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isEditing ? 'Salvar Alterações' : 'Cadastrar'}
+              {isEditing ? "Salvar Alterações" : "Cadastrar"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

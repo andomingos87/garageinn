@@ -1,31 +1,31 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Users } from 'lucide-react'
+import { Suspense } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Users } from "lucide-react";
 import {
   getRHTickets,
   getRHStats,
   getRHCategories,
   type TicketFilters,
-} from './actions'
-import { getUserUnits } from '../compras/actions'
+} from "./actions";
+import { getUserUnits } from "../compras/actions";
 import {
   TicketsStatsCards,
   RHTicketsFilters,
   RHTicketsTable,
   TicketsPagination,
-} from './components'
+} from "./components";
 
 interface PageProps {
   searchParams: Promise<{
-    search?: string
-    status?: string
-    priority?: string
-    category_id?: string
-    unit_id?: string
-    page?: string
-  }>
+    search?: string;
+    status?: string;
+    priority?: string;
+    category_id?: string;
+    unit_id?: string;
+    page?: string;
+  }>;
 }
 
 function StatsCardsSkeleton() {
@@ -35,31 +35,29 @@ function StatsCardsSkeleton() {
         <Skeleton key={i} className="h-[120px] rounded-lg" />
       ))}
     </div>
-  )
+  );
 }
 
 function TableSkeleton() {
-  return (
-    <Skeleton className="h-[400px] rounded-lg" />
-  )
+  return <Skeleton className="h-[400px] rounded-lg" />;
 }
 
 async function TicketsStatsSection() {
-  const stats = await getRHStats()
-  return <TicketsStatsCards stats={stats} />
+  const stats = await getRHStats();
+  return <TicketsStatsCards stats={stats} />;
 }
 
 async function TicketsFiltersSection() {
   const [categories, units] = await Promise.all([
     getRHCategories(),
     getUserUnits(),
-  ])
-  return <RHTicketsFilters categories={categories} units={units} />
+  ]);
+  return <RHTicketsFilters categories={categories} units={units} />;
 }
 
 async function TicketsListSection({ filters }: { filters: TicketFilters }) {
-  const result = await getRHTickets(filters)
-  
+  const result = await getRHTickets(filters);
+
   return (
     <>
       <RHTicketsTable tickets={result.data} />
@@ -69,12 +67,12 @@ async function TicketsListSection({ filters }: { filters: TicketFilters }) {
         limit={result.limit}
       />
     </>
-  )
+  );
 }
 
 export default async function ChamadosRHPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  
+  const params = await searchParams;
+
   const filters: TicketFilters = {
     search: params.search,
     status: params.status,
@@ -83,7 +81,7 @@ export default async function ChamadosRHPage({ searchParams }: PageProps) {
     unit_id: params.unit_id,
     page: params.page ? parseInt(params.page) : 1,
     limit: 20,
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -92,7 +90,9 @@ export default async function ChamadosRHPage({ searchParams }: PageProps) {
         <div>
           <div className="flex items-center gap-2">
             <Users className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold tracking-tight">Chamados de RH</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Chamados de RH
+            </h2>
           </div>
           <p className="text-muted-foreground mt-1">
             Gestão de solicitações de pessoal, benefícios e uniformes
@@ -121,6 +121,5 @@ export default async function ChamadosRHPage({ searchParams }: PageProps) {
         <TicketsListSection filters={filters} />
       </Suspense>
     </div>
-  )
+  );
 }
-

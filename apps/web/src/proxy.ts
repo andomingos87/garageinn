@@ -3,7 +3,12 @@ import { updateSession } from "@/lib/supabase/middleware";
 import { createServerClient } from "@supabase/ssr";
 
 // Public routes that don't require authentication
-const publicRoutes = ["/login", "/recuperar-senha", "/redefinir-senha", "/auth/callback"];
+const publicRoutes = [
+  "/login",
+  "/recuperar-senha",
+  "/redefinir-senha",
+  "/auth/callback",
+];
 
 // Check if the pathname matches a public route
 function isPublicRoute(pathname: string): boolean {
@@ -60,7 +65,12 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. Redirect authenticated users away from auth pages (except password reset)
-  if (user && isPublic && pathname !== "/auth/callback" && pathname !== "/redefinir-senha") {
+  if (
+    user &&
+    isPublic &&
+    pathname !== "/auth/callback" &&
+    pathname !== "/redefinir-senha"
+  ) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -79,4 +89,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-

@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,34 +20,41 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Building2, MoreHorizontal, Pencil, Trash2, Users, Briefcase } from 'lucide-react'
-import { useState, useTransition } from 'react'
-import { toast } from 'sonner'
-import type { Department } from '../actions'
-import { deleteDepartment } from '../actions'
+} from "@/components/ui/alert-dialog";
+import {
+  Building2,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Users,
+  Briefcase,
+} from "lucide-react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import type { Department } from "../actions";
+import { deleteDepartment } from "../actions";
 
 interface DepartmentCardProps {
-  department: Department
-  onEdit: (department: Department) => void
+  department: Department;
+  onEdit: (department: Department) => void;
 }
 
 export function DepartmentCard({ department, onEdit }: DepartmentCardProps) {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
     startTransition(async () => {
-      const result = await deleteDepartment(department.id)
-      
+      const result = await deleteDepartment(department.id);
+
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Departamento excluído com sucesso')
+        toast.success("Departamento excluído com sucesso");
       }
-      setShowDeleteDialog(false)
-    })
-  }
+      setShowDeleteDialog(false);
+    });
+  };
 
   return (
     <>
@@ -94,11 +101,13 @@ export function DepartmentCard({ department, onEdit }: DepartmentCardProps) {
           <div className="flex items-center gap-4">
             <Badge variant="secondary" className="gap-1">
               <Briefcase className="h-3 w-3" />
-              {department.roles_count} {department.roles_count === 1 ? 'cargo' : 'cargos'}
+              {department.roles_count}{" "}
+              {department.roles_count === 1 ? "cargo" : "cargos"}
             </Badge>
             <Badge variant="outline" className="gap-1">
               <Users className="h-3 w-3" />
-              {department.users_count} {department.users_count === 1 ? 'usuário' : 'usuários'}
+              {department.users_count}{" "}
+              {department.users_count === 1 ? "usuário" : "usuários"}
             </Badge>
           </div>
           <Button variant="outline" className="w-full" asChild>
@@ -114,8 +123,9 @@ export function DepartmentCard({ department, onEdit }: DepartmentCardProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir departamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o departamento <strong>{department.name}</strong>?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o departamento{" "}
+              <strong>{department.name}</strong>? Esta ação não pode ser
+              desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -125,12 +135,11 @@ export function DepartmentCard({ department, onEdit }: DepartmentCardProps) {
               disabled={isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isPending ? 'Excluindo...' : 'Excluir'}
+              {isPending ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
-

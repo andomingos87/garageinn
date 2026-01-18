@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -9,17 +9,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +29,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog";
 import {
   MoreHorizontal,
   Pencil,
@@ -40,112 +40,118 @@ import {
   Mail,
   Building2,
   Loader2,
-} from 'lucide-react'
-import { SupplierFormDialog } from './supplier-form-dialog'
-import { toggleSupplierStatus, deleteSupplier } from '../actions'
-import { getCategoryLabel } from '../constants'
-import { toast } from 'sonner'
+} from "lucide-react";
+import { SupplierFormDialog } from "./supplier-form-dialog";
+import { toggleSupplierStatus, deleteSupplier } from "../actions";
+import { getCategoryLabel } from "../constants";
+import { toast } from "sonner";
 
 interface Supplier {
-  id: string
-  name: string
-  cnpj: string | null
-  contact_name: string | null
-  phone: string | null
-  email: string | null
-  address: string | null
-  category: string | null
-  notes: string | null
-  is_active: boolean
-  created_at: string
+  id: string;
+  name: string;
+  cnpj: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  category: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
   creator: {
-    id: string
-    full_name: string
-    avatar_url: string | null
-  } | null
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
 }
 
 interface SupplierTableProps {
-  suppliers: Supplier[]
+  suppliers: Supplier[];
 }
 
 // Format CNPJ for display
 const formatCnpj = (cnpj: string | null) => {
-  if (!cnpj) return '-'
-  const numbers = cnpj.replace(/\D/g, '')
-  if (numbers.length !== 14) return cnpj
+  if (!cnpj) return "-";
+  const numbers = cnpj.replace(/\D/g, "");
+  if (numbers.length !== 14) return cnpj;
   return numbers
-    .replace(/(\d{2})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2')
-}
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+};
 
 export function SupplierTable({ suppliers }: SupplierTableProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState<string | null>(null)
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; supplier: Supplier | null }>({
+  const router = useRouter();
+  const [loading, setLoading] = useState<string | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    supplier: Supplier | null;
+  }>({
     open: false,
-    supplier: null
-  })
-  
+    supplier: null,
+  });
+
   // Toggle status
   const handleToggleStatus = async (supplier: Supplier) => {
-    setLoading(supplier.id)
+    setLoading(supplier.id);
     try {
-      const result = await toggleSupplierStatus(supplier.id)
-      
+      const result = await toggleSupplierStatus(supplier.id);
+
       if (result.error) {
-        toast.error(result.error)
-        return
+        toast.error(result.error);
+        return;
       }
-      
-      toast.success(result.isActive ? 'Fornecedor ativado!' : 'Fornecedor desativado!')
-      router.refresh()
+
+      toast.success(
+        result.isActive ? "Fornecedor ativado!" : "Fornecedor desativado!"
+      );
+      router.refresh();
     } catch (error) {
-      console.error('Error toggling status:', error)
-      toast.error('Erro ao alterar status')
+      console.error("Error toggling status:", error);
+      toast.error("Erro ao alterar status");
     } finally {
-      setLoading(null)
+      setLoading(null);
     }
-  }
-  
+  };
+
   // Delete supplier
   const handleDelete = async () => {
-    if (!deleteDialog.supplier) return
-    
-    setLoading(deleteDialog.supplier.id)
+    if (!deleteDialog.supplier) return;
+
+    setLoading(deleteDialog.supplier.id);
     try {
-      const result = await deleteSupplier(deleteDialog.supplier.id)
-      
+      const result = await deleteSupplier(deleteDialog.supplier.id);
+
       if (result.error) {
-        toast.error(result.error)
-        return
+        toast.error(result.error);
+        return;
       }
-      
-      toast.success('Fornecedor excluído!')
-      setDeleteDialog({ open: false, supplier: null })
-      router.refresh()
+
+      toast.success("Fornecedor excluído!");
+      setDeleteDialog({ open: false, supplier: null });
+      router.refresh();
     } catch (error) {
-      console.error('Error deleting supplier:', error)
-      toast.error('Erro ao excluir fornecedor')
+      console.error("Error deleting supplier:", error);
+      toast.error("Erro ao excluir fornecedor");
     } finally {
-      setLoading(null)
+      setLoading(null);
     }
-  }
-  
+  };
+
   if (suppliers.length === 0) {
     return (
       <div className="p-8 text-center border rounded-lg bg-muted/30">
         <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
         <h4 className="font-medium mb-2">Nenhum fornecedor encontrado</h4>
         <p className="text-sm text-muted-foreground">
-          Cadastre fornecedores credenciados para usar nas cotações de sinistros.
+          Cadastre fornecedores credenciados para usar nas cotações de
+          sinistros.
         </p>
       </div>
-    )
+    );
   }
-  
+
   return (
     <>
       <div className="border rounded-lg overflow-hidden">
@@ -162,7 +168,10 @@ export function SupplierTable({ suppliers }: SupplierTableProps) {
           </TableHeader>
           <TableBody>
             {suppliers.map((supplier) => (
-              <TableRow key={supplier.id} className={!supplier.is_active ? 'opacity-60' : ''}>
+              <TableRow
+                key={supplier.id}
+                className={!supplier.is_active ? "opacity-60" : ""}
+              >
                 <TableCell>
                   <div>
                     <p className="font-medium">{supplier.name}</p>
@@ -192,8 +201,8 @@ export function SupplierTable({ suppliers }: SupplierTableProps) {
                     )}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       {supplier.phone && (
-                        <a 
-                          href={`tel:${supplier.phone.replace(/\D/g, '')}`}
+                        <a
+                          href={`tel:${supplier.phone.replace(/\D/g, "")}`}
                           className="flex items-center gap-1 hover:text-primary"
                         >
                           <Phone className="h-3 w-3" />
@@ -201,7 +210,7 @@ export function SupplierTable({ suppliers }: SupplierTableProps) {
                         </a>
                       )}
                       {supplier.email && (
-                        <a 
+                        <a
                           href={`mailto:${supplier.email}`}
                           className="flex items-center gap-1 hover:text-primary"
                         >
@@ -226,8 +235,8 @@ export function SupplierTable({ suppliers }: SupplierTableProps) {
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         disabled={loading === supplier.id}
                       >
@@ -239,16 +248,20 @@ export function SupplierTable({ suppliers }: SupplierTableProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <SupplierFormDialog 
+                      <SupplierFormDialog
                         supplier={supplier}
                         trigger={
-                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                          >
                             <Pencil className="h-4 w-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
                         }
                       />
-                      <DropdownMenuItem onClick={() => handleToggleStatus(supplier)}>
+                      <DropdownMenuItem
+                        onClick={() => handleToggleStatus(supplier)}
+                      >
                         {supplier.is_active ? (
                           <>
                             <PowerOff className="h-4 w-4 mr-2" />
@@ -262,9 +275,11 @@ export function SupplierTable({ suppliers }: SupplierTableProps) {
                         )}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
-                        onClick={() => setDeleteDialog({ open: true, supplier })}
+                        onClick={() =>
+                          setDeleteDialog({ open: true, supplier })
+                        }
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Excluir
@@ -277,20 +292,27 @@ export function SupplierTable({ suppliers }: SupplierTableProps) {
           </TableBody>
         </Table>
       </div>
-      
+
       {/* Delete Confirmation Dialog */}
-      <AlertDialog 
-        open={deleteDialog.open} 
-        onOpenChange={(open) => setDeleteDialog({ open, supplier: open ? deleteDialog.supplier : null })}
+      <AlertDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) =>
+          setDeleteDialog({
+            open,
+            supplier: open ? deleteDialog.supplier : null,
+          })
+        }
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Fornecedor</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o fornecedor <strong>{deleteDialog.supplier?.name}</strong>?
-              <br /><br />
-              Esta ação não pode ser desfeita. Se o fornecedor possui cotações vinculadas, 
-              considere desativá-lo em vez de excluir.
+              Tem certeza que deseja excluir o fornecedor{" "}
+              <strong>{deleteDialog.supplier?.name}</strong>?
+              <br />
+              <br />
+              Esta ação não pode ser desfeita. Se o fornecedor possui cotações
+              vinculadas, considere desativá-lo em vez de excluir.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -307,6 +329,5 @@ export function SupplierTable({ suppliers }: SupplierTableProps) {
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
-

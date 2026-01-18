@@ -1,33 +1,47 @@
-import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import { getUserById, getDepartments, getRoles, checkIsAdmin, getUnits, getUserUnits } from '../../actions'
-import { UserEditForm } from './components/user-edit-form'
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import {
+  getUserById,
+  getDepartments,
+  getRoles,
+  checkIsAdmin,
+  getUnits,
+  getUserUnits,
+} from "../../actions";
+import { UserEditForm } from "./components/user-edit-form";
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditUserPage({ params }: PageProps) {
-  const { id } = await params
+  const { id } = await params;
 
-  const [user, departments, allRoles, units, userUnits, isAdmin] = await Promise.all([
-    getUserById(id),
-    getDepartments(),
-    getRoles(),
-    getUnits(),
-    getUserUnits(id),
-    checkIsAdmin(),
-  ])
+  const [user, departments, allRoles, units, userUnits, isAdmin] =
+    await Promise.all([
+      getUserById(id),
+      getDepartments(),
+      getRoles(),
+      getUnits(),
+      getUserUnits(id),
+      checkIsAdmin(),
+    ]);
 
   if (!isAdmin) {
-    redirect('/')
+    redirect("/");
   }
 
   if (!user) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -41,7 +55,9 @@ export default async function EditUserPage({ params }: PageProps) {
           </Link>
         </Button>
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Editar Usuário</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Editar Usuário
+          </h2>
           <p className="text-muted-foreground">
             Atualize as informações de {user.full_name}
           </p>
@@ -57,9 +73,9 @@ export default async function EditUserPage({ params }: PageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <UserEditForm 
-              user={user} 
-              departments={departments} 
+            <UserEditForm
+              user={user}
+              departments={departments}
               allRoles={allRoles}
               units={units}
               userUnits={userUnits}
@@ -68,6 +84,5 @@ export default async function EditUserPage({ params }: PageProps) {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

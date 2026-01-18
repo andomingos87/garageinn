@@ -1,21 +1,21 @@
-'use client'
+"use client";
 
-import { Badge } from '@/components/ui/badge'
-import { Check, Building2, X } from 'lucide-react'
-import type { UnitOption } from '../actions'
+import { Badge } from "@/components/ui/badge";
+import { Check, Building2, X } from "lucide-react";
+import type { UnitOption } from "../actions";
 
 interface SelectedUnit {
-  unitId: string
-  isCoverage: boolean
+  unitId: string;
+  isCoverage: boolean;
 }
 
 interface UnitSelectorProps {
-  units: UnitOption[]
-  selectedUnits: SelectedUnit[]
-  onChange: (units: SelectedUnit[]) => void
-  mode: 'single' | 'multiple'
-  label?: string
-  description?: string
+  units: UnitOption[];
+  selectedUnits: SelectedUnit[];
+  onChange: (units: SelectedUnit[]) => void;
+  mode: "single" | "multiple";
+  label?: string;
+  description?: string;
 }
 
 export function UnitSelector({
@@ -23,40 +23,40 @@ export function UnitSelector({
   selectedUnits,
   onChange,
   mode,
-  label = 'Unidade(s)',
+  label = "Unidade(s)",
   description,
 }: UnitSelectorProps) {
   const isSelected = (unitId: string) =>
-    selectedUnits.some((u) => u.unitId === unitId)
+    selectedUnits.some((u) => u.unitId === unitId);
 
   function handleToggle(unitId: string) {
-    if (mode === 'single') {
+    if (mode === "single") {
       // Single mode: toggle or replace selection
       if (isSelected(unitId)) {
-        onChange([])
+        onChange([]);
       } else {
-        onChange([{ unitId, isCoverage: false }])
+        onChange([{ unitId, isCoverage: false }]);
       }
     } else {
       // Multiple mode: add or remove from selection
       if (isSelected(unitId)) {
-        onChange(selectedUnits.filter((u) => u.unitId !== unitId))
+        onChange(selectedUnits.filter((u) => u.unitId !== unitId));
       } else {
-        onChange([...selectedUnits, { unitId, isCoverage: true }])
+        onChange([...selectedUnits, { unitId, isCoverage: true }]);
       }
     }
   }
 
   function handleRemove(unitId: string) {
-    onChange(selectedUnits.filter((u) => u.unitId !== unitId))
+    onChange(selectedUnits.filter((u) => u.unitId !== unitId));
   }
 
   const selectedUnitDetails = selectedUnits
     .map((su) => {
-      const unit = units.find((u) => u.id === su.unitId)
-      return unit ? { ...unit, isCoverage: su.isCoverage } : null
+      const unit = units.find((u) => u.id === su.unitId);
+      return unit ? { ...unit, isCoverage: su.isCoverage } : null;
     })
-    .filter((u): u is UnitOption & { isCoverage: boolean } => u !== null)
+    .filter((u): u is UnitOption & { isCoverage: boolean } => u !== null);
 
   return (
     <div className="space-y-3">
@@ -98,7 +98,7 @@ export function UnitSelector({
       {/* Units Grid */}
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {units.map((unit) => {
-          const selected = isSelected(unit.id)
+          const selected = isSelected(unit.id);
           return (
             <button
               key={unit.id}
@@ -108,8 +108,8 @@ export function UnitSelector({
                 flex items-start gap-3 p-3 rounded-lg border text-left transition-all
                 ${
                   selected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                    : 'border-border hover:border-muted-foreground/50 hover:bg-muted/50'
+                    ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                    : "border-border hover:border-muted-foreground/50 hover:bg-muted/50"
                 }
               `}
             >
@@ -118,8 +118,8 @@ export function UnitSelector({
                   mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border
                   ${
                     selected
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-muted-foreground/30'
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-muted-foreground/30"
                   }
                 `}
               >
@@ -132,7 +132,7 @@ export function UnitSelector({
                 </p>
               </div>
             </button>
-          )
+          );
         })}
       </div>
 
@@ -145,10 +145,9 @@ export function UnitSelector({
       {selectedUnits.length > 0 && (
         <p className="text-xs text-muted-foreground">
           {selectedUnits.length} unidade(s) selecionada(s)
-          {mode === 'multiple' && ' (cobertura)'}
+          {mode === "multiple" && " (cobertura)"}
         </p>
       )}
     </div>
-  )
+  );
 }
-

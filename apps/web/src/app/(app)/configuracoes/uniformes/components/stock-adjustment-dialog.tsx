@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -11,80 +11,95 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
-import { adjustUniformStock, type Uniform } from '../actions'
-import { ArrowDown, ArrowUp, RefreshCw, Package } from 'lucide-react'
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { adjustUniformStock, type Uniform } from "../actions";
+import { ArrowDown, ArrowUp, RefreshCw, Package } from "lucide-react";
 
 interface StockAdjustmentDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  uniform: Uniform | null
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  uniform: Uniform | null;
 }
 
-type AdjustmentType = 'entrada' | 'saida' | 'ajuste'
+type AdjustmentType = "entrada" | "saida" | "ajuste";
 
-const adjustmentTypes: { value: AdjustmentType; label: string; icon: React.ElementType; color: string }[] = [
-  { value: 'entrada', label: 'Entrada', icon: ArrowDown, color: 'text-green-600' },
-  { value: 'saida', label: 'Saída', icon: ArrowUp, color: 'text-red-600' },
-  { value: 'ajuste', label: 'Ajuste Direto', icon: RefreshCw, color: 'text-blue-600' },
-]
+const adjustmentTypes: {
+  value: AdjustmentType;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+}[] = [
+  {
+    value: "entrada",
+    label: "Entrada",
+    icon: ArrowDown,
+    color: "text-green-600",
+  },
+  { value: "saida", label: "Saída", icon: ArrowUp, color: "text-red-600" },
+  {
+    value: "ajuste",
+    label: "Ajuste Direto",
+    icon: RefreshCw,
+    color: "text-blue-600",
+  },
+];
 
 export function StockAdjustmentDialog({
   open,
   onOpenChange,
   uniform,
 }: StockAdjustmentDialogProps) {
-  const [isPending, startTransition] = useTransition()
-  const [type, setType] = useState<AdjustmentType>('entrada')
-  const [quantity, setQuantity] = useState(1)
+  const [isPending, startTransition] = useTransition();
+  const [type, setType] = useState<AdjustmentType>("entrada");
+  const [quantity, setQuantity] = useState(1);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!uniform) return
+    if (!uniform) return;
 
-    if (quantity <= 0 && type !== 'ajuste') {
-      toast.error('Quantidade deve ser maior que zero')
-      return
+    if (quantity <= 0 && type !== "ajuste") {
+      toast.error("Quantidade deve ser maior que zero");
+      return;
     }
 
-    if (type === 'ajuste' && quantity < 0) {
-      toast.error('Estoque não pode ser negativo')
-      return
+    if (type === "ajuste" && quantity < 0) {
+      toast.error("Estoque não pode ser negativo");
+      return;
     }
 
     startTransition(async () => {
-      const result = await adjustUniformStock(uniform.id, quantity, type)
+      const result = await adjustUniformStock(uniform.id, quantity, type);
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success(`Estoque atualizado: ${result.newStock} unidades`)
-        onOpenChange(false)
-        setQuantity(1)
-        setType('entrada')
+        toast.success(`Estoque atualizado: ${result.newStock} unidades`);
+        onOpenChange(false);
+        setQuantity(1);
+        setType("entrada");
       }
-    })
-  }
+    });
+  };
 
-  const selectedType = adjustmentTypes.find(t => t.value === type)
-  const Icon = selectedType?.icon || Package
+  const selectedType = adjustmentTypes.find((t) => t.value === type);
+  const Icon = selectedType?.icon || Package;
 
   const getPreviewStock = () => {
-    if (!uniform) return 0
-    if (type === 'entrada') return uniform.current_stock + quantity
-    if (type === 'saida') return Math.max(0, uniform.current_stock - quantity)
-    return quantity
-  }
+    if (!uniform) return 0;
+    if (type === "entrada") return uniform.current_stock + quantity;
+    if (type === "saida") return Math.max(0, uniform.current_stock - quantity);
+    return quantity;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,7 +108,7 @@ export function StockAdjustmentDialog({
           <DialogHeader>
             <DialogTitle>Ajustar Estoque</DialogTitle>
             <DialogDescription>
-              {uniform?.name} {uniform?.size ? `(${uniform.size})` : ''}
+              {uniform?.name} {uniform?.size ? `(${uniform.size})` : ""}
             </DialogDescription>
           </DialogHeader>
 
@@ -133,20 +148,20 @@ export function StockAdjustmentDialog({
 
             <div className="grid gap-2">
               <Label htmlFor="quantity">
-                {type === 'ajuste' ? 'Novo Estoque' : 'Quantidade'}
+                {type === "ajuste" ? "Novo Estoque" : "Quantidade"}
               </Label>
               <Input
                 id="quantity"
                 type="number"
-                min={type === 'ajuste' ? 0 : 1}
+                min={type === "ajuste" ? 0 : 1}
                 value={quantity}
                 onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
               />
-              {type !== 'ajuste' && (
+              {type !== "ajuste" && (
                 <p className="text-xs text-muted-foreground">
-                  {type === 'entrada' 
-                    ? 'Quantidade a adicionar ao estoque' 
-                    : 'Quantidade a remover do estoque'}
+                  {type === "entrada"
+                    ? "Quantidade a adicionar ao estoque"
+                    : "Quantidade a remover do estoque"}
                 </p>
               )}
             </div>
@@ -157,8 +172,12 @@ export function StockAdjustmentDialog({
                 <Icon className={`h-5 w-5 ${selectedType?.color}`} />
                 <span className="text-sm font-medium">Estoque após ajuste</span>
               </div>
-              <Badge 
-                variant={getPreviewStock() <= (uniform?.min_stock || 0) ? 'destructive' : 'default'}
+              <Badge
+                variant={
+                  getPreviewStock() <= (uniform?.min_stock || 0)
+                    ? "destructive"
+                    : "default"
+                }
                 className="text-lg font-bold"
               >
                 {getPreviewStock()}
@@ -176,12 +195,11 @@ export function StockAdjustmentDialog({
               Cancelar
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Salvando...' : 'Confirmar'}
+              {isPending ? "Salvando..." : "Confirmar"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

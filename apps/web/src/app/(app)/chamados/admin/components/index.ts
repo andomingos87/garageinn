@@ -1,1 +1,1 @@
-export { DeleteTicketsTable } from './delete-tickets-table'
+export { DeleteTicketsTable } from "./delete-tickets-table";

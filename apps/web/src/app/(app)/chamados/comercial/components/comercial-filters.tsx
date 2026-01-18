@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useTransition, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Search, X, SlidersHorizontal } from 'lucide-react'
+} from "@/components/ui/select";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -19,100 +19,120 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
-import { Label } from '@/components/ui/label'
-import { statusLabels, COMERCIAL_TYPE_LABELS, PRIORITY_LABELS } from '../constants'
-import type { ComercialCategory } from '../actions'
-import type { UserUnit } from '@/lib/units'
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import {
+  statusLabels,
+  COMERCIAL_TYPE_LABELS,
+  PRIORITY_LABELS,
+} from "../constants";
+import type { ComercialCategory } from "../actions";
+import type { UserUnit } from "@/lib/units";
 
 interface ComercialFiltersProps {
-  categories: ComercialCategory[]
-  units: UserUnit[]
+  categories: ComercialCategory[];
+  units: UserUnit[];
 }
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'Todos os status' },
-  { value: 'awaiting_triage', label: statusLabels['awaiting_triage'] },
-  { value: 'prioritized', label: statusLabels['prioritized'] },
-  { value: 'in_progress', label: statusLabels['in_progress'] },
-  { value: 'resolved', label: statusLabels['resolved'] },
-  { value: 'closed', label: statusLabels['closed'] },
-  { value: 'denied', label: statusLabels['denied'] },
-  { value: 'cancelled', label: statusLabels['cancelled'] },
-]
+  { value: "all", label: "Todos os status" },
+  { value: "awaiting_triage", label: statusLabels["awaiting_triage"] },
+  { value: "prioritized", label: statusLabels["prioritized"] },
+  { value: "in_progress", label: statusLabels["in_progress"] },
+  { value: "resolved", label: statusLabels["resolved"] },
+  { value: "closed", label: statusLabels["closed"] },
+  { value: "denied", label: statusLabels["denied"] },
+  { value: "cancelled", label: statusLabels["cancelled"] },
+];
 
 const PRIORITY_OPTIONS = [
-  { value: 'all', label: 'Todas prioridades' },
-  { value: 'low', label: PRIORITY_LABELS['low'] },
-  { value: 'medium', label: PRIORITY_LABELS['medium'] },
-  { value: 'high', label: PRIORITY_LABELS['high'] },
-  { value: 'urgent', label: PRIORITY_LABELS['urgent'] },
-]
+  { value: "all", label: "Todas prioridades" },
+  { value: "low", label: PRIORITY_LABELS["low"] },
+  { value: "medium", label: PRIORITY_LABELS["medium"] },
+  { value: "high", label: PRIORITY_LABELS["high"] },
+  { value: "urgent", label: PRIORITY_LABELS["urgent"] },
+];
 
 const TYPE_OPTIONS = [
-  { value: 'all', label: 'Todos os tipos' },
-  { value: 'novo_contrato', label: COMERCIAL_TYPE_LABELS['novo_contrato'] },
-  { value: 'renovacao', label: COMERCIAL_TYPE_LABELS['renovacao'] },
-  { value: 'cancelamento', label: COMERCIAL_TYPE_LABELS['cancelamento'] },
-  { value: 'proposta', label: COMERCIAL_TYPE_LABELS['proposta'] },
-  { value: 'reclamacao', label: COMERCIAL_TYPE_LABELS['reclamacao'] },
-  { value: 'outros', label: COMERCIAL_TYPE_LABELS['outros'] },
-]
+  { value: "all", label: "Todos os tipos" },
+  { value: "novo_contrato", label: COMERCIAL_TYPE_LABELS["novo_contrato"] },
+  { value: "renovacao", label: COMERCIAL_TYPE_LABELS["renovacao"] },
+  { value: "cancelamento", label: COMERCIAL_TYPE_LABELS["cancelamento"] },
+  { value: "proposta", label: COMERCIAL_TYPE_LABELS["proposta"] },
+  { value: "reclamacao", label: COMERCIAL_TYPE_LABELS["reclamacao"] },
+  { value: "outros", label: COMERCIAL_TYPE_LABELS["outros"] },
+];
 
 export function ComercialFilters({ categories, units }: ComercialFiltersProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
-  const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const [isOpen, setIsOpen] = useState(false);
 
   // Current filter values
-  const search = searchParams.get('search') || ''
-  const status = searchParams.get('status') || 'all'
-  const priority = searchParams.get('priority') || 'all'
-  const comercial_type = searchParams.get('comercial_type') || 'all'
-  const category_id = searchParams.get('category_id') || 'all'
-  const unit_id = searchParams.get('unit_id') || 'all'
+  const search = searchParams.get("search") || "";
+  const status = searchParams.get("status") || "all";
+  const priority = searchParams.get("priority") || "all";
+  const comercial_type = searchParams.get("comercial_type") || "all";
+  const category_id = searchParams.get("category_id") || "all";
+  const unit_id = searchParams.get("unit_id") || "all";
 
-  const [localSearch, setLocalSearch] = useState(search)
+  const [localSearch, setLocalSearch] = useState(search);
 
-  const updateFilters = useCallback((updates: Record<string, string>) => {
-    const params = new URLSearchParams(searchParams.toString())
+  const updateFilters = useCallback(
+    (updates: Record<string, string>) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== 'all') {
-        params.set(key, value)
-      } else {
-        params.delete(key)
-      }
-    })
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value && value !== "all") {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
+      });
 
-    // Reset to page 1 when filters change
-    params.delete('page')
+      // Reset to page 1 when filters change
+      params.delete("page");
 
-    startTransition(() => {
-      router.push(`/chamados/comercial?${params.toString()}`)
-    })
-  }, [router, searchParams])
+      startTransition(() => {
+        router.push(`/chamados/comercial?${params.toString()}`);
+      });
+    },
+    [router, searchParams]
+  );
 
   const handleSearch = () => {
-    updateFilters({ search: localSearch })
-  }
+    updateFilters({ search: localSearch });
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch()
+    if (e.key === "Enter") {
+      handleSearch();
     }
-  }
+  };
 
   const clearFilters = () => {
-    setLocalSearch('')
+    setLocalSearch("");
     startTransition(() => {
-      router.push('/chamados/comercial')
-    })
-  }
+      router.push("/chamados/comercial");
+    });
+  };
 
-  const hasActiveFilters = search || status !== 'all' || priority !== 'all' || comercial_type !== 'all' || category_id !== 'all' || unit_id !== 'all'
-  const activeFilterCount = [search, status !== 'all', priority !== 'all', comercial_type !== 'all', category_id !== 'all', unit_id !== 'all'].filter(Boolean).length
+  const hasActiveFilters =
+    search ||
+    status !== "all" ||
+    priority !== "all" ||
+    comercial_type !== "all" ||
+    category_id !== "all" ||
+    unit_id !== "all";
+  const activeFilterCount = [
+    search,
+    status !== "all",
+    priority !== "all",
+    comercial_type !== "all",
+    category_id !== "all",
+    unit_id !== "all",
+  ].filter(Boolean).length;
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -216,7 +236,7 @@ export function ComercialFilters({ categories, units }: ComercialFiltersProps) {
                 <Select
                   value={status}
                   onValueChange={(value) => {
-                    updateFilters({ status: value })
+                    updateFilters({ status: value });
                   }}
                 >
                   <SelectTrigger>
@@ -237,7 +257,7 @@ export function ComercialFilters({ categories, units }: ComercialFiltersProps) {
                 <Select
                   value={comercial_type}
                   onValueChange={(value) => {
-                    updateFilters({ comercial_type: value })
+                    updateFilters({ comercial_type: value });
                   }}
                 >
                   <SelectTrigger>
@@ -258,7 +278,7 @@ export function ComercialFilters({ categories, units }: ComercialFiltersProps) {
                 <Select
                   value={priority}
                   onValueChange={(value) => {
-                    updateFilters({ priority: value })
+                    updateFilters({ priority: value });
                   }}
                 >
                   <SelectTrigger>
@@ -279,7 +299,7 @@ export function ComercialFilters({ categories, units }: ComercialFiltersProps) {
                 <Select
                   value={category_id}
                   onValueChange={(value) => {
-                    updateFilters({ category_id: value })
+                    updateFilters({ category_id: value });
                   }}
                 >
                   <SelectTrigger>
@@ -301,7 +321,7 @@ export function ComercialFilters({ categories, units }: ComercialFiltersProps) {
                 <Select
                   value={unit_id}
                   onValueChange={(value) => {
-                    updateFilters({ unit_id: value })
+                    updateFilters({ unit_id: value });
                   }}
                 >
                   <SelectTrigger>
@@ -322,8 +342,8 @@ export function ComercialFilters({ categories, units }: ComercialFiltersProps) {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    clearFilters()
-                    setIsOpen(false)
+                    clearFilters();
+                    setIsOpen(false);
                   }}
                   className="w-full"
                 >
@@ -349,5 +369,5 @@ export function ComercialFilters({ categories, units }: ComercialFiltersProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

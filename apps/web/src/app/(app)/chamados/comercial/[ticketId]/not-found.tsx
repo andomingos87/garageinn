@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { FileQuestion, ArrowLeft } from 'lucide-react'
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { FileQuestion, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -9,7 +9,8 @@ export default function NotFound() {
         <FileQuestion className="h-16 w-16 text-muted-foreground mb-4" />
         <h2 className="text-2xl font-semibold mb-2">Chamado nao encontrado</h2>
         <p className="text-muted-foreground mb-6">
-          O chamado comercial que voce esta procurando nao existe ou foi removido.
+          O chamado comercial que voce esta procurando nao existe ou foi
+          removido.
         </p>
         <Button asChild>
           <Link href="/chamados/comercial">
@@ -19,5 +20,5 @@ export default function NotFound() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -1,14 +1,19 @@
-'use client'
+"use client";
 
-import { usePathname, useSearchParams, useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 interface UsersPaginationProps {
-  page: number
-  totalPages: number
-  total: number
-  limit: number
+  page: number;
+  totalPages: number;
+  total: number;
+  limit: number;
 }
 
 export function UsersPagination({
@@ -17,18 +22,18 @@ export function UsersPagination({
   total,
   limit,
 }: UsersPaginationProps) {
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const router = useRouter()
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const createPageURL = (pageNumber: number) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('page', pageNumber.toString())
-    return `${pathname}?${params.toString()}`
-  }
+    const params = new URLSearchParams(searchParams);
+    params.set("page", pageNumber.toString());
+    return `${pathname}?${params.toString()}`;
+  };
 
-  const startItem = (page - 1) * limit + 1
-  const endItem = Math.min(page * limit, total)
+  const startItem = (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, total);
 
   if (totalPages <= 1) {
     return (
@@ -37,7 +42,7 @@ export function UsersPagination({
           {total} usuário(s) encontrado(s)
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -74,7 +79,7 @@ export function UsersPagination({
         {/* Page Numbers */}
         <div className="flex items-center gap-1 mx-2">
           {generatePageNumbers(page, totalPages).map((pageNum, idx) =>
-            pageNum === '...' ? (
+            pageNum === "..." ? (
               <span
                 key={`ellipsis-${idx}`}
                 className="px-2 text-muted-foreground"
@@ -84,7 +89,7 @@ export function UsersPagination({
             ) : (
               <Button
                 key={pageNum}
-                variant={page === pageNum ? 'default' : 'outline'}
+                variant={page === pageNum ? "default" : "outline"}
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => router.push(createPageURL(pageNum as number))}
@@ -120,50 +125,49 @@ export function UsersPagination({
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 function generatePageNumbers(
   currentPage: number,
   totalPages: number
 ): (number | string)[] {
-  const pages: (number | string)[] = []
-  const showPages = 5 // Number of page buttons to show
+  const pages: (number | string)[] = [];
+  const showPages = 5; // Number of page buttons to show
 
   if (totalPages <= showPages + 2) {
     // Show all pages if total is small
     for (let i = 1; i <= totalPages; i++) {
-      pages.push(i)
+      pages.push(i);
     }
   } else {
     // Always show first page
-    pages.push(1)
+    pages.push(1);
 
     if (currentPage <= 3) {
       // Near the start
       for (let i = 2; i <= Math.min(showPages, totalPages - 1); i++) {
-        pages.push(i)
+        pages.push(i);
       }
-      pages.push('...')
+      pages.push("...");
     } else if (currentPage >= totalPages - 2) {
       // Near the end
-      pages.push('...')
+      pages.push("...");
       for (let i = totalPages - showPages + 1; i < totalPages; i++) {
-        pages.push(i)
+        pages.push(i);
       }
     } else {
       // Middle
-      pages.push('...')
+      pages.push("...");
       for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-        pages.push(i)
+        pages.push(i);
       }
-      pages.push('...')
+      pages.push("...");
     }
 
     // Always show last page
-    pages.push(totalPages)
+    pages.push(totalPages);
   }
 
-  return pages
+  return pages;
 }
-

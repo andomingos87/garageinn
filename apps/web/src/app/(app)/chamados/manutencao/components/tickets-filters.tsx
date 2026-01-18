@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useTransition, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Search, X, SlidersHorizontal } from 'lucide-react'
+} from "@/components/ui/select";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -19,104 +19,133 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
-import { Label } from '@/components/ui/label'
-import { STATUS_LABELS, PRIORITY_LABELS, MAINTENANCE_TYPE_LABELS } from './status-badge'
-import type { MaintenanceCategory, UserUnit } from '../actions'
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import {
+  STATUS_LABELS,
+  PRIORITY_LABELS,
+  MAINTENANCE_TYPE_LABELS,
+} from "./status-badge";
+import type { MaintenanceCategory, UserUnit } from "../actions";
 
 interface TicketsFiltersProps {
-  categories: MaintenanceCategory[]
-  units: UserUnit[]
+  categories: MaintenanceCategory[];
+  units: UserUnit[];
 }
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'Todos os status' },
-  { value: 'awaiting_approval_encarregado', label: STATUS_LABELS['awaiting_approval_encarregado'] },
-  { value: 'awaiting_approval_supervisor', label: STATUS_LABELS['awaiting_approval_supervisor'] },
-  { value: 'awaiting_approval_gerente', label: STATUS_LABELS['awaiting_approval_gerente'] },
-  { value: 'awaiting_triage', label: STATUS_LABELS['awaiting_triage'] },
-  { value: 'in_progress', label: STATUS_LABELS['in_progress'] },
-  { value: 'technical_analysis', label: STATUS_LABELS['technical_analysis'] },
-  { value: 'awaiting_approval', label: STATUS_LABELS['awaiting_approval'] },
-  { value: 'approved', label: STATUS_LABELS['approved'] },
-  { value: 'executing', label: STATUS_LABELS['executing'] },
-  { value: 'waiting_parts', label: STATUS_LABELS['waiting_parts'] },
-  { value: 'completed', label: STATUS_LABELS['completed'] },
-  { value: 'evaluating', label: STATUS_LABELS['evaluating'] },
-  { value: 'closed', label: STATUS_LABELS['closed'] },
-  { value: 'denied', label: STATUS_LABELS['denied'] },
-  { value: 'cancelled', label: STATUS_LABELS['cancelled'] },
-]
+  { value: "all", label: "Todos os status" },
+  {
+    value: "awaiting_approval_encarregado",
+    label: STATUS_LABELS["awaiting_approval_encarregado"],
+  },
+  {
+    value: "awaiting_approval_supervisor",
+    label: STATUS_LABELS["awaiting_approval_supervisor"],
+  },
+  {
+    value: "awaiting_approval_gerente",
+    label: STATUS_LABELS["awaiting_approval_gerente"],
+  },
+  { value: "awaiting_triage", label: STATUS_LABELS["awaiting_triage"] },
+  { value: "in_progress", label: STATUS_LABELS["in_progress"] },
+  { value: "technical_analysis", label: STATUS_LABELS["technical_analysis"] },
+  { value: "awaiting_approval", label: STATUS_LABELS["awaiting_approval"] },
+  { value: "approved", label: STATUS_LABELS["approved"] },
+  { value: "executing", label: STATUS_LABELS["executing"] },
+  { value: "waiting_parts", label: STATUS_LABELS["waiting_parts"] },
+  { value: "completed", label: STATUS_LABELS["completed"] },
+  { value: "evaluating", label: STATUS_LABELS["evaluating"] },
+  { value: "closed", label: STATUS_LABELS["closed"] },
+  { value: "denied", label: STATUS_LABELS["denied"] },
+  { value: "cancelled", label: STATUS_LABELS["cancelled"] },
+];
 
 const PRIORITY_OPTIONS = [
-  { value: 'all', label: 'Todas prioridades' },
-  { value: 'low', label: PRIORITY_LABELS['low'] },
-  { value: 'medium', label: PRIORITY_LABELS['medium'] },
-  { value: 'high', label: PRIORITY_LABELS['high'] },
-  { value: 'urgent', label: PRIORITY_LABELS['urgent'] },
-]
+  { value: "all", label: "Todas prioridades" },
+  { value: "low", label: PRIORITY_LABELS["low"] },
+  { value: "medium", label: PRIORITY_LABELS["medium"] },
+  { value: "high", label: PRIORITY_LABELS["high"] },
+  { value: "urgent", label: PRIORITY_LABELS["urgent"] },
+];
 
 const MAINTENANCE_TYPE_OPTIONS = [
-  { value: 'all', label: 'Todos os tipos' },
-  { value: 'preventiva', label: MAINTENANCE_TYPE_LABELS['preventiva'] },
-  { value: 'corretiva', label: MAINTENANCE_TYPE_LABELS['corretiva'] },
-  { value: 'emergencial', label: MAINTENANCE_TYPE_LABELS['emergencial'] },
-]
+  { value: "all", label: "Todos os tipos" },
+  { value: "preventiva", label: MAINTENANCE_TYPE_LABELS["preventiva"] },
+  { value: "corretiva", label: MAINTENANCE_TYPE_LABELS["corretiva"] },
+  { value: "emergencial", label: MAINTENANCE_TYPE_LABELS["emergencial"] },
+];
 
 export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
-  const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const [isOpen, setIsOpen] = useState(false);
 
   // Current filter values
-  const search = searchParams.get('search') || ''
-  const status = searchParams.get('status') || 'all'
-  const priority = searchParams.get('priority') || 'all'
-  const category_id = searchParams.get('category_id') || 'all'
-  const unit_id = searchParams.get('unit_id') || 'all'
-  const maintenance_type = searchParams.get('maintenance_type') || 'all'
+  const search = searchParams.get("search") || "";
+  const status = searchParams.get("status") || "all";
+  const priority = searchParams.get("priority") || "all";
+  const category_id = searchParams.get("category_id") || "all";
+  const unit_id = searchParams.get("unit_id") || "all";
+  const maintenance_type = searchParams.get("maintenance_type") || "all";
 
-  const [localSearch, setLocalSearch] = useState(search)
+  const [localSearch, setLocalSearch] = useState(search);
 
-  const updateFilters = useCallback((updates: Record<string, string>) => {
-    const params = new URLSearchParams(searchParams.toString())
-    
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== 'all') {
-        params.set(key, value)
-      } else {
-        params.delete(key)
-      }
-    })
+  const updateFilters = useCallback(
+    (updates: Record<string, string>) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    // Reset to page 1 when filters change
-    params.delete('page')
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value && value !== "all") {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
+      });
 
-    startTransition(() => {
-      router.push(`/chamados/manutencao?${params.toString()}`)
-    })
-  }, [router, searchParams])
+      // Reset to page 1 when filters change
+      params.delete("page");
+
+      startTransition(() => {
+        router.push(`/chamados/manutencao?${params.toString()}`);
+      });
+    },
+    [router, searchParams]
+  );
 
   const handleSearch = () => {
-    updateFilters({ search: localSearch })
-  }
+    updateFilters({ search: localSearch });
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch()
+    if (e.key === "Enter") {
+      handleSearch();
     }
-  }
+  };
 
   const clearFilters = () => {
-    setLocalSearch('')
+    setLocalSearch("");
     startTransition(() => {
-      router.push('/chamados/manutencao')
-    })
-  }
+      router.push("/chamados/manutencao");
+    });
+  };
 
-  const hasActiveFilters = search || status !== 'all' || priority !== 'all' || category_id !== 'all' || unit_id !== 'all' || maintenance_type !== 'all'
-  const activeFilterCount = [search, status !== 'all', priority !== 'all', category_id !== 'all', unit_id !== 'all', maintenance_type !== 'all'].filter(Boolean).length
+  const hasActiveFilters =
+    search ||
+    status !== "all" ||
+    priority !== "all" ||
+    category_id !== "all" ||
+    unit_id !== "all" ||
+    maintenance_type !== "all";
+  const activeFilterCount = [
+    search,
+    status !== "all",
+    priority !== "all",
+    category_id !== "all",
+    unit_id !== "all",
+    maintenance_type !== "all",
+  ].filter(Boolean).length;
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -203,7 +232,7 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
                 <Select
                   value={status}
                   onValueChange={(value) => {
-                    updateFilters({ status: value })
+                    updateFilters({ status: value });
                   }}
                 >
                   <SelectTrigger>
@@ -224,7 +253,7 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
                 <Select
                   value={priority}
                   onValueChange={(value) => {
-                    updateFilters({ priority: value })
+                    updateFilters({ priority: value });
                   }}
                 >
                   <SelectTrigger>
@@ -245,7 +274,7 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
                 <Select
                   value={maintenance_type}
                   onValueChange={(value) => {
-                    updateFilters({ maintenance_type: value })
+                    updateFilters({ maintenance_type: value });
                   }}
                 >
                   <SelectTrigger>
@@ -266,7 +295,7 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
                 <Select
                   value={category_id}
                   onValueChange={(value) => {
-                    updateFilters({ category_id: value })
+                    updateFilters({ category_id: value });
                   }}
                 >
                   <SelectTrigger>
@@ -288,7 +317,7 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
                 <Select
                   value={unit_id}
                   onValueChange={(value) => {
-                    updateFilters({ unit_id: value })
+                    updateFilters({ unit_id: value });
                   }}
                 >
                   <SelectTrigger>
@@ -309,8 +338,8 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    clearFilters()
-                    setIsOpen(false)
+                    clearFilters();
+                    setIsOpen(false);
                   }}
                   className="w-full"
                 >
@@ -336,6 +365,5 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
         )}
       </div>
     </div>
-  )
+  );
 }
-

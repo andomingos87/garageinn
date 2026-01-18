@@ -1,33 +1,43 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ArrowLeft, Calendar, MapPin, User } from 'lucide-react'
-import { statusLabels, statusColors, PRIORITY_LABELS, PRIORITY_COLORS } from '../../constants'
-import { ComercialTypeBadge } from '../../components/comercial-type-badge'
+import Link from "next/link";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowLeft, Calendar, MapPin, User } from "lucide-react";
+import {
+  statusLabels,
+  statusColors,
+  PRIORITY_LABELS,
+  PRIORITY_COLORS,
+} from "../../constants";
+import { ComercialTypeBadge } from "../../components/comercial-type-badge";
 
 interface ComercialHeaderProps {
   ticket: {
-    id: string
-    ticket_number: number
-    title: string
-    status: string
-    priority: string | null
-    perceived_urgency: string | null
-    created_at: string
-    unit?: { id: string; name: string; code: string } | null
-    category?: { id: string; name: string } | null
-    creator?: { id: string; full_name: string; email: string; avatar_url: string | null } | null
-    comercial_details?: Array<{ comercial_type: string }> | null
-  }
+    id: string;
+    ticket_number: number;
+    title: string;
+    status: string;
+    priority: string | null;
+    perceived_urgency: string | null;
+    created_at: string;
+    unit?: { id: string; name: string; code: string } | null;
+    category?: { id: string; name: string } | null;
+    creator?: {
+      id: string;
+      full_name: string;
+      email: string;
+      avatar_url: string | null;
+    } | null;
+    comercial_details?: Array<{ comercial_type: string }> | null;
+  };
 }
 
 export function ComercialHeader({ ticket }: ComercialHeaderProps) {
-  const comercialType = ticket.comercial_details?.[0]?.comercial_type
+  const comercialType = ticket.comercial_details?.[0]?.comercial_type;
 
   return (
     <div className="flex flex-col gap-4">
@@ -41,9 +51,7 @@ export function ComercialHeader({ ticket }: ComercialHeaderProps) {
         <span className="text-sm text-muted-foreground font-mono">
           #{ticket.ticket_number}
         </span>
-        {comercialType && (
-          <ComercialTypeBadge type={comercialType} />
-        )}
+        {comercialType && <ComercialTypeBadge type={comercialType} />}
       </div>
 
       {/* Title and status */}
@@ -62,7 +70,11 @@ export function ComercialHeader({ ticket }: ComercialHeaderProps) {
             )}
             <span className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              {format(new Date(ticket.created_at), "dd 'de' MMM 'de' yyyy 'as' HH:mm", { locale: ptBR })}
+              {format(
+                new Date(ticket.created_at),
+                "dd 'de' MMM 'de' yyyy 'as' HH:mm",
+                { locale: ptBR }
+              )}
             </span>
           </div>
         </div>
@@ -88,12 +100,14 @@ export function ComercialHeader({ ticket }: ComercialHeaderProps) {
           <Avatar className="h-6 w-6">
             <AvatarImage src={ticket.creator.avatar_url || undefined} />
             <AvatarFallback className="text-xs">
-              {ticket.creator.full_name?.slice(0, 2).toUpperCase() || '?'}
+              {ticket.creator.full_name?.slice(0, 2).toUpperCase() || "?"}
             </AvatarFallback>
           </Avatar>
-          <span className="font-medium text-foreground">{ticket.creator.full_name}</span>
+          <span className="font-medium text-foreground">
+            {ticket.creator.full_name}
+          </span>
         </div>
       )}
     </div>
-  )
+  );
 }

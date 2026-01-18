@@ -1,30 +1,30 @@
-import { Suspense } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Ticket } from 'lucide-react'
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Ticket } from "lucide-react";
 import {
   getHubTickets,
   getHubStats,
   getDepartments,
   getUnits,
   type HubTicketFilters,
-} from './actions'
+} from "./actions";
 import {
   HubStatsCards,
   HubFilters,
   HubTable,
   HubPagination,
   NewTicketDialog,
-} from './components'
+} from "./components";
 
 interface PageProps {
   searchParams: Promise<{
-    search?: string
-    department_id?: string
-    status?: string
-    priority?: string
-    unit_id?: string
-    page?: string
-  }>
+    search?: string;
+    department_id?: string;
+    status?: string;
+    priority?: string;
+    unit_id?: string;
+    page?: string;
+  }>;
 }
 
 // Loading skeletons
@@ -35,7 +35,7 @@ function StatsCardsSkeleton() {
         <Skeleton key={i} className="h-[120px] rounded-lg" />
       ))}
     </div>
-  )
+  );
 }
 
 function FiltersSkeleton() {
@@ -48,30 +48,30 @@ function FiltersSkeleton() {
         <Skeleton className="h-10 w-[160px]" />
       </div>
     </div>
-  )
+  );
 }
 
 function TableSkeleton() {
-  return <Skeleton className="h-[400px] rounded-lg" />
+  return <Skeleton className="h-[400px] rounded-lg" />;
 }
 
 // Server components for data fetching
 async function StatsSection() {
-  const stats = await getHubStats()
-  return <HubStatsCards stats={stats} />
+  const stats = await getHubStats();
+  return <HubStatsCards stats={stats} />;
 }
 
 async function FiltersSection() {
   const [departments, units] = await Promise.all([
     getDepartments(),
     getUnits(),
-  ])
-  return <HubFilters departments={departments} units={units} />
+  ]);
+  return <HubFilters departments={departments} units={units} />;
 }
 
 async function TicketsListSection({ filters }: { filters: HubTicketFilters }) {
-  const result = await getHubTickets(filters)
-  
+  const result = await getHubTickets(filters);
+
   return (
     <>
       <HubTable tickets={result.data} />
@@ -81,12 +81,12 @@ async function TicketsListSection({ filters }: { filters: HubTicketFilters }) {
         limit={result.limit}
       />
     </>
-  )
+  );
 }
 
 export default async function ChamadosHubPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  
+  const params = await searchParams;
+
   const filters: HubTicketFilters = {
     search: params.search,
     department_id: params.department_id,
@@ -95,7 +95,7 @@ export default async function ChamadosHubPage({ searchParams }: PageProps) {
     unit_id: params.unit_id,
     page: params.page ? parseInt(params.page) : 1,
     limit: 20,
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -128,5 +128,5 @@ export default async function ChamadosHubPage({ searchParams }: PageProps) {
         <TicketsListSection filters={filters} />
       </Suspense>
     </div>
-  )
+  );
 }

@@ -1,45 +1,45 @@
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { z } from 'zod'
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 import {
   statusTransitions,
   statusLabels,
-  COMERCIAL_DEPARTMENT_ID
-} from './constants'
+  COMERCIAL_DEPARTMENT_ID,
+} from "./constants";
 
 // ============================================
 // Types
 // ============================================
 
 export interface ComercialFilters {
-  status?: string
-  priority?: string
-  category_id?: string
-  unit_id?: string
-  assigned_to?: string
-  comercial_type?: string
-  search?: string
-  startDate?: string
-  endDate?: string
-  page?: number
-  limit?: number
+  status?: string;
+  priority?: string;
+  category_id?: string;
+  unit_id?: string;
+  assigned_to?: string;
+  comercial_type?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface ComercialStats {
-  total: number
-  awaitingTriage: number
-  inProgress: number
-  resolved: number
+  total: number;
+  awaitingTriage: number;
+  inProgress: number;
+  resolved: number;
 }
 
 export interface ComercialCategory {
-  id: string
-  name: string
-  department_id: string
-  status: string
+  id: string;
+  name: string;
+  department_id: string;
+  status: string;
 }
 
 // ============================================
@@ -47,30 +47,37 @@ export interface ComercialCategory {
 // ============================================
 
 export const createComercialTicketSchema = z.object({
-  title: z.string().min(5, 'Titulo deve ter no minimo 5 caracteres'),
-  description: z.string().min(10, 'Descricao deve ter no minimo 10 caracteres'),
-  categoryId: z.string().uuid('Categoria invalida'),
-  unitId: z.string().uuid('Unidade invalida'),
-  comercialType: z.enum(['novo_contrato', 'renovacao', 'cancelamento', 'proposta', 'reclamacao', 'outros']),
+  title: z.string().min(5, "Titulo deve ter no minimo 5 caracteres"),
+  description: z.string().min(10, "Descricao deve ter no minimo 10 caracteres"),
+  categoryId: z.string().uuid("Categoria invalida"),
+  unitId: z.string().uuid("Unidade invalida"),
+  comercialType: z.enum([
+    "novo_contrato",
+    "renovacao",
+    "cancelamento",
+    "proposta",
+    "reclamacao",
+    "outros",
+  ]),
   perceivedUrgency: z.string().optional(),
   clientName: z.string().optional(),
   clientCnpj: z.string().optional(),
   clientPhone: z.string().optional(),
-  clientEmail: z.string().email('Email invalido').optional().or(z.literal('')),
-  contractValue: z.number().positive('Valor deve ser positivo').optional(),
+  clientEmail: z.string().email("Email invalido").optional().or(z.literal("")),
+  contractValue: z.number().positive("Valor deve ser positivo").optional(),
   contractStartDate: z.string().optional(),
   contractEndDate: z.string().optional(),
   proposalDeadline: z.string().optional(),
   competitorInfo: z.string().optional(),
-})
+});
 
 export const triageComercialTicketSchema = z.object({
   ticketId: z.string().uuid(),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
   assignedTo: z.string().uuid().optional(),
   dueDate: z.string().optional(),
   notes: z.string().optional(),
-})
+});
 
 // ============================================
 // Query Functions
@@ -80,37 +87,38 @@ export const triageComercialTicketSchema = z.object({
  * Lista categorias de Comercial
  */
 export async function getComercialCategories(): Promise<ComercialCategory[]> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('ticket_categories')
-    .select('*')
-    .eq('department_id', COMERCIAL_DEPARTMENT_ID)
-    .eq('status', 'active')
-    .order('name')
+    .from("ticket_categories")
+    .select("*")
+    .eq("department_id", COMERCIAL_DEPARTMENT_ID)
+    .eq("status", "active")
+    .order("name");
 
   if (error) {
-    console.error('Error fetching categories:', error)
-    return []
+    console.error("Error fetching categories:", error);
+    return [];
   }
 
-  return data || []
+  return data || [];
 }
 
 /**
  * Lista chamados comerciais com filtros
  */
 export async function getComercialTickets(filters?: ComercialFilters) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const page = filters?.page || 1
-  const limit = filters?.limit || 20
-  const offset = (page - 1) * limit
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 20;
+  const offset = (page - 1) * limit;
 
   // Query para tickets com detalhes comerciais
   let query = supabase
-    .from('tickets')
-    .select(`
+    .from("tickets")
+    .select(
+      `
       id,
       ticket_number,
       title,
@@ -134,71 +142,87 @@ export async function getComercialTickets(filters?: ComercialFilters) {
         proposal_deadline,
         resolution_type
       )
-    `, { count: 'exact' })
-    .eq('department_id', COMERCIAL_DEPARTMENT_ID)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+    `,
+      { count: "exact" }
+    )
+    .eq("department_id", COMERCIAL_DEPARTMENT_ID)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  if (filters?.status && filters.status !== 'all') {
-    query = query.eq('status', filters.status)
+  if (filters?.status && filters.status !== "all") {
+    query = query.eq("status", filters.status);
   }
 
-  if (filters?.priority && filters.priority !== 'all') {
-    query = query.eq('priority', filters.priority)
+  if (filters?.priority && filters.priority !== "all") {
+    query = query.eq("priority", filters.priority);
   }
 
-  if (filters?.category_id && filters.category_id !== 'all') {
-    query = query.eq('category_id', filters.category_id)
+  if (filters?.category_id && filters.category_id !== "all") {
+    query = query.eq("category_id", filters.category_id);
   }
 
-  if (filters?.unit_id && filters.unit_id !== 'all') {
-    query = query.eq('unit_id', filters.unit_id)
+  if (filters?.unit_id && filters.unit_id !== "all") {
+    query = query.eq("unit_id", filters.unit_id);
   }
 
-  if (filters?.assigned_to && filters.assigned_to !== 'all') {
-    query = query.eq('assigned_to', filters.assigned_to)
+  if (filters?.assigned_to && filters.assigned_to !== "all") {
+    query = query.eq("assigned_to", filters.assigned_to);
   }
 
   if (filters?.search) {
-    const searchTerm = filters.search.trim()
-    const ticketNumber = parseInt(searchTerm.replace('#', ''))
+    const searchTerm = filters.search.trim();
+    const ticketNumber = parseInt(searchTerm.replace("#", ""));
 
     if (!isNaN(ticketNumber)) {
-      query = query.or(`title.ilike.%${searchTerm}%,ticket_number.eq.${ticketNumber}`)
+      query = query.or(
+        `title.ilike.%${searchTerm}%,ticket_number.eq.${ticketNumber}`
+      );
     } else {
-      query = query.ilike('title', `%${searchTerm}%`)
+      query = query.ilike("title", `%${searchTerm}%`);
     }
   }
 
   if (filters?.startDate) {
-    query = query.gte('created_at', `${filters.startDate}T00:00:00`)
+    query = query.gte("created_at", `${filters.startDate}T00:00:00`);
   }
 
   if (filters?.endDate) {
-    query = query.lte('created_at', `${filters.endDate}T23:59:59`)
+    query = query.lte("created_at", `${filters.endDate}T23:59:59`);
   }
 
-  const { data, error, count } = await query
+  const { data, error, count } = await query;
 
   if (error) {
-    console.error('Error fetching comercial tickets:', error)
-    return { data: [], count: 0, page, limit }
+    console.error("Error fetching comercial tickets:", error);
+    return { data: [], count: 0, page, limit };
   }
 
   // Buscar perfis dos criadores
-  const creatorIds = [...new Set((data || []).map((t: { created_by: string }) => t.created_by).filter(Boolean))]
-  let creatorsMap: Record<string, { full_name: string; avatar_url: string | null }> = {}
+  const creatorIds = [
+    ...new Set(
+      (data || [])
+        .map((t: { created_by: string }) => t.created_by)
+        .filter(Boolean)
+    ),
+  ];
+  let creatorsMap: Record<
+    string,
+    { full_name: string; avatar_url: string | null }
+  > = {};
 
   if (creatorIds.length > 0) {
     const { data: creators } = await supabase
-      .from('profiles')
-      .select('id, full_name, avatar_url')
-      .in('id', creatorIds)
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", creatorIds);
 
-    creatorsMap = (creators || []).reduce((acc, c) => {
-      acc[c.id] = { full_name: c.full_name, avatar_url: c.avatar_url }
-      return acc
-    }, {} as Record<string, { full_name: string; avatar_url: string | null }>)
+    creatorsMap = (creators || []).reduce(
+      (acc, c) => {
+        acc[c.id] = { full_name: c.full_name, avatar_url: c.avatar_url };
+        return acc;
+      },
+      {} as Record<string, { full_name: string; avatar_url: string | null }>
+    );
   }
 
   // Transformar dados para formato esperado pela tabela
@@ -222,26 +246,28 @@ export async function getComercialTickets(filters?: ComercialFilters) {
     proposal_deadline: ticket.comercial_details?.[0]?.proposal_deadline || null,
     resolution_type: ticket.comercial_details?.[0]?.resolution_type || null,
     // Creator
-    created_by_id: ticket.created_by || '',
-    created_by_name: creatorsMap[ticket.created_by]?.full_name || 'Desconhecido',
+    created_by_id: ticket.created_by || "",
+    created_by_name:
+      creatorsMap[ticket.created_by]?.full_name || "Desconhecido",
     created_by_avatar: creatorsMap[ticket.created_by]?.avatar_url || null,
     // Counts (placeholder - would need separate queries)
     comments_count: 0,
     attachments_count: 0,
-  }))
+  }));
 
-  return { data: transformedData, count: count || 0, page, limit }
+  return { data: transformedData, count: count || 0, page, limit };
 }
 
 /**
  * Obter detalhes de um chamado comercial
  */
 export async function getComercialTicket(id: string) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data: ticket, error } = await supabase
-    .from('tickets')
-    .select(`
+    .from("tickets")
+    .select(
+      `
       *,
       unit:units(id, name, code),
       category:ticket_categories(id, name),
@@ -272,61 +298,74 @@ export async function getComercialTicket(id: string) {
         file_type,
         created_at
       )
-    `)
-    .eq('id', id)
-    .eq('department_id', COMERCIAL_DEPARTMENT_ID)
-    .single()
+    `
+    )
+    .eq("id", id)
+    .eq("department_id", COMERCIAL_DEPARTMENT_ID)
+    .single();
 
   if (error) {
-    console.error('Error fetching comercial ticket:', error)
-    return null
+    console.error("Error fetching comercial ticket:", error);
+    return null;
   }
 
-  return ticket
+  return ticket;
 }
 
 /**
  * Estatisticas de Comercial
  */
 export async function getComercialStats(): Promise<ComercialStats> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data } = await supabase
-    .from('tickets')
-    .select('status')
-    .eq('department_id', COMERCIAL_DEPARTMENT_ID)
+    .from("tickets")
+    .select("status")
+    .eq("department_id", COMERCIAL_DEPARTMENT_ID);
 
   if (!data) {
-    return { total: 0, awaitingTriage: 0, inProgress: 0, resolved: 0 }
+    return { total: 0, awaitingTriage: 0, inProgress: 0, resolved: 0 };
   }
 
-  const resolvedStatuses = ['resolved', 'closed', 'cancelled', 'denied']
-  const triageStatuses = ['awaiting_triage', 'awaiting_approval_encarregado', 'awaiting_approval_supervisor', 'awaiting_approval_gerente']
+  const resolvedStatuses = ["resolved", "closed", "cancelled", "denied"];
+  const triageStatuses = [
+    "awaiting_triage",
+    "awaiting_approval_encarregado",
+    "awaiting_approval_supervisor",
+    "awaiting_approval_gerente",
+  ];
 
   return {
     total: data.length,
-    awaitingTriage: data.filter(t => triageStatuses.includes(t.status)).length,
-    inProgress: data.filter(t => !resolvedStatuses.includes(t.status) && !triageStatuses.includes(t.status)).length,
-    resolved: data.filter(t => resolvedStatuses.includes(t.status)).length,
-  }
+    awaitingTriage: data.filter((t) => triageStatuses.includes(t.status))
+      .length,
+    inProgress: data.filter(
+      (t) =>
+        !resolvedStatuses.includes(t.status) &&
+        !triageStatuses.includes(t.status)
+    ).length,
+    resolved: data.filter((t) => resolvedStatuses.includes(t.status)).length,
+  };
 }
 
 /**
  * Verifica se o usuario atual precisa de aprovacao
  */
 export async function checkNeedsApproval(): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return true
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return true;
 
   // Verificar via RPC se precisa de aprovacao
-  const { data: needsApproval } = await supabase.rpc('ticket_needs_approval', {
+  const { data: needsApproval } = await supabase.rpc("ticket_needs_approval", {
     p_created_by: user.id,
-    p_department_id: COMERCIAL_DEPARTMENT_ID
-  })
+    p_department_id: COMERCIAL_DEPARTMENT_ID,
+  });
 
-  return needsApproval === true
+  return needsApproval === true;
 }
 
 // ============================================
@@ -337,89 +376,98 @@ export async function checkNeedsApproval(): Promise<boolean> {
  * Cria um chamado comercial
  */
 export async function createComercialTicket(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    return { error: 'Nao autenticado' }
+    return { error: "Nao autenticado" };
   }
 
   // Extrair dados do formulario
-  const title = formData.get('title') as string
-  const description = formData.get('description') as string
-  const unit_id = formData.get('unit_id') as string | null
-  const category_id = formData.get('category_id') as string | null
-  const comercial_type = formData.get('comercial_type') as string
-  const perceived_urgency = formData.get('perceived_urgency') as string | null
+  const title = formData.get("title") as string;
+  const description = formData.get("description") as string;
+  const unit_id = formData.get("unit_id") as string | null;
+  const category_id = formData.get("category_id") as string | null;
+  const comercial_type = formData.get("comercial_type") as string;
+  const perceived_urgency = formData.get("perceived_urgency") as string | null;
 
   // Dados do cliente
-  const client_name = formData.get('client_name') as string | null
-  const client_cnpj = formData.get('client_cnpj') as string | null
-  const client_phone = formData.get('client_phone') as string | null
-  const client_email = formData.get('client_email') as string | null
+  const client_name = formData.get("client_name") as string | null;
+  const client_cnpj = formData.get("client_cnpj") as string | null;
+  const client_phone = formData.get("client_phone") as string | null;
+  const client_email = formData.get("client_email") as string | null;
 
   // Dados do contrato
-  const contract_value_str = formData.get('contract_value') as string | null
-  const contract_value = contract_value_str ? parseFloat(contract_value_str) : null
-  const contract_start_date = formData.get('contract_start_date') as string | null
-  const contract_end_date = formData.get('contract_end_date') as string | null
-  const proposal_deadline = formData.get('proposal_deadline') as string | null
+  const contract_value_str = formData.get("contract_value") as string | null;
+  const contract_value = contract_value_str
+    ? parseFloat(contract_value_str)
+    : null;
+  const contract_start_date = formData.get("contract_start_date") as
+    | string
+    | null;
+  const contract_end_date = formData.get("contract_end_date") as string | null;
+  const proposal_deadline = formData.get("proposal_deadline") as string | null;
 
   // Informacoes adicionais
-  const competitor_info = formData.get('competitor_info') as string | null
-  const negotiation_notes = formData.get('negotiation_notes') as string | null
+  const competitor_info = formData.get("competitor_info") as string | null;
+  const negotiation_notes = formData.get("negotiation_notes") as string | null;
 
   // Validacoes
   if (!title || title.length < 5) {
-    return { error: 'Titulo deve ter pelo menos 5 caracteres' }
+    return { error: "Titulo deve ter pelo menos 5 caracteres" };
   }
   if (!description || description.length < 10) {
-    return { error: 'Descricao deve ter pelo menos 10 caracteres' }
+    return { error: "Descricao deve ter pelo menos 10 caracteres" };
   }
   if (!unit_id) {
-    return { error: 'Unidade e obrigatoria' }
+    return { error: "Unidade e obrigatoria" };
   }
   if (!category_id) {
-    return { error: 'Categoria e obrigatoria' }
+    return { error: "Categoria e obrigatoria" };
   }
   if (!comercial_type) {
-    return { error: 'Tipo comercial e obrigatorio' }
+    return { error: "Tipo comercial e obrigatorio" };
   }
 
   // Verificar se precisa de aprovacao
-  const { data: needsApproval } = await supabase.rpc('ticket_needs_approval', {
+  const { data: needsApproval } = await supabase.rpc("ticket_needs_approval", {
     p_created_by: user.id,
-    p_department_id: COMERCIAL_DEPARTMENT_ID
-  })
+    p_department_id: COMERCIAL_DEPARTMENT_ID,
+  });
 
   const initialStatus = needsApproval
-    ? 'awaiting_approval_encarregado'
-    : 'awaiting_triage'
+    ? "awaiting_approval_encarregado"
+    : "awaiting_triage";
 
   // Criar ticket principal
   const { data: ticket, error: ticketError } = await supabase
-    .from('tickets')
+    .from("tickets")
     .insert({
       title,
       description,
       department_id: COMERCIAL_DEPARTMENT_ID,
-      category_id: category_id && category_id !== '' ? category_id : null,
-      unit_id: unit_id && unit_id !== '' ? unit_id : null,
+      category_id: category_id && category_id !== "" ? category_id : null,
+      unit_id: unit_id && unit_id !== "" ? unit_id : null,
       created_by: user.id,
       status: initialStatus,
-      perceived_urgency: perceived_urgency && perceived_urgency !== '' ? perceived_urgency : null
+      perceived_urgency:
+        perceived_urgency && perceived_urgency !== ""
+          ? perceived_urgency
+          : null,
     })
     .select()
-    .single()
+    .single();
 
   if (ticketError) {
-    console.error('Error creating ticket:', ticketError)
-    return { error: ticketError.message }
+    console.error("Error creating ticket:", ticketError);
+    return { error: ticketError.message };
   }
 
   // Criar detalhes comerciais
   const { error: detailsError } = await supabase
-    .from('ticket_comercial_details')
+    .from("ticket_comercial_details")
     .insert({
       ticket_id: ticket.id,
       comercial_type,
@@ -433,82 +481,88 @@ export async function createComercialTicket(formData: FormData) {
       proposal_deadline: proposal_deadline || null,
       competitor_info: competitor_info || null,
       negotiation_notes: negotiation_notes || null,
-    })
+    });
 
   if (detailsError) {
-    console.error('Error creating comercial details:', detailsError)
+    console.error("Error creating comercial details:", detailsError);
     // Rollback: deletar ticket
-    await supabase.from('tickets').delete().eq('id', ticket.id)
-    return { error: detailsError.message }
+    await supabase.from("tickets").delete().eq("id", ticket.id);
+    return { error: detailsError.message };
   }
 
   // Se precisa aprovacao, criar registros de aprovacao
   if (needsApproval) {
-    await supabase.rpc('create_ticket_approvals', { p_ticket_id: ticket.id })
+    await supabase.rpc("create_ticket_approvals", { p_ticket_id: ticket.id });
   }
 
-  revalidatePath('/chamados/comercial')
-  redirect(`/chamados/comercial/${ticket.id}`)
+  revalidatePath("/chamados/comercial");
+  redirect(`/chamados/comercial/${ticket.id}`);
 }
 
 /**
  * Atualiza um chamado comercial
  */
 export async function updateComercialTicket(id: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    return { error: 'Nao autenticado' }
+    return { error: "Nao autenticado" };
   }
 
   // Verificar se o ticket existe
   const { data: existingTicket } = await supabase
-    .from('tickets')
-    .select('id, status')
-    .eq('id', id)
-    .eq('department_id', COMERCIAL_DEPARTMENT_ID)
-    .single()
+    .from("tickets")
+    .select("id, status")
+    .eq("id", id)
+    .eq("department_id", COMERCIAL_DEPARTMENT_ID)
+    .single();
 
   if (!existingTicket) {
-    return { error: 'Chamado nao encontrado' }
+    return { error: "Chamado nao encontrado" };
   }
 
   // Extrair dados do formulario
-  const title = formData.get('title') as string
-  const description = formData.get('description') as string
+  const title = formData.get("title") as string;
+  const description = formData.get("description") as string;
 
   // Dados comerciais
-  const client_name = formData.get('client_name') as string | null
-  const client_cnpj = formData.get('client_cnpj') as string | null
-  const client_phone = formData.get('client_phone') as string | null
-  const client_email = formData.get('client_email') as string | null
-  const contract_value_str = formData.get('contract_value') as string | null
-  const contract_value = contract_value_str ? parseFloat(contract_value_str) : null
-  const contract_start_date = formData.get('contract_start_date') as string | null
-  const contract_end_date = formData.get('contract_end_date') as string | null
-  const proposal_deadline = formData.get('proposal_deadline') as string | null
-  const competitor_info = formData.get('competitor_info') as string | null
-  const negotiation_notes = formData.get('negotiation_notes') as string | null
+  const client_name = formData.get("client_name") as string | null;
+  const client_cnpj = formData.get("client_cnpj") as string | null;
+  const client_phone = formData.get("client_phone") as string | null;
+  const client_email = formData.get("client_email") as string | null;
+  const contract_value_str = formData.get("contract_value") as string | null;
+  const contract_value = contract_value_str
+    ? parseFloat(contract_value_str)
+    : null;
+  const contract_start_date = formData.get("contract_start_date") as
+    | string
+    | null;
+  const contract_end_date = formData.get("contract_end_date") as string | null;
+  const proposal_deadline = formData.get("proposal_deadline") as string | null;
+  const competitor_info = formData.get("competitor_info") as string | null;
+  const negotiation_notes = formData.get("negotiation_notes") as string | null;
 
   // Atualizar ticket
   const { error: ticketError } = await supabase
-    .from('tickets')
+    .from("tickets")
     .update({
       title,
       description,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
-    .eq('id', id)
+    .eq("id", id);
 
   if (ticketError) {
-    console.error('Error updating ticket:', ticketError)
-    return { error: ticketError.message }
+    console.error("Error updating ticket:", ticketError);
+    return { error: ticketError.message };
   }
 
   // Atualizar detalhes comerciais
   const { error: detailsError } = await supabase
-    .from('ticket_comercial_details')
+    .from("ticket_comercial_details")
     .update({
       client_name,
       client_cnpj,
@@ -520,26 +574,26 @@ export async function updateComercialTicket(id: string, formData: FormData) {
       proposal_deadline,
       competitor_info,
       negotiation_notes,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
-    .eq('ticket_id', id)
+    .eq("ticket_id", id);
 
   if (detailsError) {
-    console.error('Error updating comercial details:', detailsError)
-    return { error: detailsError.message }
+    console.error("Error updating comercial details:", detailsError);
+    return { error: detailsError.message };
   }
 
   // Registrar no historico
-  await supabase.from('ticket_history').insert({
+  await supabase.from("ticket_history").insert({
     ticket_id: id,
     user_id: user.id,
-    action: 'updated',
-    new_value: 'Chamado atualizado'
-  })
+    action: "updated",
+    new_value: "Chamado atualizado",
+  });
 
-  revalidatePath(`/chamados/comercial/${id}`)
-  revalidatePath('/chamados/comercial')
-  return { success: true }
+  revalidatePath(`/chamados/comercial/${id}`);
+  revalidatePath("/chamados/comercial");
+  return { success: true };
 }
 
 // ============================================
@@ -550,149 +604,175 @@ export async function updateComercialTicket(id: string, formData: FormData) {
  * Verifica se o usuario pode triar chamados comerciais
  */
 export async function canTriageComercialTicket(): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return false
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
 
   // Verificar se e admin
-  const { data: isAdmin } = await supabase.rpc('is_admin')
-  if (isAdmin) return true
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (isAdmin) return true;
 
   // Buscar roles do usuario
   const { data: userRoles } = await supabase
-    .from('user_roles')
-    .select(`
+    .from("user_roles")
+    .select(
+      `
       role:roles!role_id(
         name,
         department:departments!department_id(name)
       )
-    `)
-    .eq('user_id', user.id)
+    `
+    )
+    .eq("user_id", user.id);
 
-  if (!userRoles) return false
+  if (!userRoles) return false;
 
   // Verificar se tem cargo de triagem no departamento Comercial
-  const triageRoles = ['Supervisor', 'Gerente', 'Coordenador', 'Analista']
-  const globalTriageRoles = ['Desenvolvedor', 'Administrador', 'Diretor', 'Gerente']
+  const triageRoles = ["Supervisor", "Gerente", "Coordenador", "Analista"];
+  const globalTriageRoles = [
+    "Desenvolvedor",
+    "Administrador",
+    "Diretor",
+    "Gerente",
+  ];
 
-  return userRoles.some(ur => {
+  return userRoles.some((ur) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const role = ur.role as any
-    const roleName = role?.name
-    const deptName = role?.department?.name?.toLowerCase()
+    const role = ur.role as any;
+    const roleName = role?.name;
+    const deptName = role?.department?.name?.toLowerCase();
 
     // Se e um cargo global de triagem
-    if (globalTriageRoles.includes(roleName)) return true
+    if (globalTriageRoles.includes(roleName)) return true;
 
     // Se e um cargo de triagem dentro do departamento Comercial
-    return triageRoles.includes(roleName) && deptName === 'comercial'
-  })
+    return triageRoles.includes(roleName) && deptName === "comercial";
+  });
 }
 
 /**
  * Lista membros do departamento Comercial
  */
 export async function getComercialDepartmentMembers() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data } = await supabase
-    .from('user_roles')
-    .select(`
+  const { data } = await supabase.from("user_roles").select(`
       user:profiles!user_id(id, full_name, email, avatar_url),
       role:roles!role_id(name, department_id)
-    `)
+    `);
 
   // Filtrar por departamento Comercial, removendo duplicatas
-  const membersMap = new Map<string, { id: string; full_name: string; email: string; avatar_url: string | null; role: string }>()
+  const membersMap = new Map<
+    string,
+    {
+      id: string;
+      full_name: string;
+      email: string;
+      avatar_url: string | null;
+      role: string;
+    }
+  >();
 
   data?.forEach((d: Record<string, unknown>) => {
-    const role = d.role as { department_id: string; name: string } | null
-    const user = d.user as { id: string; full_name: string; email: string; avatar_url: string | null } | null
+    const role = d.role as { department_id: string; name: string } | null;
+    const user = d.user as {
+      id: string;
+      full_name: string;
+      email: string;
+      avatar_url: string | null;
+    } | null;
 
     if (role && user && role.department_id === COMERCIAL_DEPARTMENT_ID) {
       if (!membersMap.has(user.id)) {
         membersMap.set(user.id, {
           ...user,
-          role: role.name
-        })
+          role: role.name,
+        });
       }
     }
-  })
+  });
 
-  return Array.from(membersMap.values())
+  return Array.from(membersMap.values());
 }
 
 /**
  * Triar chamado comercial
  */
-export async function triageComercialTicket(ticketId: string, formData: FormData) {
-  const supabase = await createClient()
+export async function triageComercialTicket(
+  ticketId: string,
+  formData: FormData
+) {
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    return { error: 'Nao autenticado' }
+    return { error: "Nao autenticado" };
   }
 
   // Verificar permissao de triagem
-  const canTriage = await canTriageComercialTicket()
+  const canTriage = await canTriageComercialTicket();
   if (!canTriage) {
-    return { error: 'Sem permissao para triar chamados comerciais' }
+    return { error: "Sem permissao para triar chamados comerciais" };
   }
 
   // Extrair dados do formulario
-  const priority = formData.get('priority') as string
-  const assigned_to = formData.get('assigned_to') as string | null
-  const due_date = formData.get('due_date') as string | null
+  const priority = formData.get("priority") as string;
+  const assigned_to = formData.get("assigned_to") as string | null;
+  const due_date = formData.get("due_date") as string | null;
 
   // Validacoes
   if (!priority) {
-    return { error: 'Prioridade e obrigatoria' }
+    return { error: "Prioridade e obrigatoria" };
   }
 
   // Verificar se o ticket existe e esta aguardando triagem
   const { data: ticket } = await supabase
-    .from('tickets')
-    .select('status')
-    .eq('id', ticketId)
-    .single()
+    .from("tickets")
+    .select("status")
+    .eq("id", ticketId)
+    .single();
 
   if (!ticket) {
-    return { error: 'Chamado nao encontrado' }
+    return { error: "Chamado nao encontrado" };
   }
 
-  if (ticket.status !== 'awaiting_triage') {
-    return { error: 'Este chamado nao esta aguardando triagem' }
+  if (ticket.status !== "awaiting_triage") {
+    return { error: "Este chamado nao esta aguardando triagem" };
   }
 
   // Atualizar ticket
   const { error } = await supabase
-    .from('tickets')
+    .from("tickets")
     .update({
       priority,
-      assigned_to: assigned_to && assigned_to !== '' ? assigned_to : null,
+      assigned_to: assigned_to && assigned_to !== "" ? assigned_to : null,
       due_date: due_date || null,
-      status: 'prioritized' // Avanca para priorizado apos triagem
+      status: "prioritized", // Avanca para priorizado apos triagem
     })
-    .eq('id', ticketId)
+    .eq("id", ticketId);
 
   if (error) {
-    console.error('Error triaging comercial ticket:', error)
-    return { error: error.message }
+    console.error("Error triaging comercial ticket:", error);
+    return { error: error.message };
   }
 
   // Registrar no historico
-  await supabase.from('ticket_history').insert({
+  await supabase.from("ticket_history").insert({
     ticket_id: ticketId,
     user_id: user.id,
-    action: 'triaged',
+    action: "triaged",
     new_value: `Prioridade: ${priority}`,
-    metadata: { priority, assigned_to, due_date }
-  })
+    metadata: { priority, assigned_to, due_date },
+  });
 
-  revalidatePath(`/chamados/comercial/${ticketId}`)
-  revalidatePath('/chamados/comercial')
-  return { success: true }
+  revalidatePath(`/chamados/comercial/${ticketId}`);
+  revalidatePath("/chamados/comercial");
+  return { success: true };
 }
 
 /**
@@ -703,66 +783,70 @@ export async function updateComercialTicketStatus(
   newStatus: string,
   reason?: string
 ) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    return { error: 'Nao autenticado' }
+    return { error: "Nao autenticado" };
   }
 
   const { data: ticket } = await supabase
-    .from('tickets')
-    .select('status')
-    .eq('id', ticketId)
-    .single()
+    .from("tickets")
+    .select("status")
+    .eq("id", ticketId)
+    .single();
 
   if (!ticket) {
-    return { error: 'Chamado nao encontrado' }
+    return { error: "Chamado nao encontrado" };
   }
 
-  const allowedTransitions = statusTransitions[ticket.status] || []
+  const allowedTransitions = statusTransitions[ticket.status] || [];
   if (!allowedTransitions.includes(newStatus)) {
-    return { error: `Transicao de ${statusLabels[ticket.status]} para ${statusLabels[newStatus]} nao permitida` }
+    return {
+      error: `Transicao de ${statusLabels[ticket.status]} para ${statusLabels[newStatus]} nao permitida`,
+    };
   }
 
-  const updates: Record<string, unknown> = { status: newStatus }
+  const updates: Record<string, unknown> = { status: newStatus };
 
-  if (newStatus === 'denied' && reason) {
-    updates.denial_reason = reason
+  if (newStatus === "denied" && reason) {
+    updates.denial_reason = reason;
   }
 
-  if (newStatus === 'closed') {
-    updates.closed_at = new Date().toISOString()
+  if (newStatus === "closed") {
+    updates.closed_at = new Date().toISOString();
   }
 
-  if (newStatus === 'resolved') {
-    updates.resolved_at = new Date().toISOString()
+  if (newStatus === "resolved") {
+    updates.resolved_at = new Date().toISOString();
   }
 
   const { error } = await supabase
-    .from('tickets')
+    .from("tickets")
     .update(updates)
-    .eq('id', ticketId)
+    .eq("id", ticketId);
 
   if (error) {
-    console.error('Error changing comercial ticket status:', error)
-    return { error: error.message }
+    console.error("Error changing comercial ticket status:", error);
+    return { error: error.message };
   }
 
   // Registrar no historico
-  await supabase.from('ticket_history').insert({
+  await supabase.from("ticket_history").insert({
     ticket_id: ticketId,
     user_id: user.id,
-    action: 'status_changed',
-    field_name: 'status',
+    action: "status_changed",
+    field_name: "status",
     old_value: ticket.status,
     new_value: newStatus,
-    metadata: reason ? { reason } : undefined
-  })
+    metadata: reason ? { reason } : undefined,
+  });
 
-  revalidatePath(`/chamados/comercial/${ticketId}`)
-  revalidatePath('/chamados/comercial')
-  return { success: true }
+  revalidatePath(`/chamados/comercial/${ticketId}`);
+  revalidatePath("/chamados/comercial");
+  return { success: true };
 }
 
 /**
@@ -773,38 +857,43 @@ export async function updateComercialResolution(
   resolutionType: string,
   resolutionNotes?: string
 ) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    return { error: 'Nao autenticado' }
+    return { error: "Nao autenticado" };
   }
 
   const { error } = await supabase
-    .from('ticket_comercial_details')
+    .from("ticket_comercial_details")
     .update({
       resolution_type: resolutionType,
       resolution_notes: resolutionNotes || null,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
-    .eq('ticket_id', ticketId)
+    .eq("ticket_id", ticketId);
 
   if (error) {
-    console.error('Error updating comercial resolution:', error)
-    return { error: error.message }
+    console.error("Error updating comercial resolution:", error);
+    return { error: error.message };
   }
 
   // Registrar no historico
-  await supabase.from('ticket_history').insert({
+  await supabase.from("ticket_history").insert({
     ticket_id: ticketId,
     user_id: user.id,
-    action: 'resolution_updated',
+    action: "resolution_updated",
     new_value: `Resolucao: ${resolutionType}`,
-    metadata: { resolution_type: resolutionType, resolution_notes: resolutionNotes }
-  })
+    metadata: {
+      resolution_type: resolutionType,
+      resolution_notes: resolutionNotes,
+    },
+  });
 
-  revalidatePath(`/chamados/comercial/${ticketId}`)
-  return { success: true }
+  revalidatePath(`/chamados/comercial/${ticketId}`);
+  return { success: true };
 }
 
 // ============================================
@@ -819,65 +908,67 @@ export async function addComercialTicketComment(
   content: string,
   isInternal: boolean = false
 ) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    return { error: 'Nao autenticado' }
+    return { error: "Nao autenticado" };
   }
 
   if (!content || content.trim().length === 0) {
-    return { error: 'Comentario nao pode estar vazio' }
+    return { error: "Comentario nao pode estar vazio" };
   }
 
-  const { error } = await supabase
-    .from('ticket_comments')
-    .insert({
-      ticket_id: ticketId,
-      user_id: user.id,
-      content: content.trim(),
-      is_internal: isInternal
-    })
+  const { error } = await supabase.from("ticket_comments").insert({
+    ticket_id: ticketId,
+    user_id: user.id,
+    content: content.trim(),
+    is_internal: isInternal,
+  });
 
   if (error) {
-    console.error('Error adding comment:', error)
-    return { error: error.message }
+    console.error("Error adding comment:", error);
+    return { error: error.message };
   }
 
-  revalidatePath(`/chamados/comercial/${ticketId}`)
-  return { success: true }
+  revalidatePath(`/chamados/comercial/${ticketId}`);
+  return { success: true };
 }
 
 /**
  * Obtem usuario atual
  */
 export async function getCurrentUser() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
-  return profile
+  return profile;
 }
 
 /**
  * Verifica se o usuario atual e admin
  */
 export async function checkIsAdmin(): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data, error } = await supabase.rpc('is_admin')
+  const { data, error } = await supabase.rpc("is_admin");
 
   if (error) {
-    console.error('Error checking admin status:', error)
-    return false
+    console.error("Error checking admin status:", error);
+    return false;
   }
 
-  return data === true
+  return data === true;
 }

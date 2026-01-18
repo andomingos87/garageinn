@@ -12,7 +12,7 @@ interface Profile {
   phone: string | null;
   cpf: string | null;
   avatar_url: string | null;
-  status: 'active' | 'inactive' | 'pending';
+  status: "active" | "inactive" | "pending";
   roles: UserRoleInfo[];
 }
 
@@ -37,7 +37,8 @@ export function useProfile() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select(`
+        .select(
+          `
           id, 
           full_name, 
           email,
@@ -56,7 +57,8 @@ export function useProfile() {
               )
             )
           )
-        `)
+        `
+        )
         .eq("id", user.id)
         .single();
 
@@ -65,31 +67,39 @@ export function useProfile() {
         // Fallback to auth user data
         setProfile({
           id: user.id,
-          full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuário",
+          full_name:
+            user.user_metadata?.full_name ||
+            user.email?.split("@")[0] ||
+            "Usuário",
           email: user.email || "",
           phone: null,
           cpf: null,
           avatar_url: user.user_metadata?.avatar_url || null,
-          status: 'pending',
+          status: "pending",
           roles: [],
         });
       } else {
         // Transform roles data
         interface ProfileRoleData {
-          role: { id: string; name: string; is_global: boolean; department: { id: string; name: string }[] }[]
+          role: {
+            id: string;
+            name: string;
+            is_global: boolean;
+            department: { id: string; name: string }[];
+          }[];
         }
         const roles: UserRoleInfo[] = (data.user_roles || [])
           .filter((ur: ProfileRoleData) => ur.role && ur.role.length > 0)
           .map((ur: ProfileRoleData) => {
-            const role = ur.role[0]
-            const dept = role.department?.[0]
+            const role = ur.role[0];
+            const dept = role.department?.[0];
             return {
               role_id: role.id,
               role_name: role.name,
               department_id: dept?.id ?? null,
               department_name: dept?.name ?? null,
               is_global: role.is_global ?? false,
-            }
+            };
           });
 
         setProfile({
@@ -99,7 +109,7 @@ export function useProfile() {
           phone: data.phone,
           cpf: data.cpf,
           avatar_url: data.avatar_url,
-          status: (data.status || 'pending') as Profile['status'],
+          status: (data.status || "pending") as Profile["status"],
           roles,
         });
       }

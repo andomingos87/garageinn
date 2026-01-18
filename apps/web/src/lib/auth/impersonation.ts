@@ -63,7 +63,8 @@ export function getImpersonationState(): ImpersonationState {
   }
 
   try {
-    const { impersonatedUserId, impersonatedUserName } = JSON.parse(impersonationData);
+    const { impersonatedUserId, impersonatedUserName } =
+      JSON.parse(impersonationData);
     return {
       isImpersonating: true,
       originalUserId,
@@ -90,4 +91,3 @@ export function clearImpersonationState(): void {
 export function isImpersonating(): boolean {
   return getImpersonationState().isImpersonating;
 }
-

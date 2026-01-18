@@ -1,35 +1,45 @@
-import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import { checkCanConfigureChecklists, getTemplateById, updateTemplate } from '../../actions'
-import { TemplateForm } from '../../components'
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import {
+  checkCanConfigureChecklists,
+  getTemplateById,
+  updateTemplate,
+} from "../../actions";
+import { TemplateForm } from "../../components";
 
 interface PageProps {
   params: Promise<{
-    templateId: string
-  }>
+    templateId: string;
+  }>;
 }
 
 export default async function EditarTemplatePage({ params }: PageProps) {
-  const { templateId } = await params
-  const canConfigure = await checkCanConfigureChecklists()
+  const { templateId } = await params;
+  const canConfigure = await checkCanConfigureChecklists();
 
   if (!canConfigure) {
-    redirect('/')
+    redirect("/");
   }
 
-  const template = await getTemplateById(templateId)
+  const template = await getTemplateById(templateId);
 
   if (!template) {
-    notFound()
+    notFound();
   }
 
   const handleUpdate = async (formData: FormData) => {
-    'use server'
-    return updateTemplate(templateId, formData)
-  }
+    "use server";
+    return updateTemplate(templateId, formData);
+  };
 
   return (
     <div className="space-y-6">
@@ -41,7 +51,9 @@ export default async function EditarTemplatePage({ params }: PageProps) {
           </Link>
         </Button>
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Editar Template</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Editar Template
+          </h2>
           <p className="text-muted-foreground">{template.name}</p>
         </div>
       </div>
@@ -68,6 +80,5 @@ export default async function EditarTemplatePage({ params }: PageProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

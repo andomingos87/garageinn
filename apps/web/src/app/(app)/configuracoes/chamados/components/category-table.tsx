@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,17 +8,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +28,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog";
 import {
   MoreHorizontal,
   Pencil,
@@ -36,17 +36,17 @@ import {
   PowerOff,
   Trash2,
   Tag,
-} from 'lucide-react'
-import type { TicketCategory } from '../actions'
+} from "lucide-react";
+import type { TicketCategory } from "../actions";
 
 interface CategoryTableProps {
-  categories: TicketCategory[]
-  onEdit: (category: TicketCategory) => void
-  onToggleStatus: (categoryId: string) => void
-  onDelete: (categoryId: string) => void
-  showDepartment?: boolean
-  isLoading?: boolean
-  emptyMessage?: string
+  categories: TicketCategory[];
+  onEdit: (category: TicketCategory) => void;
+  onToggleStatus: (categoryId: string) => void;
+  onDelete: (categoryId: string) => void;
+  showDepartment?: boolean;
+  isLoading?: boolean;
+  emptyMessage?: string;
 }
 
 function TableSkeleton({ showDepartment }: { showDepartment?: boolean }) {
@@ -74,7 +74,7 @@ function TableSkeleton({ showDepartment }: { showDepartment?: boolean }) {
         </TableRow>
       ))}
     </>
-  )
+  );
 }
 
 export function CategoryTable({
@@ -84,23 +84,24 @@ export function CategoryTable({
   onDelete,
   showDepartment = true,
   isLoading = false,
-  emptyMessage = 'Nenhuma categoria cadastrada',
+  emptyMessage = "Nenhuma categoria cadastrada",
 }: CategoryTableProps) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [categoryToDelete, setCategoryToDelete] = useState<TicketCategory | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] =
+    useState<TicketCategory | null>(null);
 
   const handleDeleteClick = (category: TicketCategory) => {
-    setCategoryToDelete(category)
-    setDeleteDialogOpen(true)
-  }
+    setCategoryToDelete(category);
+    setDeleteDialogOpen(true);
+  };
 
   const handleConfirmDelete = () => {
     if (categoryToDelete) {
-      onDelete(categoryToDelete.id)
+      onDelete(categoryToDelete.id);
     }
-    setDeleteDialogOpen(false)
-    setCategoryToDelete(null)
-  }
+    setDeleteDialogOpen(false);
+    setCategoryToDelete(null);
+  };
 
   if (!isLoading && categories.length === 0) {
     return (
@@ -111,7 +112,7 @@ export function CategoryTable({
           Crie uma nova categoria para começar.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -136,19 +137,23 @@ export function CategoryTable({
                   <TableCell className="font-medium">{category.name}</TableCell>
                   {showDepartment && (
                     <TableCell>
-                      <Badge variant="outline">{category.department_name}</Badge>
+                      <Badge variant="outline">
+                        {category.department_name}
+                      </Badge>
                     </TableCell>
                   )}
                   <TableCell>
                     <Badge
-                      variant={category.status === 'active' ? 'default' : 'secondary'}
+                      variant={
+                        category.status === "active" ? "default" : "secondary"
+                      }
                       className={
-                        category.status === 'active'
-                          ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
-                          : 'bg-gray-500/10 text-gray-500'
+                        category.status === "active"
+                          ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                          : "bg-gray-500/10 text-gray-500"
                       }
                     >
-                      {category.status === 'active' ? 'Ativo' : 'Inativo'}
+                      {category.status === "active" ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
@@ -167,8 +172,10 @@ export function CategoryTable({
                           <Pencil className="mr-2 h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onToggleStatus(category.id)}>
-                          {category.status === 'active' ? (
+                        <DropdownMenuItem
+                          onClick={() => onToggleStatus(category.id)}
+                        >
+                          {category.status === "active" ? (
                             <>
                               <PowerOff className="mr-2 h-4 w-4" />
                               Desativar
@@ -204,8 +211,8 @@ export function CategoryTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir categoria</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a categoria &quot;{categoryToDelete?.name}&quot;?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir a categoria &quot;
+              {categoryToDelete?.name}&quot;? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -220,6 +227,5 @@ export function CategoryTable({
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
-

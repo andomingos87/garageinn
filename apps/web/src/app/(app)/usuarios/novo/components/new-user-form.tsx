@@ -1,183 +1,196 @@
-'use client'
+"use client";
 
-import { useState, useTransition, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Loader2, Check, AlertCircle, CheckCircle } from 'lucide-react'
-import { createUser } from '../actions'
-import { UnitSelector } from '../../components/unit-selector'
-import type { UnitOption } from '../../actions'
+import { useState, useTransition, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Loader2, Check, AlertCircle, CheckCircle } from "lucide-react";
+import { createUser } from "../actions";
+import { UnitSelector } from "../../components/unit-selector";
+import type { UnitOption } from "../../actions";
 
 interface Department {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface Role {
-  id: string
-  name: string
-  is_global: boolean | null
-  department_id: string | null
+  id: string;
+  name: string;
+  is_global: boolean | null;
+  department_id: string | null;
 }
 
 interface SelectedUnit {
-  unitId: string
-  isCoverage: boolean
+  unitId: string;
+  isCoverage: boolean;
 }
 
 interface NewUserFormProps {
-  departments: Department[]
-  allRoles: Role[]
-  units: UnitOption[]
+  departments: Department[];
+  allRoles: Role[];
+  units: UnitOption[];
 }
 
 // Cargos do departamento de Operações que requerem unidade
-const OPERATIONS_SINGLE_UNIT_ROLES = ['Manobrista', 'Encarregado']
-const OPERATIONS_MULTI_UNIT_ROLES = ['Supervisor']
+const OPERATIONS_SINGLE_UNIT_ROLES = ["Manobrista", "Encarregado"];
+const OPERATIONS_MULTI_UNIT_ROLES = ["Supervisor"];
 
-export function NewUserForm({ departments, allRoles, units }: NewUserFormProps) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+export function NewUserForm({
+  departments,
+  allRoles,
+  units,
+}: NewUserFormProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Form state
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [cpf, setCpf] = useState('')
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([])
-  const [selectedUnits, setSelectedUnits] = useState<SelectedUnit[]>([])
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedUnits, setSelectedUnits] = useState<SelectedUnit[]>([]);
 
   // Determinar se o seletor de unidades deve aparecer e em qual modo
   const unitSelectorConfig = useMemo(() => {
     const selectedRoleNames = selectedRoles
       .map((roleId) => allRoles.find((r) => r.id === roleId)?.name)
-      .filter((name): name is string => !!name)
+      .filter((name): name is string => !!name);
 
     const hasSingleUnitRole = selectedRoleNames.some((name) =>
       OPERATIONS_SINGLE_UNIT_ROLES.includes(name)
-    )
+    );
     const hasMultiUnitRole = selectedRoleNames.some((name) =>
       OPERATIONS_MULTI_UNIT_ROLES.includes(name)
-    )
+    );
 
     if (hasSingleUnitRole) {
       return {
         show: true,
-        mode: 'single' as const,
-        description: 'Manobristas e Encarregados devem estar vinculados a uma unidade.',
-      }
+        mode: "single" as const,
+        description:
+          "Manobristas e Encarregados devem estar vinculados a uma unidade.",
+      };
     }
 
     if (hasMultiUnitRole) {
       return {
         show: true,
-        mode: 'multiple' as const,
-        description: 'Supervisores podem cobrir múltiplas unidades.',
-      }
+        mode: "multiple" as const,
+        description: "Supervisores podem cobrir múltiplas unidades.",
+      };
     }
 
-    return { show: false, mode: 'single' as const, description: '' }
-  }, [selectedRoles, allRoles])
+    return { show: false, mode: "single" as const, description: "" };
+  }, [selectedRoles, allRoles]);
 
   // Group roles by department
-  const globalRoles = allRoles.filter((r) => r.is_global)
+  const globalRoles = allRoles.filter((r) => r.is_global);
   const rolesByDepartment = allRoles
     .filter((r) => !r.is_global)
-    .reduce((acc, role) => {
-      const deptId = role.department_id || 'none'
-      if (!acc[deptId]) acc[deptId] = []
-      acc[deptId].push(role)
-      return acc
-    }, {} as Record<string, Role[]>)
+    .reduce(
+      (acc, role) => {
+        const deptId = role.department_id || "none";
+        if (!acc[deptId]) acc[deptId] = [];
+        acc[deptId].push(role);
+        return acc;
+      },
+      {} as Record<string, Role[]>
+    );
 
   function formatPhone(value: string) {
-    const digits = value.replace(/\D/g, '')
-    
-    if (digits.length <= 2) return `(${digits}`
-    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`
+    const digits = value.replace(/\D/g, "");
+
+    if (digits.length <= 2) return `(${digits}`;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
   }
 
   function formatCPF(value: string) {
-    const digits = value.replace(/\D/g, '')
-    
-    if (digits.length <= 3) return digits
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
-    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9, 11)}`
+    const digits = value.replace(/\D/g, "");
+
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9)
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9, 11)}`;
   }
 
   // Limpar unidades quando o seletor é ocultado
   function handleRoleToggle(roleId: string) {
     const newSelectedRoles = selectedRoles.includes(roleId)
       ? selectedRoles.filter((id) => id !== roleId)
-      : [...selectedRoles, roleId]
+      : [...selectedRoles, roleId];
 
-    setSelectedRoles(newSelectedRoles)
+    setSelectedRoles(newSelectedRoles);
 
     // Se o seletor não deve mais aparecer, limpar as unidades
     const newSelectedRoleNames = newSelectedRoles
       .map((id) => allRoles.find((r) => r.id === id)?.name)
-      .filter((name): name is string => !!name)
+      .filter((name): name is string => !!name);
 
     const willShowSelector =
-      newSelectedRoleNames.some((name) => OPERATIONS_SINGLE_UNIT_ROLES.includes(name)) ||
-      newSelectedRoleNames.some((name) => OPERATIONS_MULTI_UNIT_ROLES.includes(name))
+      newSelectedRoleNames.some((name) =>
+        OPERATIONS_SINGLE_UNIT_ROLES.includes(name)
+      ) ||
+      newSelectedRoleNames.some((name) =>
+        OPERATIONS_MULTI_UNIT_ROLES.includes(name)
+      );
 
     if (!willShowSelector) {
-      setSelectedUnits([])
+      setSelectedUnits([]);
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setSuccess(null)
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
     if (!fullName || !email) {
-      setError('Nome e email são obrigatórios')
-      return
+      setError("Nome e email são obrigatórios");
+      return;
     }
 
     // Validar unidades se necessário
     if (unitSelectorConfig.show && selectedUnits.length === 0) {
-      setError('Selecione pelo menos uma unidade para cargos de Operações')
-      return
+      setError("Selecione pelo menos uma unidade para cargos de Operações");
+      return;
     }
 
     startTransition(async () => {
       try {
-        const formData = new FormData()
-        formData.set('full_name', fullName)
-        formData.set('email', email)
-        formData.set('phone', phone || '')
-        formData.set('cpf', cpf.replace(/\D/g, '') || '')
-        formData.set('roles', JSON.stringify(selectedRoles))
-        formData.set('units', JSON.stringify(selectedUnits))
+        const formData = new FormData();
+        formData.set("full_name", fullName);
+        formData.set("email", email);
+        formData.set("phone", phone || "");
+        formData.set("cpf", cpf.replace(/\D/g, "") || "");
+        formData.set("roles", JSON.stringify(selectedRoles));
+        formData.set("units", JSON.stringify(selectedUnits));
 
-        const result = await createUser(formData)
+        const result = await createUser(formData);
 
         if (result.error) {
-          setError(result.error)
-          return
+          setError(result.error);
+          return;
         }
 
-        setSuccess(result.message || 'Convite enviado com sucesso!')
-        
+        setSuccess(result.message || "Convite enviado com sucesso!");
+
         // Redirecionar após 2 segundos
         setTimeout(() => {
-          router.push('/usuarios')
-        }, 2000)
+          router.push("/usuarios");
+        }, 2000);
       } catch (err) {
-        setError('Erro ao criar usuário')
-        console.error(err)
+        setError("Erro ao criar usuário");
+        console.error(err);
       }
-    })
+    });
   }
 
   return (
@@ -277,7 +290,9 @@ export function NewUserForm({ departments, allRoles, units }: NewUserFormProps) 
               {globalRoles.map((role) => (
                 <Badge
                   key={role.id}
-                  variant={selectedRoles.includes(role.id) ? 'default' : 'outline'}
+                  variant={
+                    selectedRoles.includes(role.id) ? "default" : "outline"
+                  }
                   className="cursor-pointer transition-colors"
                   onClick={() => handleRoleToggle(role.id)}
                 >
@@ -293,8 +308,8 @@ export function NewUserForm({ departments, allRoles, units }: NewUserFormProps) 
 
         {/* Department Roles */}
         {departments.map((dept) => {
-          const deptRoles = rolesByDepartment[dept.id] || []
-          if (deptRoles.length === 0) return null
+          const deptRoles = rolesByDepartment[dept.id] || [];
+          if (deptRoles.length === 0) return null;
 
           return (
             <div key={dept.id}>
@@ -303,7 +318,9 @@ export function NewUserForm({ departments, allRoles, units }: NewUserFormProps) 
                 {deptRoles.map((role) => (
                   <Badge
                     key={role.id}
-                    variant={selectedRoles.includes(role.id) ? 'secondary' : 'outline'}
+                    variant={
+                      selectedRoles.includes(role.id) ? "secondary" : "outline"
+                    }
                     className="cursor-pointer transition-colors"
                     onClick={() => handleRoleToggle(role.id)}
                   >
@@ -315,7 +332,7 @@ export function NewUserForm({ departments, allRoles, units }: NewUserFormProps) 
                 ))}
               </div>
             </div>
-          )
+          );
         })}
 
         {selectedRoles.length > 0 && (
@@ -358,6 +375,5 @@ export function NewUserForm({ departments, allRoles, units }: NewUserFormProps) 
         </Button>
       </div>
     </form>
-  )
+  );
 }
-

@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { TestTicket, deleteTicket, deleteMultipleTickets } from '../actions'
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { TestTicket, deleteTicket, deleteMultipleTickets } from "../actions";
 import {
   Table,
   TableBody,
@@ -10,10 +10,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,91 +24,93 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Trash2, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+} from "@/components/ui/alert-dialog";
+import { Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface DeleteTicketsTableProps {
-  tickets: TestTicket[]
+  tickets: TestTicket[];
 }
 
 const statusLabels: Record<string, string> = {
-  awaiting_triage: 'Aguardando Triagem',
-  awaiting_approval_encarregado: 'Aguardando Encarregado',
-  awaiting_approval_supervisor: 'Aguardando Supervisor',
-  awaiting_approval_gerente: 'Aguardando Gerente',
-  prioritized: 'Priorizado',
-  in_progress: 'Em Andamento',
-  quoting: 'Em Cotação',
-  approved: 'Aprovado',
-  awaiting_return: 'Aguardando Retorno',
-  denied: 'Negado',
-  cancelled: 'Cancelado',
-}
+  awaiting_triage: "Aguardando Triagem",
+  awaiting_approval_encarregado: "Aguardando Encarregado",
+  awaiting_approval_supervisor: "Aguardando Supervisor",
+  awaiting_approval_gerente: "Aguardando Gerente",
+  prioritized: "Priorizado",
+  in_progress: "Em Andamento",
+  quoting: "Em Cotação",
+  approved: "Aprovado",
+  awaiting_return: "Aguardando Retorno",
+  denied: "Negado",
+  cancelled: "Cancelado",
+};
 
 export function DeleteTicketsTable({ tickets }: DeleteTicketsTableProps) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const toggleSelect = (id: string) => {
-    const newSelected = new Set(selectedIds)
+    const newSelected = new Set(selectedIds);
     if (newSelected.has(id)) {
-      newSelected.delete(id)
+      newSelected.delete(id);
     } else {
-      newSelected.add(id)
+      newSelected.add(id);
     }
-    setSelectedIds(newSelected)
-  }
-  
+    setSelectedIds(newSelected);
+  };
+
   const toggleSelectAll = () => {
     if (selectedIds.size === tickets.length) {
-      setSelectedIds(new Set())
+      setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(tickets.map(t => t.id)))
+      setSelectedIds(new Set(tickets.map((t) => t.id)));
     }
-  }
-  
+  };
+
   const handleDeleteSingle = async (ticketId: string) => {
-    setDeletingId(ticketId)
+    setDeletingId(ticketId);
     startTransition(async () => {
-      const result = await deleteTicket(ticketId)
+      const result = await deleteTicket(ticketId);
       if (result.success) {
-        toast.success(`Chamado #${result.ticketNumber} deletado com sucesso`)
-        router.refresh()
+        toast.success(`Chamado #${result.ticketNumber} deletado com sucesso`);
+        router.refresh();
       } else {
-        toast.error(result.error || 'Erro ao deletar chamado')
+        toast.error(result.error || "Erro ao deletar chamado");
       }
-      setDeletingId(null)
-    })
-  }
-  
+      setDeletingId(null);
+    });
+  };
+
   const handleDeleteSelected = async () => {
-    const ids = Array.from(selectedIds)
+    const ids = Array.from(selectedIds);
     startTransition(async () => {
-      const result = await deleteMultipleTickets(ids)
+      const result = await deleteMultipleTickets(ids);
       if (result.success) {
-        toast.success(`${result.deleted} chamado(s) deletado(s) com sucesso`)
+        toast.success(`${result.deleted} chamado(s) deletado(s) com sucesso`);
       } else {
-        toast.warning(`${result.deleted} deletado(s), ${result.failed} falha(s)`)
-        result.errors.forEach(err => toast.error(err))
+        toast.warning(
+          `${result.deleted} deletado(s), ${result.failed} falha(s)`
+        );
+        result.errors.forEach((err) => toast.error(err));
       }
-      setSelectedIds(new Set())
-      router.refresh()
-    })
-  }
-  
+      setSelectedIds(new Set());
+      router.refresh();
+    });
+  };
+
   if (tickets.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         Nenhum chamado disponível para deleção.
       </div>
-    )
+    );
   }
-  
+
   return (
     <div className="space-y-4">
       {selectedIds.size > 0 && (
@@ -131,8 +133,9 @@ export function DeleteTicketsTable({ tickets }: DeleteTicketsTableProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>Confirmar Deleção em Massa</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Você está prestes a deletar <strong>{selectedIds.size} chamado(s)</strong>.
-                  Esta ação é permanente e não pode ser desfeita.
+                  Você está prestes a deletar{" "}
+                  <strong>{selectedIds.size} chamado(s)</strong>. Esta ação é
+                  permanente e não pode ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -148,7 +151,7 @@ export function DeleteTicketsTable({ tickets }: DeleteTicketsTableProps) {
           </AlertDialog>
         </div>
       )}
-      
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -176,8 +179,12 @@ export function DeleteTicketsTable({ tickets }: DeleteTicketsTableProps) {
                   onCheckedChange={() => toggleSelect(ticket.id)}
                 />
               </TableCell>
-              <TableCell className="font-mono">#{ticket.ticket_number}</TableCell>
-              <TableCell className="max-w-[200px] truncate">{ticket.title}</TableCell>
+              <TableCell className="font-mono">
+                #{ticket.ticket_number}
+              </TableCell>
+              <TableCell className="max-w-[200px] truncate">
+                {ticket.title}
+              </TableCell>
               <TableCell>{ticket.department_name}</TableCell>
               <TableCell>
                 <Badge variant="outline">
@@ -188,7 +195,7 @@ export function DeleteTicketsTable({ tickets }: DeleteTicketsTableProps) {
               <TableCell className="text-muted-foreground text-sm">
                 {formatDistanceToNow(new Date(ticket.created_at), {
                   addSuffix: true,
-                  locale: ptBR
+                  locale: ptBR,
                 })}
               </TableCell>
               <TableCell>
@@ -211,10 +218,14 @@ export function DeleteTicketsTable({ tickets }: DeleteTicketsTableProps) {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Confirmar Deleção</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Você está prestes a deletar o chamado <strong>#{ticket.ticket_number}</strong>: {ticket.title}.
-                        <br /><br />
-                        Esta ação é <strong>permanente</strong> e removerá todos os dados relacionados
-                        (comentários, anexos, histórico, aprovações).
+                        Você está prestes a deletar o chamado{" "}
+                        <strong>#{ticket.ticket_number}</strong>: {ticket.title}
+                        .
+                        <br />
+                        <br />
+                        Esta ação é <strong>permanente</strong> e removerá todos
+                        os dados relacionados (comentários, anexos, histórico,
+                        aprovações).
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -234,5 +245,5 @@ export function DeleteTicketsTable({ tickets }: DeleteTicketsTableProps) {
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }

@@ -1,15 +1,15 @@
-import { notFound } from 'next/navigation'
-import { Metadata } from 'next'
-import { 
-  getTicketDetails, 
-  canManageTicket, 
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import {
+  getTicketDetails,
+  canManageTicket,
   canTriageTicket,
   getManutencaoDepartmentMembers,
   getCurrentUser,
   getUserUnits,
-  checkIsAdmin
-} from '../actions'
-import { getAllowedTransitions } from '../constants'
+  checkIsAdmin,
+} from "../actions";
+import { getAllowedTransitions } from "../constants";
 import {
   TicketHeader,
   TicketInfo,
@@ -17,66 +17,80 @@ import {
   TicketComments,
   TicketApprovals,
   TicketActions,
-  TicketExecutions
-} from './components'
-import { DeleteTicketButton } from '../../components'
+  TicketExecutions,
+} from "./components";
+import { DeleteTicketButton } from "../../components";
 
 interface PageProps {
-  params: Promise<{ ticketId: string }>
+  params: Promise<{ ticketId: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { ticketId } = await params
-  const ticket = await getTicketDetails(ticketId)
-  
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { ticketId } = await params;
+  const ticket = await getTicketDetails(ticketId);
+
   if (!ticket) {
-    return { title: 'Chamado não encontrado' }
+    return { title: "Chamado não encontrado" };
   }
-  
+
   return {
     title: `#${ticket.ticket_number} - ${ticket.title} | Chamados de Manutenção`,
-    description: ticket.description?.slice(0, 160)
-  }
+    description: ticket.description?.slice(0, 160),
+  };
 }
 
-export default async function MaintenanceTicketDetailsPage({ params }: PageProps) {
-  const { ticketId } = await params
-  
+export default async function MaintenanceTicketDetailsPage({
+  params,
+}: PageProps) {
+  const { ticketId } = await params;
+
   // Buscar dados em paralelo
-  const [ticket, canManage, canTriage, departmentMembers, currentUser, units, isAdmin] = await Promise.all([
+  const [
+    ticket,
+    canManage,
+    canTriage,
+    departmentMembers,
+    currentUser,
+    units,
+    isAdmin,
+  ] = await Promise.all([
     getTicketDetails(ticketId),
     canManageTicket(ticketId),
     canTriageTicket(),
     getManutencaoDepartmentMembers(),
     getCurrentUser(),
     getUserUnits(),
-    checkIsAdmin()
-  ])
-  
+    checkIsAdmin(),
+  ]);
+
   if (!ticket) {
-    notFound()
+    notFound();
   }
-  
+
   // Determinar o cargo do usuário atual (para aprovações)
-  const currentUserRole = currentUser?.id ? await getUserRole(currentUser.id) : undefined
-  
+  const currentUserRole = currentUser?.id
+    ? await getUserRole(currentUser.id)
+    : undefined;
+
   // Obter transições permitidas para o status atual
-  const allowedTransitions = getAllowedTransitions(ticket.status)
-  
+  const allowedTransitions = getAllowedTransitions(ticket.status);
+
   // Verificar se tem aprovações pendentes (para mostrar a seção de aprovações)
-  const hasApprovals = ticket.approvals && ticket.approvals.length > 0
-  
+  const hasApprovals = ticket.approvals && ticket.approvals.length > 0;
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <TicketHeader ticket={ticket} />
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Coluna Principal */}
         <div className="lg:col-span-2 space-y-6">
           {/* Informações do Chamado */}
           <TicketInfo ticket={ticket} />
-          
+
           {/* Aprovações (se existirem) */}
           {hasApprovals && (
             <TicketApprovals
@@ -87,7 +101,7 @@ export default async function MaintenanceTicketDetailsPage({ params }: PageProps
               isAdmin={isAdmin}
             />
           )}
-          
+
           {/* Execuções de Manutenção */}
           <TicketExecutions
             ticketId={ticketId}
@@ -97,7 +111,7 @@ export default async function MaintenanceTicketDetailsPage({ params }: PageProps
             units={units}
             ticketStatus={ticket.status}
           />
-          
+
           {/* Comentários */}
           <TicketComments
             ticketId={ticketId}
@@ -105,7 +119,7 @@ export default async function MaintenanceTicketDetailsPage({ params }: PageProps
             canManage={canManage}
           />
         </div>
-        
+
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Ações */}
@@ -124,10 +138,10 @@ export default async function MaintenanceTicketDetailsPage({ params }: PageProps
             isAdmin={isAdmin}
             userRole={currentUserRole}
           />
-          
+
           {/* Timeline / Histórico */}
           <TicketTimeline history={ticket.history} />
-          
+
           {/* Botão de Excluir (apenas para Admin) */}
           {isAdmin && (
             <div className="pt-4 border-t">
@@ -142,23 +156,25 @@ export default async function MaintenanceTicketDetailsPage({ params }: PageProps
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Função auxiliar para obter o cargo do usuário
 async function getUserRole(userId: string): Promise<string | undefined> {
-  const { createClient } = await import('@/lib/supabase/server')
-  const supabase = await createClient()
-  
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+
   const { data } = await supabase
-    .from('user_roles')
-    .select(`
+    .from("user_roles")
+    .select(
+      `
       role:roles!role_id(name)
-    `)
-    .eq('user_id', userId)
+    `
+    )
+    .eq("user_id", userId)
     .limit(1)
-    .single()
-  
+    .single();
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data?.role as any)?.name
+  return (data?.role as any)?.name;
 }

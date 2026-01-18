@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,26 +8,30 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { Loader2, Search, Building2 } from 'lucide-react'
-import { assignTemplateToUnits, getAllUnits, getTemplateUnits } from '../actions'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Loader2, Search, Building2 } from "lucide-react";
+import {
+  assignTemplateToUnits,
+  getAllUnits,
+  getTemplateUnits,
+} from "../actions";
 
 interface Unit {
-  id: string
-  name: string
-  code: string
-  status: string
+  id: string;
+  name: string;
+  code: string;
+  status: string;
 }
 
 interface UnitAssignmentDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  templateId: string
-  onSuccess?: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  templateId: string;
+  onSuccess?: () => void;
 }
 
 export function UnitAssignmentDialog({
@@ -36,90 +40,93 @@ export function UnitAssignmentDialog({
   templateId,
   onSuccess,
 }: UnitAssignmentDialogProps) {
-  const [isPending, startTransition] = useTransition()
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [units, setUnits] = useState<Unit[]>([])
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [search, setSearch] = useState('')
+  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
 
   // Carregar unidades quando o dialog abrir
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
 
-    let isMounted = true
+    let isMounted = true;
 
     const loadData = async () => {
       if (isMounted) {
-        setIsLoading(true)
-        setError(null)
+        setIsLoading(true);
+        setError(null);
       }
       try {
         const [allUnits, assignedUnits] = await Promise.all([
           getAllUnits(),
-          getTemplateUnits(templateId)
-        ])
+          getTemplateUnits(templateId),
+        ]);
         if (isMounted) {
-          setUnits(allUnits)
-          setSelectedIds(new Set(assignedUnits.map((u: Unit) => u.id)))
-          setIsLoading(false)
+          setUnits(allUnits);
+          setSelectedIds(new Set(assignedUnits.map((u: Unit) => u.id)));
+          setIsLoading(false);
         }
       } catch (err) {
-        console.error('Error loading units:', err)
+        console.error("Error loading units:", err);
         if (isMounted) {
-          setError('Erro ao carregar unidades')
-          setIsLoading(false)
+          setError("Erro ao carregar unidades");
+          setIsLoading(false);
         }
       }
-    }
+    };
 
-    loadData()
+    loadData();
 
     return () => {
-      isMounted = false
-    }
-  }, [open, templateId])
+      isMounted = false;
+    };
+  }, [open, templateId]);
 
   const filteredUnits = units.filter(
     (unit) =>
       unit.name.toLowerCase().includes(search.toLowerCase()) ||
       unit.code.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   const handleToggle = (unitId: string) => {
     setSelectedIds((prev) => {
-      const next = new Set(prev)
+      const next = new Set(prev);
       if (next.has(unitId)) {
-        next.delete(unitId)
+        next.delete(unitId);
       } else {
-        next.add(unitId)
+        next.add(unitId);
       }
-      return next
-    })
-  }
+      return next;
+    });
+  };
 
   const handleSelectAll = () => {
     if (selectedIds.size === filteredUnits.length) {
-      setSelectedIds(new Set())
+      setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filteredUnits.map((u) => u.id)))
+      setSelectedIds(new Set(filteredUnits.map((u) => u.id)));
     }
-  }
+  };
 
   const handleSubmit = () => {
-    setError(null)
+    setError(null);
 
     startTransition(async () => {
-      const result = await assignTemplateToUnits(templateId, Array.from(selectedIds))
+      const result = await assignTemplateToUnits(
+        templateId,
+        Array.from(selectedIds)
+      );
 
       if (result.error) {
-        setError(result.error)
+        setError(result.error);
       } else {
-        onOpenChange(false)
-        onSuccess?.()
+        onOpenChange(false);
+        onSuccess?.();
       }
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -150,8 +157,9 @@ export function UnitAssignmentDialog({
 
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              {selectedIds.size} unidade{selectedIds.size !== 1 ? 's' : ''} selecionada
-              {selectedIds.size !== 1 ? 's' : ''}
+              {selectedIds.size} unidade{selectedIds.size !== 1 ? "s" : ""}{" "}
+              selecionada
+              {selectedIds.size !== 1 ? "s" : ""}
             </span>
             <Button
               variant="ghost"
@@ -159,7 +167,10 @@ export function UnitAssignmentDialog({
               onClick={handleSelectAll}
               disabled={isLoading}
             >
-              {selectedIds.size === filteredUnits.length ? 'Desmarcar' : 'Selecionar'} todas
+              {selectedIds.size === filteredUnits.length
+                ? "Desmarcar"
+                : "Selecionar"}{" "}
+              todas
             </Button>
           </div>
 
@@ -172,7 +183,9 @@ export function UnitAssignmentDialog({
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Building2 className="h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-sm text-muted-foreground">
-                  {search ? 'Nenhuma unidade encontrada' : 'Nenhuma unidade ativa'}
+                  {search
+                    ? "Nenhuma unidade encontrada"
+                    : "Nenhuma unidade ativa"}
                 </p>
               </div>
             ) : (
@@ -216,6 +229,5 @@ export function UnitAssignmentDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

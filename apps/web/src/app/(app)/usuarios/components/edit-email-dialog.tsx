@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,20 +8,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Loader2, Mail } from 'lucide-react'
-import { updateUserEmail } from '../actions'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Mail } from "lucide-react";
+import { updateUserEmail } from "../actions";
 
 interface EditEmailDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  userId: string
-  currentEmail: string
-  userName: string
-  onSuccess?: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  userId: string;
+  currentEmail: string;
+  userName: string;
+  onSuccess?: () => void;
 }
 
 export function EditEmailDialog({
@@ -32,45 +32,45 @@ export function EditEmailDialog({
   userName,
   onSuccess,
 }: EditEmailDialogProps) {
-  const [newEmail, setNewEmail] = useState(currentEmail)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [newEmail, setNewEmail] = useState(currentEmail);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (newEmail === currentEmail) {
-      setError('O novo email deve ser diferente do atual')
-      return
+      setError("O novo email deve ser diferente do atual");
+      return;
     }
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const result = await updateUserEmail(userId, newEmail)
-      
+      const result = await updateUserEmail(userId, newEmail);
+
       if (result.error) {
-        setError(result.error)
-        return
+        setError(result.error);
+        return;
       }
 
-      onOpenChange(false)
-      onSuccess?.()
+      onOpenChange(false);
+      onSuccess?.();
     } catch (err) {
-      console.error('Error updating email:', err)
-      setError('Erro ao atualizar email')
+      console.error("Error updating email:", err);
+      setError("Erro ao atualizar email");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   function handleOpenChange(open: boolean) {
     if (!open) {
-      setNewEmail(currentEmail)
-      setError(null)
+      setNewEmail(currentEmail);
+      setError(null);
     }
-    onOpenChange(open)
+    onOpenChange(open);
   }
 
   return (
@@ -129,20 +129,22 @@ export function EditEmailDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading || newEmail === currentEmail}>
+            <Button
+              type="submit"
+              disabled={isLoading || newEmail === currentEmail}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Salvando...
                 </>
               ) : (
-                'Salvar Email'
+                "Salvar Email"
               )}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

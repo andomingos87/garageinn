@@ -1,47 +1,56 @@
-'use client'
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useTransition } from 'react'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 interface TicketsPaginationProps {
-  currentPage: number
-  totalCount: number
-  limit: number
+  currentPage: number;
+  totalCount: number;
+  limit: number;
 }
 
-export function TicketsPagination({ currentPage, totalCount, limit }: TicketsPaginationProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
+export function TicketsPagination({
+  currentPage,
+  totalCount,
+  limit,
+}: TicketsPaginationProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  const totalPages = Math.ceil(totalCount / limit)
+  const totalPages = Math.ceil(totalCount / limit);
 
   if (totalPages <= 1) {
-    return null
+    return null;
   }
 
   const goToPage = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
     if (page > 1) {
-      params.set('page', page.toString())
+      params.set("page", page.toString());
     } else {
-      params.delete('page')
+      params.delete("page");
     }
     startTransition(() => {
-      router.push(`/chamados/manutencao?${params.toString()}`)
-    })
-  }
+      router.push(`/chamados/manutencao?${params.toString()}`);
+    });
+  };
 
-  const startItem = (currentPage - 1) * limit + 1
-  const endItem = Math.min(currentPage * limit, totalCount)
+  const startItem = (currentPage - 1) * limit + 1;
+  const endItem = Math.min(currentPage * limit, totalCount);
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
       <p className="text-sm text-muted-foreground order-2 sm:order-1">
-        Mostrando <span className="font-medium">{startItem}</span> a{' '}
-        <span className="font-medium">{endItem}</span> de{' '}
+        Mostrando <span className="font-medium">{startItem}</span> a{" "}
+        <span className="font-medium">{endItem}</span> de{" "}
         <span className="font-medium">{totalCount}</span> chamados
       </p>
 
@@ -71,31 +80,34 @@ export function TicketsPagination({ currentPage, totalCount, limit }: TicketsPag
           {Array.from({ length: totalPages }, (_, i) => i + 1)
             .filter((page) => {
               // Show first, last, current, and pages around current
-              if (page === 1 || page === totalPages) return true
-              if (Math.abs(page - currentPage) <= 1) return true
-              return false
+              if (page === 1 || page === totalPages) return true;
+              if (Math.abs(page - currentPage) <= 1) return true;
+              return false;
             })
-            .reduce<(number | 'ellipsis')[]>((acc, page, index, arr) => {
+            .reduce<(number | "ellipsis")[]>((acc, page, index, arr) => {
               // Add ellipsis between non-consecutive pages
-              const prev = arr[index - 1]
+              const prev = arr[index - 1];
               if (prev && page - prev > 1) {
-                acc.push('ellipsis')
+                acc.push("ellipsis");
               }
-              acc.push(page)
-              return acc
+              acc.push(page);
+              return acc;
             }, [])
             .map((item, index) => {
-              if (item === 'ellipsis') {
+              if (item === "ellipsis") {
                 return (
-                  <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="px-2 text-muted-foreground"
+                  >
                     ...
                   </span>
-                )
+                );
               }
               return (
                 <Button
                   key={item}
-                  variant={currentPage === item ? 'default' : 'outline'}
+                  variant={currentPage === item ? "default" : "outline"}
                   size="icon"
                   onClick={() => goToPage(item)}
                   disabled={isPending}
@@ -103,7 +115,7 @@ export function TicketsPagination({ currentPage, totalCount, limit }: TicketsPag
                 >
                   {item}
                 </Button>
-              )
+              );
             })}
         </div>
 
@@ -128,6 +140,5 @@ export function TicketsPagination({ currentPage, totalCount, limit }: TicketsPag
         </Button>
       </div>
     </div>
-  )
+  );
 }
-

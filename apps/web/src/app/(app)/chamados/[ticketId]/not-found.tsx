@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { FileQuestion, ArrowLeft, Home } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import Link from "next/link";
+import { FileQuestion, ArrowLeft, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function TicketNotFound() {
   return (
@@ -10,12 +10,12 @@ export default function TicketNotFound() {
       <div className="p-4 bg-muted rounded-full mb-6">
         <FileQuestion className="h-12 w-12 text-muted-foreground" />
       </div>
-      
+
       <h1 className="text-2xl font-bold mb-2">Chamado não encontrado</h1>
       <p className="text-muted-foreground mb-8 max-w-md">
         O chamado que você está procurando não existe ou foi removido.
       </p>
-      
+
       <div className="flex gap-4">
         <Button asChild variant="outline">
           <Link href="/chamados" className="gap-2">
@@ -31,5 +31,5 @@ export default function TicketNotFound() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -90,24 +90,24 @@ O projeto segue o Design System documentado em `/design-system.md`:
 ### Tokens de Cor (CSS Variables)
 
 ```css
---primary: hsl(0 95% 60%);      /* Vermelho GarageInn */
---success: hsl(142 76% 36%);    /* Verde confirmação */
---warning: hsl(38 92% 50%);     /* Amarelo alerta */
---info: hsl(199 89% 48%);       /* Azul informação */
---destructive: hsl(0 84% 60%);  /* Vermelho destrutivo */
+--primary: hsl(0 95% 60%); /* Vermelho GarageInn */
+--success: hsl(142 76% 36%); /* Verde confirmação */
+--warning: hsl(38 92% 50%); /* Amarelo alerta */
+--info: hsl(199 89% 48%); /* Azul informação */
+--destructive: hsl(0 84% 60%); /* Vermelho destrutivo */
 ```
 
 ## 🛠️ Scripts Disponíveis
 
-| Comando              | Descrição                          |
-|----------------------|------------------------------------|
-| `npm run dev`        | Inicia servidor de desenvolvimento |
-| `npm run build`      | Gera build de produção             |
-| `npm start`          | Inicia servidor de produção        |
-| `npm run lint`       | Executa ESLint                     |
-| `npm run lint:fix`   | Corrige erros de lint automaticamente |
-| `npm run format`     | Formata código com Prettier        |
-| `npm run format:check` | Verifica formatação              |
+| Comando                | Descrição                             |
+| ---------------------- | ------------------------------------- |
+| `npm run dev`          | Inicia servidor de desenvolvimento    |
+| `npm run build`        | Gera build de produção                |
+| `npm start`            | Inicia servidor de produção           |
+| `npm run lint`         | Executa ESLint                        |
+| `npm run lint:fix`     | Corrige erros de lint automaticamente |
+| `npm run format`       | Formata código com Prettier           |
+| `npm run format:check` | Verifica formatação                   |
 
 ## 🔧 Stack Tecnológico
 
@@ -120,11 +120,11 @@ O projeto segue o Design System documentado em `/design-system.md`:
 
 ## 📄 Variáveis de Ambiente
 
-| Variável                       | Obrigatória | Descrição                    |
-|--------------------------------|-------------|------------------------------|
-| `NEXT_PUBLIC_SUPABASE_URL`     | Sim         | URL do projeto Supabase      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`| Sim         | Chave anônima do Supabase    |
-| `NEXT_PUBLIC_APP_URL`          | Não         | URL base da aplicação        |
+| Variável                        | Obrigatória | Descrição                 |
+| ------------------------------- | ----------- | ------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Sim         | URL do projeto Supabase   |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sim         | Chave anônima do Supabase |
+| `NEXT_PUBLIC_APP_URL`           | Não         | URL base da aplicação     |
 
 ## 📋 Próximos Passos (Entrega 1)
 

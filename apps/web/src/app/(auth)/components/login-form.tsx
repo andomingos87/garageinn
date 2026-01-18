@@ -25,7 +25,9 @@ export function LoginForm() {
 
   // Focus on email field on mount
   useEffect(() => {
-    const emailInput = formRef.current?.querySelector<HTMLInputElement>('input[name="email"]');
+    const emailInput = formRef.current?.querySelector<HTMLInputElement>(
+      'input[name="email"]'
+    );
     emailInput?.focus();
   }, []);
 
@@ -59,7 +61,10 @@ export function LoginForm() {
       {/* Password field */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label htmlFor="password" className="text-sm font-medium leading-none">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium leading-none"
+          >
             Senha
           </label>
           <Link
@@ -96,4 +101,3 @@ export function LoginForm() {
     </form>
   );
 }
-

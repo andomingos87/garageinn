@@ -1,40 +1,53 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Plus, Upload, Link2 } from 'lucide-react'
-import { getUnits, getUnitsStats, getCities, getRegions, checkIsAdmin, checkCanAccessUnits, checkCanEditUnits, countUnlinkedSupervisors } from './actions'
-import { UnitsFilters, UnitsGrid, UnitsStatsCards } from './components'
-import type { UnitStatus } from '@/lib/supabase/custom-types'
+import { Suspense } from "react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Upload, Link2 } from "lucide-react";
+import {
+  getUnits,
+  getUnitsStats,
+  getCities,
+  getRegions,
+  checkIsAdmin,
+  checkCanAccessUnits,
+  checkCanEditUnits,
+  countUnlinkedSupervisors,
+} from "./actions";
+import { UnitsFilters, UnitsGrid, UnitsStatsCards } from "./components";
+import type { UnitStatus } from "@/lib/supabase/custom-types";
 
 interface PageProps {
   searchParams: Promise<{
-    search?: string
-    status?: string
-    city?: string
-    region?: string
-  }>
+    search?: string;
+    status?: string;
+    city?: string;
+    region?: string;
+  }>;
 }
 
-async function UnitsContent({ searchParams }: { searchParams: PageProps['searchParams'] }) {
-  const params = await searchParams
-  const canEditUnits = await checkCanEditUnits()
+async function UnitsContent({
+  searchParams,
+}: {
+  searchParams: PageProps["searchParams"];
+}) {
+  const params = await searchParams;
+  const canEditUnits = await checkCanEditUnits();
 
   const filters = {
     search: params.search,
-    status: (params.status || 'all') as UnitStatus | 'all',
+    status: (params.status || "all") as UnitStatus | "all",
     city: params.city,
     region: params.region,
-  }
+  };
 
   const [units, stats, cities, regions] = await Promise.all([
     getUnits(filters),
     getUnitsStats(),
     getCities(),
     getRegions(),
-  ])
+  ]);
 
   return (
     <>
@@ -56,7 +69,7 @@ async function UnitsContent({ searchParams }: { searchParams: PageProps['searchP
         </CardContent>
       </Card>
     </>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -118,22 +131,24 @@ function LoadingSkeleton() {
         </CardContent>
       </Card>
     </>
-  )
+  );
 }
 
 export default async function UnidadesPage({ searchParams }: PageProps) {
   // Verificar permissão units:read (inclui admins automaticamente)
-  const canAccessUnits = await checkCanAccessUnits()
+  const canAccessUnits = await checkCanAccessUnits();
 
   if (!canAccessUnits) {
-    redirect('/')
+    redirect("/");
   }
 
   // Verificar se é admin para mostrar botões de ação
-  const isAdmin = await checkIsAdmin()
+  const isAdmin = await checkIsAdmin();
 
   // Check if there are supervisors that can be linked (apenas para admin)
-  const unlinkedSupervisorsCount = isAdmin ? await countUnlinkedSupervisors() : 0
+  const unlinkedSupervisorsCount = isAdmin
+    ? await countUnlinkedSupervisors()
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -142,9 +157,9 @@ export default async function UnidadesPage({ searchParams }: PageProps) {
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Unidades</h2>
           <p className="text-muted-foreground">
-            {isAdmin 
-              ? 'Gerencie as unidades da rede Garageinn'
-              : 'Visualize as unidades da rede Garageinn'}
+            {isAdmin
+              ? "Gerencie as unidades da rede Garageinn"
+              : "Visualize as unidades da rede Garageinn"}
           </p>
         </div>
         {/* Botões de ação apenas para admin */}
@@ -178,5 +193,5 @@ export default async function UnidadesPage({ searchParams }: PageProps) {
         <UnitsContent searchParams={searchParams} />
       </Suspense>
     </div>
-  )
+  );
 }

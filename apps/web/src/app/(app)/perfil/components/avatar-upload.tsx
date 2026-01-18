@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState, useRef, useTransition } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState, useRef, useTransition } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,25 +9,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Camera, Loader2, Upload, X } from 'lucide-react'
-import { uploadAvatar } from '../actions'
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera, Loader2, Upload, X } from "lucide-react";
+import { uploadAvatar } from "../actions";
 
 interface AvatarUploadProps {
-  currentAvatarUrl: string | null
-  userName: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  currentAvatarUrl: string | null;
+  userName: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 function getInitials(name: string) {
   return name
-    .split(' ')
+    .split(" ")
     .map((n) => n[0])
-    .join('')
+    .join("")
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2);
 }
 
 export function AvatarUpload({
@@ -36,78 +36,78 @@ export function AvatarUpload({
   open,
   onOpenChange,
 }: AvatarUploadProps) {
-  const [preview, setPreview] = useState<string | null>(null)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [preview, setPreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    setError(null)
+    const file = e.target.files?.[0];
+    setError(null);
 
-    if (!file) return
+    if (!file) return;
 
     // Validar tipo
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      setError('Tipo de arquivo não suportado. Use JPG, PNG ou WebP.')
-      return
+      setError("Tipo de arquivo não suportado. Use JPG, PNG ou WebP.");
+      return;
     }
 
     // Validar tamanho (max 2MB)
-    const maxSize = 2 * 1024 * 1024
+    const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError('Arquivo muito grande. Máximo 2MB.')
-      return
+      setError("Arquivo muito grande. Máximo 2MB.");
+      return;
     }
 
     // Criar preview
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (e) => {
-      setPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-    setSelectedFile(file)
+      setPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+    setSelectedFile(file);
   }
 
   function handleRemovePreview() {
-    setPreview(null)
-    setSelectedFile(null)
+    setPreview(null);
+    setSelectedFile(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = "";
     }
   }
 
   async function handleSubmit() {
-    if (!selectedFile) return
+    if (!selectedFile) return;
 
-    setError(null)
+    setError(null);
 
     startTransition(async () => {
       try {
-        const formData = new FormData()
-        formData.append('avatar', selectedFile)
+        const formData = new FormData();
+        formData.append("avatar", selectedFile);
 
-        const result = await uploadAvatar(formData)
+        const result = await uploadAvatar(formData);
 
         if (result.error) {
-          setError(result.error)
+          setError(result.error);
         } else {
           // Sucesso - fechar dialog e limpar estado
-          handleRemovePreview()
-          onOpenChange(false)
+          handleRemovePreview();
+          onOpenChange(false);
         }
       } catch {
-        setError('Erro ao fazer upload da imagem')
+        setError("Erro ao fazer upload da imagem");
       }
-    })
+    });
   }
 
   function handleClose() {
-    handleRemovePreview()
-    setError(null)
-    onOpenChange(false)
+    handleRemovePreview();
+    setError(null);
+    onOpenChange(false);
   }
 
   return (
@@ -116,7 +116,8 @@ export function AvatarUpload({
         <DialogHeader>
           <DialogTitle>Alterar Foto de Perfil</DialogTitle>
           <DialogDescription>
-            Escolha uma nova foto para seu perfil. Formatos aceitos: JPG, PNG ou WebP (máx. 2MB).
+            Escolha uma nova foto para seu perfil. Formatos aceitos: JPG, PNG ou
+            WebP (máx. 2MB).
           </DialogDescription>
         </DialogHeader>
 
@@ -208,6 +209,5 @@ export function AvatarUpload({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

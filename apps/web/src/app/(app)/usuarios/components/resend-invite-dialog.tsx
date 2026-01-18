@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,17 +10,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Loader2, Send } from 'lucide-react'
-import { resendInvitation } from '../actions'
+} from "@/components/ui/alert-dialog";
+import { Loader2, Send } from "lucide-react";
+import { resendInvitation } from "../actions";
 
 interface ResendInviteDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  userId: string
-  userName: string
-  userEmail: string
-  onSuccess?: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  onSuccess?: () => void;
 }
 
 export function ResendInviteDialog({
@@ -31,28 +31,28 @@ export function ResendInviteDialog({
   userEmail,
   onSuccess,
 }: ResendInviteDialogProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleResend() {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const result = await resendInvitation(userId)
-      
+      const result = await resendInvitation(userId);
+
       if (result.error) {
-        setError(result.error)
-        return
+        setError(result.error);
+        return;
       }
 
-      onOpenChange(false)
-      onSuccess?.()
+      onOpenChange(false);
+      onSuccess?.();
     } catch (err) {
-      console.error('Error resending invite:', err)
-      setError('Erro ao reenviar convite')
+      console.error("Error resending invite:", err);
+      setError("Erro ao reenviar convite");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -66,7 +66,8 @@ export function ResendInviteDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
             <p>
-              Você está prestes a reenviar o convite para <strong>{userName}</strong>.
+              Você está prestes a reenviar o convite para{" "}
+              <strong>{userName}</strong>.
             </p>
             <p className="text-sm">
               Um novo email de convite será enviado para:
@@ -75,11 +76,12 @@ export function ResendInviteDialog({
               {userEmail}
             </p>
             <p className="text-sm text-muted-foreground">
-              O convite anterior será invalidado e o novo terá validade de 7 dias.
+              O convite anterior será invalidado e o novo terá validade de 7
+              dias.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        
+
         {error && (
           <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
             {error}
@@ -88,10 +90,7 @@ export function ResendInviteDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleResend}
-            disabled={isLoading}
-          >
+          <AlertDialogAction onClick={handleResend} disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -107,6 +106,5 @@ export function ResendInviteDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
-

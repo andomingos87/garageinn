@@ -1,37 +1,39 @@
-import { redirect, notFound } from 'next/navigation'
-import { checkCanEditUnits, getUnitById, updateUnit } from '../../actions'
-import { UnitForm, type UnitFormData } from '../../components/unit-form'
+import { redirect, notFound } from "next/navigation";
+import { checkCanEditUnits, getUnitById, updateUnit } from "../../actions";
+import { UnitForm, type UnitFormData } from "../../components/unit-form";
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditarUnidadePage({ params }: PageProps) {
-  const { id } = await params
-  
+  const { id } = await params;
+
   // Verificar permissão de edição (units:update)
-  const canEdit = await checkCanEditUnits()
+  const canEdit = await checkCanEditUnits();
   if (!canEdit) {
-    redirect('/')
+    redirect("/");
   }
 
-  const unit = await getUnitById(id)
+  const unit = await getUnitById(id);
 
   if (!unit) {
-    notFound()
+    notFound();
   }
 
   async function handleUpdateUnit(data: UnitFormData) {
-    'use server'
-    const result = await updateUnit(id, data)
-    return { ...result, unitId: id }
+    "use server";
+    const result = await updateUnit(id, data);
+    return { ...result, unitId: id };
   }
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Editar Unidade</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Editar Unidade
+        </h2>
         <p className="text-muted-foreground">
           Altere as informações da unidade {unit.name}
         </p>
@@ -42,6 +44,5 @@ export default async function EditarUnidadePage({ params }: PageProps) {
         <UnitForm unit={unit} onSubmit={handleUpdateUnit} />
       </div>
     </div>
-  )
+  );
 }
-

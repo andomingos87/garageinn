@@ -29,7 +29,9 @@ export default async function DashboardPage() {
     .select("*", { count: "exact", head: true });
 
   const checklistProgress = totalExpectedChecklists
-    ? Math.round((Number(checklistsTodayCount) / Number(totalExpectedChecklists)) * 100)
+    ? Math.round(
+        (Number(checklistsTodayCount) / Number(totalExpectedChecklists)) * 100
+      )
     : 0;
 
   // 3. Unidades Ativas
@@ -51,7 +53,9 @@ export default async function DashboardPage() {
     resolutionData?.filter((t) => ["resolved", "closed"].includes(t.status))
       .length || 0;
   const resolutionRate =
-    totalInPeriod > 0 ? Math.round((resolvedInPeriod / totalInPeriod) * 100) : 0;
+    totalInPeriod > 0
+      ? Math.round((resolvedInPeriod / totalInPeriod) * 100)
+      : 0;
 
   // 5. Chamados Recentes
   const { data: recentTicketsRaw } = await supabase
@@ -60,23 +64,25 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false })
     .limit(5);
 
-  const recentTickets = recentTicketsRaw?.map((t) => ({
-    id: `#${t.ticket_number}`,
-    title: t.title,
-    dept: t.department_name || "N/A",
-    status:
-      t.status === "quoting"
-        ? "Em Cotação"
-        : t.status === "in_progress"
-        ? "Em Andamento"
-        : t.status === "awaiting_triage"
-        ? "Aguardando Triagem"
-        : t.status,
-  })) || [];
+  const recentTickets =
+    recentTicketsRaw?.map((t) => ({
+      id: `#${t.ticket_number}`,
+      title: t.title,
+      dept: t.department_name || "N/A",
+      status:
+        t.status === "quoting"
+          ? "Em Cotação"
+          : t.status === "in_progress"
+            ? "Em Andamento"
+            : t.status === "awaiting_triage"
+              ? "Aguardando Triagem"
+              : t.status,
+    })) || [];
 
   // 6. Checklists Pendentes
-  const { data: unitsWithTemplates } = await supabase.from("unit_checklist_templates")
-    .select(`
+  const { data: unitsWithTemplates } = await supabase.from(
+    "unit_checklist_templates"
+  ).select(`
       unit_id,
       units (name),
       checklist_templates (type)
@@ -89,11 +95,19 @@ export default async function DashboardPage() {
 
   const pendingChecklists =
     unitsWithTemplates
-      ?.filter((uct) => !executionsToday?.some((e) => e.unit_id === uct.unit_id))
+      ?.filter(
+        (uct) => !executionsToday?.some((e) => e.unit_id === uct.unit_id)
+      )
       .slice(0, 5)
       .map((uct) => ({
-        unit: (uct.units as { name: string }[] | null)?.[0]?.name || "Unidade Desconhecida",
-        type: (uct.checklist_templates as { type: string }[] | null)?.[0]?.type === "opening" ? "Abertura" : "Supervisão",
+        unit:
+          (uct.units as { name: string }[] | null)?.[0]?.name ||
+          "Unidade Desconhecida",
+        type:
+          (uct.checklist_templates as { type: string }[] | null)?.[0]?.type ===
+          "opening"
+            ? "Abertura"
+            : "Supervisão",
         time: "Pendente",
       })) || [];
 
@@ -232,4 +246,3 @@ export default async function DashboardPage() {
     </div>
   );
 }
-

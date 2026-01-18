@@ -1,54 +1,54 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { PlayCircle, Settings, History } from 'lucide-react'
+import { Suspense } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PlayCircle, Settings, History } from "lucide-react";
 import {
   getExecutions,
   getExecutionsStats,
   getUnitsForFilter,
   getTemplatesForFilter,
   checkIsAdmin,
-} from './actions'
+} from "./actions";
 import {
   ExecutionsFilters,
   ExecutionsStatsCards,
   ExecutionsTable,
   ExecutionsPagination,
-} from './components'
-import type { ExecutionsFilters as ExecutionsFiltersType } from './actions'
+} from "./components";
+import type { ExecutionsFilters as ExecutionsFiltersType } from "./actions";
 
 interface PageProps {
   searchParams: Promise<{
-    unitId?: string
-    templateId?: string
-    startDate?: string
-    endDate?: string
-    status?: string
-    hasNonConformities?: string
-    page?: string
-  }>
+    unitId?: string;
+    templateId?: string;
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    hasNonConformities?: string;
+    page?: string;
+  }>;
 }
 
 async function ChecklistsContent({
   searchParams,
 }: {
-  searchParams: PageProps['searchParams']
+  searchParams: PageProps["searchParams"];
 }) {
-  const params = await searchParams
-  const isAdmin = await checkIsAdmin()
+  const params = await searchParams;
+  const isAdmin = await checkIsAdmin();
 
   const filters: ExecutionsFiltersType = {
     unitId: params.unitId,
     templateId: params.templateId,
     startDate: params.startDate,
     endDate: params.endDate,
-    status: (params.status as 'all' | 'in_progress' | 'completed') || 'all',
-    hasNonConformities: params.hasNonConformities === 'true',
+    status: (params.status as "all" | "in_progress" | "completed") || "all",
+    hasNonConformities: params.hasNonConformities === "true",
     page: params.page ? parseInt(params.page, 10) : 1,
     limit: 20,
-  }
+  };
 
   const [executionsResult, stats, units, templates] = await Promise.all([
     getExecutions(filters),
@@ -59,7 +59,7 @@ async function ChecklistsContent({
     }),
     getUnitsForFilter(),
     getTemplatesForFilter(),
-  ])
+  ]);
 
   return (
     <>
@@ -80,7 +80,10 @@ async function ChecklistsContent({
           </div>
         </CardHeader>
         <CardContent>
-          <ExecutionsTable executions={executionsResult.data} isAdmin={isAdmin} />
+          <ExecutionsTable
+            executions={executionsResult.data}
+            isAdmin={isAdmin}
+          />
           <ExecutionsPagination
             page={executionsResult.page}
             totalPages={executionsResult.totalPages}
@@ -90,7 +93,7 @@ async function ChecklistsContent({
         </CardContent>
       </Card>
     </>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -152,11 +155,11 @@ function LoadingSkeleton() {
         </CardContent>
       </Card>
     </>
-  )
+  );
 }
 
 export default async function ChecklistsPage({ searchParams }: PageProps) {
-  const isAdmin = await checkIsAdmin()
+  const isAdmin = await checkIsAdmin();
 
   return (
     <div className="space-y-6">
@@ -190,5 +193,5 @@ export default async function ChecklistsPage({ searchParams }: PageProps) {
         <ChecklistsContent searchParams={searchParams} />
       </Suspense>
     </div>
-  )
+  );
 }

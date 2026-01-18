@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { formatDistanceToNow, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import Link from "next/link";
+import { formatDistanceToNow, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   Table,
   TableBody,
@@ -10,50 +10,56 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ComercialStatusBadge, PriorityBadge } from './comercial-status-badge'
-import { ComercialTypeBadge } from './comercial-type-badge'
-import { FileText, MessageSquare, Paperclip, Building2, DollarSign } from 'lucide-react'
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ComercialStatusBadge, PriorityBadge } from "./comercial-status-badge";
+import { ComercialTypeBadge } from "./comercial-type-badge";
+import {
+  FileText,
+  MessageSquare,
+  Paperclip,
+  Building2,
+  DollarSign,
+} from "lucide-react";
 
 interface ComercialTicket {
-  id: string
-  ticket_number: number
-  title: string
-  status: string
-  priority: string | null
-  perceived_urgency: string | null
-  created_at: string
-  category_name: string | null
-  unit_name: string | null
-  unit_code: string | null
+  id: string;
+  ticket_number: number;
+  title: string;
+  status: string;
+  priority: string | null;
+  perceived_urgency: string | null;
+  created_at: string;
+  category_name: string | null;
+  unit_name: string | null;
+  unit_code: string | null;
   // Comercial specific fields
-  comercial_type: string | null
-  client_name: string | null
-  client_cnpj: string | null
-  contract_value: number | null
-  proposal_deadline: string | null
-  resolution_type: string | null
+  comercial_type: string | null;
+  client_name: string | null;
+  client_cnpj: string | null;
+  contract_value: number | null;
+  proposal_deadline: string | null;
+  resolution_type: string | null;
   // Creator info
-  created_by_id: string
-  created_by_name: string
-  created_by_avatar: string | null
+  created_by_id: string;
+  created_by_name: string;
+  created_by_avatar: string | null;
   // Counts
-  comments_count: number | null
-  attachments_count: number | null
+  comments_count: number | null;
+  attachments_count: number | null;
 }
 
 interface ComercialTableProps {
-  tickets: ComercialTicket[]
+  tickets: ComercialTicket[];
 }
 
 function formatCurrency(value: number | null): string {
-  if (!value) return '-'
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
+  if (!value) return "-";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
 }
 
 export function ComercialTable({ tickets }: ComercialTableProps) {
@@ -68,7 +74,7 @@ export function ComercialTable({ tickets }: ComercialTableProps) {
           </p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -86,10 +92,16 @@ export function ComercialTable({ tickets }: ComercialTableProps) {
                 <TableHead className="hidden md:table-cell">Tipo</TableHead>
                 <TableHead className="hidden lg:table-cell">Unidade</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="hidden sm:table-cell">Prioridade</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  Prioridade
+                </TableHead>
                 <TableHead className="hidden xl:table-cell">Valor</TableHead>
-                <TableHead className="hidden lg:table-cell">Solicitante</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Data</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Solicitante
+                </TableHead>
+                <TableHead className="hidden md:table-cell text-right">
+                  Data
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -108,12 +120,16 @@ export function ComercialTable({ tickets }: ComercialTableProps) {
                       href={`/chamados/comercial/${ticket.id}`}
                       className="block group-hover:text-primary transition-colors"
                     >
-                      <div className="font-medium line-clamp-1">{ticket.title}</div>
+                      <div className="font-medium line-clamp-1">
+                        {ticket.title}
+                      </div>
                       <div className="flex items-center gap-2 mt-1">
                         {ticket.client_name && (
                           <span className="flex items-center gap-1 text-sm text-muted-foreground">
                             <Building2 className="h-3 w-3" />
-                            <span className="line-clamp-1">{ticket.client_name}</span>
+                            <span className="line-clamp-1">
+                              {ticket.client_name}
+                            </span>
                           </span>
                         )}
                         {ticket.client_cnpj && (
@@ -153,7 +169,9 @@ export function ComercialTable({ tickets }: ComercialTableProps) {
                   <TableCell className="hidden lg:table-cell">
                     {ticket.unit_code ? (
                       <span className="text-sm">
-                        <span className="font-mono text-muted-foreground">{ticket.unit_code}</span>
+                        <span className="font-mono text-muted-foreground">
+                          {ticket.unit_code}
+                        </span>
                         {ticket.unit_name && (
                           <span className="hidden xl:inline ml-1 text-muted-foreground">
                             - {ticket.unit_name}
@@ -187,13 +205,17 @@ export function ComercialTable({ tickets }: ComercialTableProps) {
                   <TableCell className="hidden lg:table-cell">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-7 w-7">
-                        <AvatarImage src={ticket.created_by_avatar || undefined} />
+                        <AvatarImage
+                          src={ticket.created_by_avatar || undefined}
+                        />
                         <AvatarFallback className="text-xs">
-                          {ticket.created_by_name?.slice(0, 2).toUpperCase() || '?'}
+                          {ticket.created_by_name?.slice(0, 2).toUpperCase() ||
+                            "?"}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm line-clamp-1">
-                        {ticket.created_by_name?.split(' ')[0] || 'Desconhecido'}
+                        {ticket.created_by_name?.split(" ")[0] ||
+                          "Desconhecido"}
                       </span>
                     </div>
                   </TableCell>
@@ -201,7 +223,12 @@ export function ComercialTable({ tickets }: ComercialTableProps) {
                     <div className="text-sm">
                       {ticket.proposal_deadline ? (
                         <span className="text-foreground">
-                          Prazo: {format(new Date(ticket.proposal_deadline), 'dd/MM/yyyy', { locale: ptBR })}
+                          Prazo:{" "}
+                          {format(
+                            new Date(ticket.proposal_deadline),
+                            "dd/MM/yyyy",
+                            { locale: ptBR }
+                          )}
                         </span>
                       ) : (
                         <span className="text-muted-foreground">
@@ -220,5 +247,5 @@ export function ComercialTable({ tickets }: ComercialTableProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { AlertTriangle, ArrowLeft } from 'lucide-react'
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -17,6 +17,5 @@ export default function NotFound() {
         </Link>
       </Button>
     </div>
-  )
+  );
 }
-

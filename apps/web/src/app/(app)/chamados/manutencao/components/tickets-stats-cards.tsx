@@ -1,53 +1,53 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Clock, Zap, CheckCircle2 } from 'lucide-react'
-import type { TicketStats } from '../actions'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, Clock, Zap, CheckCircle2 } from "lucide-react";
+import type { TicketStats } from "../actions";
 
 interface TicketsStatsCardsProps {
-  stats: TicketStats
+  stats: TicketStats;
 }
 
 export function TicketsStatsCards({ stats }: TicketsStatsCardsProps) {
   const cards = [
     {
-      title: 'Total de Chamados',
+      title: "Total de Chamados",
       value: stats.total,
       icon: FileText,
-      description: 'Todos os chamados',
-      color: 'text-blue-600 dark:text-blue-400',
-      bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+      description: "Todos os chamados",
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-100 dark:bg-blue-900/30",
     },
     {
-      title: 'Aguardando Triagem',
+      title: "Aguardando Triagem",
       value: stats.awaitingTriage,
       icon: Clock,
-      description: 'Aguardando análise',
-      color: 'text-amber-600 dark:text-amber-400',
-      bgColor: 'bg-amber-100 dark:bg-amber-900/30',
+      description: "Aguardando análise",
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-100 dark:bg-amber-900/30",
     },
     {
-      title: 'Em Andamento',
+      title: "Em Andamento",
       value: stats.inProgress,
       icon: Zap,
-      description: 'Sendo executados',
-      color: 'text-indigo-600 dark:text-indigo-400',
-      bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
+      description: "Sendo executados",
+      color: "text-indigo-600 dark:text-indigo-400",
+      bgColor: "bg-indigo-100 dark:bg-indigo-900/30",
     },
     {
-      title: 'Concluídos',
+      title: "Concluídos",
       value: stats.closed,
       icon: CheckCircle2,
-      description: 'Finalizados',
-      color: 'text-emerald-600 dark:text-emerald-400',
-      bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
+      description: "Finalizados",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
     },
-  ]
+  ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {cards.map((card) => {
-        const Icon = card.icon
+        const Icon = card.icon;
         return (
           <Card key={card.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -65,9 +65,8 @@ export function TicketsStatsCards({ stats }: TicketsStatsCardsProps) {
               </p>
             </CardContent>
           </Card>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
-

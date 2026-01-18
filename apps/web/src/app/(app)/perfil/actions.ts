@@ -1,22 +1,29 @@
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
-import type { UserWithRoles, UserRoleInfo, UserStatus } from '@/lib/supabase/custom-types'
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+import type {
+  UserWithRoles,
+  UserRoleInfo,
+  UserStatus,
+} from "@/lib/supabase/custom-types";
 
 /**
  * Busca o perfil do usuário atual
  */
 export async function getCurrentUserProfile(): Promise<UserWithRoles | null> {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) return null
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
 
   const { data: profile, error } = await supabase
-    .from('profiles')
-    .select(`
+    .from("profiles")
+    .select(
+      `
       id,
       full_name,
       email,
@@ -40,36 +47,37 @@ export async function getCurrentUserProfile(): Promise<UserWithRoles | null> {
           )
         )
       )
-    `)
-    .eq('id', user.id)
-    .single()
+    `
+    )
+    .eq("id", user.id)
+    .single();
 
   if (error || !profile) {
-    console.error('Error fetching profile:', error)
-    return null
+    console.error("Error fetching profile:", error);
+    return null;
   }
 
   interface UserRoleData {
     role: {
-      id: string
-      name: string
-      is_global: boolean
-      department: { id: string; name: string }[]
-    }[]
+      id: string;
+      name: string;
+      is_global: boolean;
+      department: { id: string; name: string }[];
+    }[];
   }
   const roles: UserRoleInfo[] = (profile.user_roles || [])
     .filter((ur: UserRoleData) => ur.role && ur.role.length > 0)
     .map((ur: UserRoleData) => {
-      const role = ur.role[0]
-      const dept = role.department?.[0]
+      const role = ur.role[0];
+      const dept = role.department?.[0];
       return {
         role_id: role.id,
         role_name: role.name,
         department_id: dept?.id ?? null,
         department_name: dept?.name ?? null,
         is_global: role.is_global ?? false,
-      }
-    })
+      };
+    });
 
   return {
     id: profile.id,
@@ -78,145 +86,154 @@ export async function getCurrentUserProfile(): Promise<UserWithRoles | null> {
     phone: profile.phone,
     cpf: profile.cpf,
     avatar_url: profile.avatar_url,
-    status: (profile.status || 'pending') as UserStatus,
-    created_at: profile.created_at || '',
-    updated_at: profile.updated_at || '',
+    status: (profile.status || "pending") as UserStatus,
+    created_at: profile.created_at || "",
+    updated_at: profile.updated_at || "",
     deleted_at: profile.deleted_at,
     invitation_sent_at: profile.invitation_sent_at,
     invitation_expires_at: profile.invitation_expires_at,
     roles,
-  }
+  };
 }
 
 /**
  * Atualiza o telefone do usuário atual
  */
 export async function updatePhone(phone: string) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    return { error: 'Não autenticado' }
+    return { error: "Não autenticado" };
   }
 
   const { error } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update({ phone: phone || null })
-    .eq('id', user.id)
+    .eq("id", user.id);
 
   if (error) {
-    console.error('Error updating phone:', error)
-    return { error: error.message }
+    console.error("Error updating phone:", error);
+    return { error: error.message };
   }
 
-  revalidatePath('/perfil')
-  return { success: true }
+  revalidatePath("/perfil");
+  return { success: true };
 }
 
 /**
  * Atualiza o avatar do usuário atual
- * 
+ *
  * Nota: Em produção, isso deveria usar Supabase Storage.
  * Por simplicidade, estamos apenas salvando a URL diretamente.
  */
 export async function updateAvatar(avatarUrl: string) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    return { error: 'Não autenticado' }
+    return { error: "Não autenticado" };
   }
 
   const { error } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update({ avatar_url: avatarUrl || null })
-    .eq('id', user.id)
+    .eq("id", user.id);
 
   if (error) {
-    console.error('Error updating avatar:', error)
-    return { error: error.message }
+    console.error("Error updating avatar:", error);
+    return { error: error.message };
   }
 
-  revalidatePath('/perfil')
-  return { success: true }
+  revalidatePath("/perfil");
+  return { success: true };
 }
 
 /**
  * Upload de avatar para Supabase Storage
- * 
+ *
  * Nota: Requer configuração do bucket 'avatars' no Supabase Storage
  */
 export async function uploadAvatar(formData: FormData) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    return { error: 'Não autenticado' }
+    return { error: "Não autenticado" };
   }
 
-  const file = formData.get('avatar') as File
-  
+  const file = formData.get("avatar") as File;
+
   if (!file || file.size === 0) {
-    return { error: 'Nenhum arquivo selecionado' }
+    return { error: "Nenhum arquivo selecionado" };
   }
 
   // Validar tipo de arquivo
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
   if (!allowedTypes.includes(file.type)) {
-    return { error: 'Tipo de arquivo não suportado. Use JPG, PNG ou WebP.' }
+    return { error: "Tipo de arquivo não suportado. Use JPG, PNG ou WebP." };
   }
 
   // Validar tamanho (max 2MB)
-  const maxSize = 2 * 1024 * 1024 // 2MB
+  const maxSize = 2 * 1024 * 1024; // 2MB
   if (file.size > maxSize) {
-    return { error: 'Arquivo muito grande. Máximo 2MB.' }
+    return { error: "Arquivo muito grande. Máximo 2MB." };
   }
 
   // Nome do arquivo com timestamp para evitar cache
-  const fileExt = file.name.split('.').pop()
-  const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
 
   // Upload para Storage
   const { error: uploadError } = await supabase.storage
-    .from('avatars')
-    .upload(fileName, file, { 
+    .from("avatars")
+    .upload(fileName, file, {
       upsert: true,
-      cacheControl: '3600',
-    })
+      cacheControl: "3600",
+    });
 
   if (uploadError) {
-    console.error('Error uploading avatar:', uploadError)
-    
+    console.error("Error uploading avatar:", uploadError);
+
     // Se o bucket não existe, retornar mensagem amigável
-    if (uploadError.message.includes('not found') || uploadError.message.includes('does not exist')) {
-      return { 
-        error: 'O armazenamento de imagens ainda não foi configurado. Entre em contato com o administrador.' 
-      }
+    if (
+      uploadError.message.includes("not found") ||
+      uploadError.message.includes("does not exist")
+    ) {
+      return {
+        error:
+          "O armazenamento de imagens ainda não foi configurado. Entre em contato com o administrador.",
+      };
     }
-    
-    return { error: uploadError.message }
+
+    return { error: uploadError.message };
   }
 
   // Obter URL pública
-  const { data: { publicUrl } } = supabase.storage
-    .from('avatars')
-    .getPublicUrl(fileName)
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("avatars").getPublicUrl(fileName);
 
   // Atualizar perfil com nova URL
   const { error: updateError } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update({ avatar_url: publicUrl })
-    .eq('id', user.id)
+    .eq("id", user.id);
 
   if (updateError) {
-    console.error('Error updating profile with avatar:', updateError)
-    return { error: updateError.message }
+    console.error("Error updating profile with avatar:", updateError);
+    return { error: updateError.message };
   }
 
-  revalidatePath('/perfil')
-  return { success: true, avatarUrl: publicUrl }
+  revalidatePath("/perfil");
+  return { success: true, avatarUrl: publicUrl };
 }
-

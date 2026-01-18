@@ -1,13 +1,19 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useTransition, use } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
+import { useEffect, useState, useTransition, use } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,15 +23,23 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { ArrowLeft, Building2, Pencil, Plus, Trash2, Users, Briefcase } from 'lucide-react'
-import { toast } from 'sonner'
-import { RolesList, RoleFormDialog, DepartmentFormDialog } from '../components'
-import type { DepartmentWithRoles, Role, Department } from '../actions'
-import { getDepartmentById, deleteDepartment, checkIsAdmin } from '../actions'
+} from "@/components/ui/alert-dialog";
+import {
+  ArrowLeft,
+  Building2,
+  Pencil,
+  Plus,
+  Trash2,
+  Users,
+  Briefcase,
+} from "lucide-react";
+import { toast } from "sonner";
+import { RolesList, RoleFormDialog, DepartmentFormDialog } from "../components";
+import type { DepartmentWithRoles, Role, Department } from "../actions";
+import { getDepartmentById, deleteDepartment, checkIsAdmin } from "../actions";
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 function LoadingSkeleton() {
@@ -64,77 +78,79 @@ function LoadingSkeleton() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export default function DepartmentDetailPage({ params }: PageProps) {
-  const { id } = use(params)
-  const router = useRouter()
-  const [department, setDepartment] = useState<DepartmentWithRoles | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const { id } = use(params);
+  const router = useRouter();
+  const [department, setDepartment] = useState<DepartmentWithRoles | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // Dialog states
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showRoleDialog, setShowRoleDialog] = useState(false)
-  const [editingRole, setEditingRole] = useState<Role | null>(null)
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   const loadData = async () => {
     try {
       const [dept, admin] = await Promise.all([
         getDepartmentById(id),
         checkIsAdmin(),
-      ])
-      setDepartment(dept)
-      setIsAdmin(admin)
+      ]);
+      setDepartment(dept);
+      setIsAdmin(admin);
     } catch (error) {
-      console.error('Error loading department:', error)
-      toast.error('Erro ao carregar departamento')
+      console.error("Error loading department:", error);
+      toast.error("Erro ao carregar departamento");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadData()
-  }, [id])
+    loadData();
+  }, [id]);
 
   // Reload data when dialogs close
   useEffect(() => {
     if (!showEditDialog && !showRoleDialog) {
       startTransition(() => {
-        loadData()
-      })
+        loadData();
+      });
     }
-  }, [showEditDialog, showRoleDialog])
+  }, [showEditDialog, showRoleDialog]);
 
   const handleDelete = () => {
-    if (!department) return
+    if (!department) return;
 
     startTransition(async () => {
-      const result = await deleteDepartment(department.id)
+      const result = await deleteDepartment(department.id);
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Departamento excluído com sucesso')
-        router.push('/configuracoes/departamentos')
+        toast.success("Departamento excluído com sucesso");
+        router.push("/configuracoes/departamentos");
       }
-      setShowDeleteDialog(false)
-    })
-  }
+      setShowDeleteDialog(false);
+    });
+  };
 
   const handleEditRole = (role: Role) => {
-    setEditingRole(role)
-    setShowRoleDialog(true)
-  }
+    setEditingRole(role);
+    setShowRoleDialog(true);
+  };
 
   const handleNewRole = () => {
-    setEditingRole(null)
-    setShowRoleDialog(true)
-  }
+    setEditingRole(null);
+    setShowRoleDialog(true);
+  };
 
   if (!isAdmin && !isLoading) {
     return (
@@ -147,11 +163,11 @@ export default function DepartmentDetailPage({ params }: PageProps) {
           <Link href="/dashboard">Voltar ao Início</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   if (isLoading) {
-    return <LoadingSkeleton />
+    return <LoadingSkeleton />;
   }
 
   if (!department) {
@@ -166,7 +182,7 @@ export default function DepartmentDetailPage({ params }: PageProps) {
           <Link href="/configuracoes/departamentos">Voltar</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   // Convert to Department type for the dialog
@@ -176,7 +192,7 @@ export default function DepartmentDetailPage({ params }: PageProps) {
     created_at: department.created_at,
     roles_count: department.roles_count,
     users_count: department.users_count,
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -233,7 +249,9 @@ export default function DepartmentDetailPage({ params }: PageProps) {
           <CardContent>
             <div className="flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-primary" />
-              <span className="text-2xl font-bold">{department.roles_count}</span>
+              <span className="text-2xl font-bold">
+                {department.roles_count}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -246,7 +264,9 @@ export default function DepartmentDetailPage({ params }: PageProps) {
           <CardContent>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              <span className="text-2xl font-bold">{department.users_count}</span>
+              <span className="text-2xl font-bold">
+                {department.users_count}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -258,10 +278,10 @@ export default function DepartmentDetailPage({ params }: PageProps) {
           </CardHeader>
           <CardContent>
             <span className="text-lg">
-              {new Date(department.created_at).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
+              {new Date(department.created_at).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
               })}
             </span>
           </CardContent>
@@ -327,12 +347,13 @@ export default function DepartmentDetailPage({ params }: PageProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir departamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o departamento <strong>{department.name}</strong>?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o departamento{" "}
+              <strong>{department.name}</strong>? Esta ação não pode ser
+              desfeita.
               {department.roles_count > 0 && (
                 <span className="block mt-2 text-destructive">
-                  Este departamento possui {department.roles_count} cargo(s) vinculado(s).
-                  Remova os cargos antes de excluir.
+                  Este departamento possui {department.roles_count} cargo(s)
+                  vinculado(s). Remova os cargos antes de excluir.
                 </span>
               )}
             </AlertDialogDescription>
@@ -344,12 +365,11 @@ export default function DepartmentDetailPage({ params }: PageProps) {
               disabled={isPending || department.roles_count > 0}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isPending ? 'Excluindo...' : 'Excluir'}
+              {isPending ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
-

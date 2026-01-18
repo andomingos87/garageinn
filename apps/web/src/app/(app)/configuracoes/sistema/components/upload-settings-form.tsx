@@ -1,73 +1,80 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Loader2, Save } from 'lucide-react'
-import { toast } from 'sonner'
-import { updateUploadSettings } from '../actions'
-import { FILE_TYPE_OPTIONS } from '../constants'
-import type { SystemSettingsMap } from '../actions'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, Save } from "lucide-react";
+import { toast } from "sonner";
+import { updateUploadSettings } from "../actions";
+import { FILE_TYPE_OPTIONS } from "../constants";
+import type { SystemSettingsMap } from "../actions";
 
 interface UploadSettingsFormProps {
-  settings: SystemSettingsMap
-  onUpdate: () => void
+  settings: SystemSettingsMap;
+  onUpdate: () => void;
 }
 
-export function UploadSettingsForm({ settings, onUpdate }: UploadSettingsFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [maxSize, setMaxSize] = useState(settings.upload_max_size_mb.toString())
-  const [allowedTypes, setAllowedTypes] = useState<string[]>(settings.upload_allowed_types)
+export function UploadSettingsForm({
+  settings,
+  onUpdate,
+}: UploadSettingsFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [maxSize, setMaxSize] = useState(
+    settings.upload_max_size_mb.toString()
+  );
+  const [allowedTypes, setAllowedTypes] = useState<string[]>(
+    settings.upload_allowed_types
+  );
 
   const hasChanges =
     maxSize !== settings.upload_max_size_mb.toString() ||
     JSON.stringify(allowedTypes.sort()) !==
-      JSON.stringify([...settings.upload_allowed_types].sort())
+      JSON.stringify([...settings.upload_allowed_types].sort());
 
   const handleTypeToggle = (type: string, checked: boolean) => {
     if (checked) {
-      setAllowedTypes([...allowedTypes, type])
+      setAllowedTypes([...allowedTypes, type]);
     } else {
-      setAllowedTypes(allowedTypes.filter((t) => t !== type))
+      setAllowedTypes(allowedTypes.filter((t) => t !== type));
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const size = parseInt(maxSize, 10)
+    const size = parseInt(maxSize, 10);
     if (isNaN(size) || size < 1 || size > 100) {
-      toast.error('Tamanho máximo deve ser entre 1 e 100 MB')
-      return
+      toast.error("Tamanho máximo deve ser entre 1 e 100 MB");
+      return;
     }
 
     if (allowedTypes.length === 0) {
-      toast.error('Selecione pelo menos um tipo de arquivo permitido')
-      return
+      toast.error("Selecione pelo menos um tipo de arquivo permitido");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const result = await updateUploadSettings({
         upload_max_size_mb: size,
         upload_allowed_types: allowedTypes,
-      })
+      });
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Configurações de upload atualizadas com sucesso')
-        onUpdate()
+        toast.success("Configurações de upload atualizadas com sucesso");
+        onUpdate();
       }
     } catch (error) {
-      console.error('Error updating upload settings:', error)
-      toast.error('Erro ao atualizar configurações de upload')
+      console.error("Error updating upload settings:", error);
+      toast.error("Erro ao atualizar configurações de upload");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -121,6 +128,5 @@ export function UploadSettingsForm({ settings, onUpdate }: UploadSettingsFormPro
         </Button>
       </div>
     </form>
-  )
+  );
 }
-

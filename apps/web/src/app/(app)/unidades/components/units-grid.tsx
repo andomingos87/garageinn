@@ -1,22 +1,25 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { UnitCard } from './unit-card'
-import { updateUnitStatus } from '../actions'
-import type { UnitWithStaffCount, UnitStatus } from '@/lib/supabase/custom-types'
+import { useState, useTransition } from "react";
+import { UnitCard } from "./unit-card";
+import { updateUnitStatus } from "../actions";
+import type {
+  UnitWithStaffCount,
+  UnitStatus,
+} from "@/lib/supabase/custom-types";
 
 interface UnitsGridProps {
-  units: UnitWithStaffCount[]
-  canEdit: boolean
+  units: UnitWithStaffCount[];
+  canEdit: boolean;
 }
 
 export function UnitsGrid({ units, canEdit }: UnitsGridProps) {
-  const [isPending, startTransition] = useTransition()
-  const [optimisticUnits, setOptimisticUnits] = useState(units)
+  const [isPending, startTransition] = useTransition();
+  const [optimisticUnits, setOptimisticUnits] = useState(units);
 
   // Atualizar quando units mudar
   if (units !== optimisticUnits && !isPending) {
-    setOptimisticUnits(units)
+    setOptimisticUnits(units);
   }
 
   const handleToggleStatus = (unitId: string, newStatus: UnitStatus) => {
@@ -25,23 +28,26 @@ export function UnitsGrid({ units, canEdit }: UnitsGridProps) {
       current.map((unit) =>
         unit.id === unitId ? { ...unit, status: newStatus } : unit
       )
-    )
+    );
 
     startTransition(async () => {
-      const result = await updateUnitStatus(unitId, newStatus)
-      
+      const result = await updateUnitStatus(unitId, newStatus);
+
       if (result.error) {
         // Reverter em caso de erro
         setOptimisticUnits((current) =>
           current.map((unit) =>
             unit.id === unitId
-              ? { ...unit, status: newStatus === 'active' ? 'inactive' : 'active' }
+              ? {
+                  ...unit,
+                  status: newStatus === "active" ? "inactive" : "active",
+                }
               : unit
           )
-        )
+        );
       }
-    })
-  }
+    });
+  };
 
   if (optimisticUnits.length === 0) {
     return (
@@ -66,7 +72,7 @@ export function UnitsGrid({ units, canEdit }: UnitsGridProps) {
           Tente ajustar os filtros ou criar uma nova unidade.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -80,6 +86,5 @@ export function UnitsGrid({ units, canEdit }: UnitsGridProps) {
         />
       ))}
     </div>
-  )
+  );
 }
-

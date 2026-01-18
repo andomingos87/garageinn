@@ -1,97 +1,158 @@
-'use client'
+"use client";
 
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  UserPlus, 
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  Clock,
+  CheckCircle2,
+  XCircle,
+  UserPlus,
   AlertTriangle,
   MessageSquare,
   FileUp,
   Settings,
   Wrench,
-  Package
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { statusLabels } from '../../constants'
+  Package,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { statusLabels } from "../../constants";
 
 interface HistoryItem {
-  id: string
-  action: string
-  old_value: string | null
-  new_value: string | null
-  metadata: Record<string, unknown> | null
-  created_at: string
+  id: string;
+  action: string;
+  old_value: string | null;
+  new_value: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
   user: {
-    id: string
-    full_name: string
-    avatar_url: string | null
-  } | null
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
 }
 
 interface TicketTimelineProps {
-  history: HistoryItem[]
+  history: HistoryItem[];
 }
 
-const actionConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-  'created': { icon: CheckCircle2, color: 'text-green-500', label: 'Chamado criado' },
-  'status_changed': { icon: Settings, color: 'text-blue-500', label: 'Status alterado' },
-  'assigned': { icon: UserPlus, color: 'text-purple-500', label: 'Responsável atribuído' },
-  'priority_changed': { icon: AlertTriangle, color: 'text-orange-500', label: 'Prioridade alterada' },
-  'commented': { icon: MessageSquare, color: 'text-cyan-500', label: 'Comentário adicionado' },
-  'attachment_added': { icon: FileUp, color: 'text-emerald-500', label: 'Anexo adicionado' },
-  'approval_approved': { icon: CheckCircle2, color: 'text-green-500', label: 'Aprovado' },
-  'approval_rejected': { icon: XCircle, color: 'text-red-500', label: 'Rejeitado' },
-  'triaged': { icon: UserPlus, color: 'text-primary', label: 'Chamado triado' },
-  'execution_added': { icon: Wrench, color: 'text-blue-600', label: 'Execução adicionada' },
-  'execution_started': { icon: Wrench, color: 'text-blue-500', label: 'Execução iniciada' },
-  'execution_completed': { icon: CheckCircle2, color: 'text-green-500', label: 'Execução concluída' },
-  'waiting_parts': { icon: Package, color: 'text-orange-500', label: 'Aguardando peças' },
-}
+const actionConfig: Record<
+  string,
+  { icon: React.ElementType; color: string; label: string }
+> = {
+  created: {
+    icon: CheckCircle2,
+    color: "text-green-500",
+    label: "Chamado criado",
+  },
+  status_changed: {
+    icon: Settings,
+    color: "text-blue-500",
+    label: "Status alterado",
+  },
+  assigned: {
+    icon: UserPlus,
+    color: "text-purple-500",
+    label: "Responsável atribuído",
+  },
+  priority_changed: {
+    icon: AlertTriangle,
+    color: "text-orange-500",
+    label: "Prioridade alterada",
+  },
+  commented: {
+    icon: MessageSquare,
+    color: "text-cyan-500",
+    label: "Comentário adicionado",
+  },
+  attachment_added: {
+    icon: FileUp,
+    color: "text-emerald-500",
+    label: "Anexo adicionado",
+  },
+  approval_approved: {
+    icon: CheckCircle2,
+    color: "text-green-500",
+    label: "Aprovado",
+  },
+  approval_rejected: {
+    icon: XCircle,
+    color: "text-red-500",
+    label: "Rejeitado",
+  },
+  triaged: { icon: UserPlus, color: "text-primary", label: "Chamado triado" },
+  execution_added: {
+    icon: Wrench,
+    color: "text-blue-600",
+    label: "Execução adicionada",
+  },
+  execution_started: {
+    icon: Wrench,
+    color: "text-blue-500",
+    label: "Execução iniciada",
+  },
+  execution_completed: {
+    icon: CheckCircle2,
+    color: "text-green-500",
+    label: "Execução concluída",
+  },
+  waiting_parts: {
+    icon: Package,
+    color: "text-orange-500",
+    label: "Aguardando peças",
+  },
+};
 
 export function TicketTimeline({ history }: TicketTimelineProps) {
   const getInitials = (name: string | null) => {
-    if (!name) return '??'
-    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-  }
-  
+    if (!name) return "??";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
   const priorityLabels: Record<string, string> = {
-    low: 'Baixa',
-    medium: 'Média',
-    high: 'Alta',
-    urgent: 'Urgente'
-  }
+    low: "Baixa",
+    medium: "Média",
+    high: "Alta",
+    urgent: "Urgente",
+  };
 
   const getActionDescription = (item: HistoryItem) => {
-    const config = actionConfig[item.action] || { 
-      icon: Clock, 
-      color: 'text-muted-foreground', 
-      label: item.action 
+    const config = actionConfig[item.action] || {
+      icon: Clock,
+      color: "text-muted-foreground",
+      label: item.action,
+    };
+
+    let description = config.label;
+
+    if (item.action === "status_changed" && item.old_value && item.new_value) {
+      description = `Status alterado de "${statusLabels[item.old_value] || item.old_value}" para "${statusLabels[item.new_value] || item.new_value}"`;
     }
-    
-    let description = config.label
-    
-    if (item.action === 'status_changed' && item.old_value && item.new_value) {
-      description = `Status alterado de "${statusLabels[item.old_value] || item.old_value}" para "${statusLabels[item.new_value] || item.new_value}"`
+
+    if (item.action === "priority_changed" && item.new_value) {
+      description = `Prioridade definida como "${priorityLabels[item.new_value] || item.new_value}"`;
     }
-    
-    if (item.action === 'priority_changed' && item.new_value) {
-      description = `Prioridade definida como "${priorityLabels[item.new_value] || item.new_value}"`
-    }
-    
+
     // Ação de triagem com detalhes
-    if (item.action === 'triaged' && item.metadata) {
-      const metadata = item.metadata as { priority?: string; due_date?: string }
-      const priority = metadata.priority ? priorityLabels[metadata.priority] || metadata.priority : null
-      description = `Chamado triado${priority ? ` com prioridade ${priority}` : ''}`
+    if (item.action === "triaged" && item.metadata) {
+      const metadata = item.metadata as {
+        priority?: string;
+        due_date?: string;
+      };
+      const priority = metadata.priority
+        ? priorityLabels[metadata.priority] || metadata.priority
+        : null;
+      description = `Chamado triado${priority ? ` com prioridade ${priority}` : ""}`;
     }
-    
-    return { ...config, description }
-  }
-  
+
+    return { ...config, description };
+  };
+
   if (!history || history.length === 0) {
     return (
       <Card>
@@ -107,9 +168,9 @@ export function TicketTimeline({ history }: TicketTimelineProps) {
           </p>
         </CardContent>
       </Card>
-    )
+    );
   }
-  
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -122,36 +183,44 @@ export function TicketTimeline({ history }: TicketTimelineProps) {
         <div className="relative">
           {/* Linha vertical */}
           <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
-          
+
           <div className="space-y-4">
             {history.map((item) => {
-              const { icon: Icon, color, description } = getActionDescription(item)
-              
+              const {
+                icon: Icon,
+                color,
+                description,
+              } = getActionDescription(item);
+
               return (
                 <div key={item.id} className="relative flex gap-4 pl-10">
                   {/* Ícone */}
-                  <div className={`absolute left-0 p-1.5 bg-background border rounded-full ${color}`}>
+                  <div
+                    className={`absolute left-0 p-1.5 bg-background border rounded-full ${color}`}
+                  >
                     <Icon className="h-3 w-3" />
                   </div>
-                  
+
                   {/* Conteúdo */}
                   <div className="flex-1 min-w-0 pb-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <Avatar className="h-5 w-5">
-                          <AvatarImage src={item.user?.avatar_url || undefined} />
+                          <AvatarImage
+                            src={item.user?.avatar_url || undefined}
+                          />
                           <AvatarFallback className="text-[10px]">
                             {getInitials(item.user?.full_name || null)}
                           </AvatarFallback>
                         </Avatar>
                         <span className="text-sm font-medium truncate">
-                          {item.user?.full_name || 'Sistema'}
+                          {item.user?.full_name || "Sistema"}
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {formatDistanceToNow(new Date(item.created_at), { 
-                          addSuffix: true, 
-                          locale: ptBR 
+                        {formatDistanceToNow(new Date(item.created_at), {
+                          addSuffix: true,
+                          locale: ptBR,
                         })}
                       </span>
                     </div>
@@ -160,12 +229,11 @@ export function TicketTimeline({ history }: TicketTimelineProps) {
                     </p>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-

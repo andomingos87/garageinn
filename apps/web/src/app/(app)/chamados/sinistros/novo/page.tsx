@@ -1,18 +1,18 @@
-import { AlertTriangle } from 'lucide-react'
-import { createClaimTicket, getClaimCategories } from '../actions'
-import { getUserUnits, getUserFixedUnit } from '@/lib/units'
-import { ClaimForm } from '../components'
+import { AlertTriangle } from "lucide-react";
+import { createClaimTicket, getClaimCategories } from "../actions";
+import { getUserUnits, getUserFixedUnit } from "@/lib/units";
+import { ClaimForm } from "../components";
 
 export default async function NovoSinistroPage() {
   const [categories, units, fixedUnit] = await Promise.all([
     getClaimCategories(),
     getUserUnits(),
     getUserFixedUnit(),
-  ])
+  ]);
 
   async function handleCreateClaim(formData: FormData) {
-    'use server'
-    return createClaimTicket(formData)
+    "use server";
+    return createClaimTicket(formData);
   }
 
   return (
@@ -21,7 +21,9 @@ export default async function NovoSinistroPage() {
       <div>
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-6 w-6 text-destructive" />
-          <h2 className="text-2xl font-semibold tracking-tight">Registrar Sinistro</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Registrar Sinistro
+          </h2>
         </div>
         <p className="text-muted-foreground mt-1">
           Preencha o formulário abaixo para registrar uma ocorrência de sinistro
@@ -38,6 +40,5 @@ export default async function NovoSinistroPage() {
         />
       </div>
     </div>
-  )
+  );
 }
-

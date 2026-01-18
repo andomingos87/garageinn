@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowLeft, Check, Info, Minus, Shield } from 'lucide-react'
-import { toast } from 'sonner'
-import { DepartmentFilter, PermissionsMatrix } from './components'
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Check, Info, Minus, Shield } from "lucide-react";
+import { toast } from "sonner";
+import { DepartmentFilter, PermissionsMatrix } from "./components";
 import {
   checkIsAdmin,
   getDepartmentsWithRolesAndPermissions,
   getGlobalRolesWithPermissions,
-} from './actions'
+} from "./actions";
 import {
   PERMISSION_GROUPS,
   type DepartmentWithRoles,
   type RoleWithPermissions,
-} from './constants'
+} from "./constants";
 
 function LoadingSkeleton() {
   return (
@@ -50,15 +50,17 @@ function LoadingSkeleton() {
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
 export default function PermissoesPage() {
-  const [departments, setDepartments] = useState<DepartmentWithRoles[]>([])
-  const [globalRoles, setGlobalRoles] = useState<RoleWithPermissions[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null)
+  const [departments, setDepartments] = useState<DepartmentWithRoles[]>([]);
+  const [globalRoles, setGlobalRoles] = useState<RoleWithPermissions[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(
+    null
+  );
 
   const loadData = async () => {
     try {
@@ -66,37 +68,37 @@ export default function PermissoesPage() {
         getDepartmentsWithRolesAndPermissions(),
         getGlobalRolesWithPermissions(),
         checkIsAdmin(),
-      ])
-      setDepartments(depts)
-      setGlobalRoles(global)
-      setIsAdmin(admin)
+      ]);
+      setDepartments(depts);
+      setGlobalRoles(global);
+      setIsAdmin(admin);
     } catch (error) {
-      console.error('Error loading data:', error)
-      toast.error('Erro ao carregar dados')
+      console.error("Error loading data:", error);
+      toast.error("Erro ao carregar dados");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   // Filtra os cargos baseado no departamento selecionado
   const getFilteredRoles = (): RoleWithPermissions[] => {
     if (selectedDepartment === null) {
       // Todos: globais + todos os departamentos
-      const allDeptRoles = departments.flatMap((d) => d.roles)
-      return [...globalRoles, ...allDeptRoles]
+      const allDeptRoles = departments.flatMap((d) => d.roles);
+      return [...globalRoles, ...allDeptRoles];
     }
 
-    if (selectedDepartment === 'global') {
-      return globalRoles
+    if (selectedDepartment === "global") {
+      return globalRoles;
     }
 
-    const dept = departments.find((d) => d.id === selectedDepartment)
-    return dept?.roles || []
-  }
+    const dept = departments.find((d) => d.id === selectedDepartment);
+    return dept?.roles || [];
+  };
 
   if (!isAdmin && !isLoading) {
     return (
@@ -110,17 +112,17 @@ export default function PermissoesPage() {
           <Link href="/dashboard">Voltar ao Início</Link>
         </Button>
       </div>
-    )
+    );
   }
 
-  const filteredRoles = getFilteredRoles()
+  const filteredRoles = getFilteredRoles();
 
   // Prepara dados para o filtro de departamentos
   const departmentFilterData = departments.map((d) => ({
     id: d.id,
     name: d.name,
     rolesCount: d.roles.length,
-  }))
+  }));
 
   return (
     <div className="space-y-6">
@@ -154,11 +156,12 @@ export default function PermissoesPage() {
                   Permissões definidas em código
                 </p>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  As permissões estão configuradas no arquivo{' '}
+                  As permissões estão configuradas no arquivo{" "}
                   <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900 rounded text-xs">
                     permissions.ts
                   </code>
-                  . Para alterar as permissões de um cargo, é necessário modificar o código-fonte.
+                  . Para alterar as permissões de um cargo, é necessário
+                  modificar o código-fonte.
                 </p>
               </div>
             </CardContent>
@@ -176,7 +179,9 @@ export default function PermissoesPage() {
           <Card>
             <CardContent className="py-3">
               <div className="flex flex-wrap items-center gap-6 text-sm">
-                <span className="font-medium text-muted-foreground">Legenda:</span>
+                <span className="font-medium text-muted-foreground">
+                  Legenda:
+                </span>
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900/30">
                     <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
@@ -196,7 +201,9 @@ export default function PermissoesPage() {
                   <span>Sem permissão</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="destructive" className="text-xs">Admin</Badge>
+                  <Badge variant="destructive" className="text-xs">
+                    Admin
+                  </Badge>
                   <span>Acesso total ao sistema</span>
                 </div>
               </div>
@@ -212,5 +219,5 @@ export default function PermissoesPage() {
         </>
       )}
     </div>
-  )
+  );
 }

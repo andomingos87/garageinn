@@ -30,8 +30,8 @@ export function PasswordResetForm() {
           <div className="space-y-1">
             <p className="font-medium text-success">Email enviado!</p>
             <p className="text-muted-foreground">
-              Se o email estiver cadastrado, você receberá um link para redefinir sua senha.
-              Verifique também a pasta de spam.
+              Se o email estiver cadastrado, você receberá um link para
+              redefinir sua senha. Verifique também a pasta de spam.
             </p>
           </div>
         </div>
@@ -99,4 +99,3 @@ export function PasswordResetForm() {
     </form>
   );
 }
-

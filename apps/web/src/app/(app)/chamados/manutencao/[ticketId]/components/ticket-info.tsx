@@ -1,25 +1,27 @@
-'use client'
+"use client";
 
-import { Wrench, MapPin, FileText, Settings2, AlertCircle } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { MAINTENANCE_TYPES } from '../../constants'
+import { Wrench, MapPin, FileText, Settings2, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MAINTENANCE_TYPES } from "../../constants";
 
 interface TicketInfoProps {
   ticket: {
-    description: string
-    maintenance_type: string | null
-    location_description: string | null
-    equipment_affected: string | null
-    denial_reason: string | null
-    status: string
-  }
+    description: string;
+    maintenance_type: string | null;
+    location_description: string | null;
+    equipment_affected: string | null;
+    denial_reason: string | null;
+    status: string;
+  };
 }
 
 export function TicketInfo({ ticket }: TicketInfoProps) {
   return (
     <div className="space-y-4">
       {/* Detalhes de Manutenção */}
-      {(ticket.maintenance_type || ticket.location_description || ticket.equipment_affected) && (
+      {(ticket.maintenance_type ||
+        ticket.location_description ||
+        ticket.equipment_affected) && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -36,7 +38,9 @@ export function TicketInfo({ ticket }: TicketInfoProps) {
                     Tipo de Manutenção
                   </p>
                   <p className="font-medium">
-                    {MAINTENANCE_TYPES[ticket.maintenance_type as keyof typeof MAINTENANCE_TYPES] || ticket.maintenance_type}
+                    {MAINTENANCE_TYPES[
+                      ticket.maintenance_type as keyof typeof MAINTENANCE_TYPES
+                    ] || ticket.maintenance_type}
                   </p>
                 </div>
               )}
@@ -62,7 +66,7 @@ export function TicketInfo({ ticket }: TicketInfoProps) {
           </CardContent>
         </Card>
       )}
-      
+
       {/* Descrição do Problema */}
       <Card>
         <CardHeader className="pb-3">
@@ -75,9 +79,9 @@ export function TicketInfo({ ticket }: TicketInfoProps) {
           <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
         </CardContent>
       </Card>
-      
+
       {/* Motivo da Negação (se negado) */}
-      {ticket.status === 'denied' && ticket.denial_reason && (
+      {ticket.status === "denied" && ticket.denial_reason && (
         <Card className="border-destructive/50 bg-destructive/5">
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-destructive flex items-center gap-2">
@@ -93,6 +97,5 @@ export function TicketInfo({ ticket }: TicketInfoProps) {
         </Card>
       )}
     </div>
-  )
+  );
 }
-

@@ -48,9 +48,11 @@ export default function AuthLayout({
 
       {/* Footer */}
       <footer className="mt-8 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} GarageInn. Todos os direitos reservados.</p>
+        <p>
+          &copy; {new Date().getFullYear()} GarageInn. Todos os direitos
+          reservados.
+        </p>
       </footer>
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,30 +8,30 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
-import { addQuestion, updateQuestion } from '../actions'
-import type { Database } from '@/lib/supabase/database.types'
+} from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
+import { addQuestion, updateQuestion } from "../actions";
+import type { Database } from "@/lib/supabase/database.types";
 
-type Question = Database['public']['Tables']['checklist_questions']['Row']
+type Question = Database["public"]["Tables"]["checklist_questions"]["Row"];
 
 interface QuestionFormDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  templateId: string
-  question?: Question | null
-  onSuccess?: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  templateId: string;
+  question?: Question | null;
+  onSuccess?: () => void;
 }
 
 export function QuestionFormDialog({
@@ -41,41 +41,41 @@ export function QuestionFormDialog({
   question,
   onSuccess,
 }: QuestionFormDialogProps) {
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
-  const isEdit = !!question
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const isEdit = !!question;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
-    const formData = new FormData(e.currentTarget)
+    const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
       const result = isEdit
         ? await updateQuestion(question.id, templateId, formData)
-        : await addQuestion(templateId, formData)
+        : await addQuestion(templateId, formData);
 
       if (result.error) {
-        setError(result.error)
+        setError(result.error);
       } else {
-        onOpenChange(false)
-        onSuccess?.()
+        onOpenChange(false);
+        onSuccess?.();
       }
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? 'Editar Pergunta' : 'Nova Pergunta'}
+            {isEdit ? "Editar Pergunta" : "Nova Pergunta"}
           </DialogTitle>
           <DialogDescription>
             {isEdit
-              ? 'Modifique os campos da pergunta abaixo.'
-              : 'Adicione uma nova pergunta ao checklist.'}
+              ? "Modifique os campos da pergunta abaixo."
+              : "Adicione uma nova pergunta ao checklist."}
           </DialogDescription>
         </DialogHeader>
 
@@ -92,7 +92,7 @@ export function QuestionFormDialog({
               id="question_text"
               name="question_text"
               placeholder="Ex: As luzes de emergência estão funcionando?"
-              defaultValue={question?.question_text || ''}
+              defaultValue={question?.question_text || ""}
               required
               minLength={5}
               rows={3}
@@ -132,7 +132,7 @@ export function QuestionFormDialog({
           {isEdit && (
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select name="status" defaultValue={question?.status || 'active'}>
+              <Select name="status" defaultValue={question?.status || "active"}>
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
@@ -155,12 +155,11 @@ export function QuestionFormDialog({
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEdit ? 'Salvar' : 'Adicionar'}
+              {isEdit ? "Salvar" : "Adicionar"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

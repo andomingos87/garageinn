@@ -35,7 +35,7 @@ interface MenuItem {
   /** Permissões necessárias para visualizar este menu */
   requirePermission?: Permission | Permission[];
   /** Modo de verificação: 'any' = qualquer permissão, 'all' = todas */
-  permissionMode?: 'any' | 'all';
+  permissionMode?: "any" | "all";
 }
 
 const menuItems: MenuItem[] = [
@@ -59,24 +59,24 @@ const menuItems: MenuItem[] = [
     href: "/checklists/supervisao",
     icon: ShieldCheck,
     // Visível para quem pode executar checklists (supervisores e admins)
-    requirePermission: ['checklists:execute', 'admin:all'],
-    permissionMode: 'any',
+    requirePermission: ["checklists:execute", "admin:all"],
+    permissionMode: "any",
   },
   {
     title: "Unidades",
     href: "/unidades",
     icon: Building2,
     // Oculto para quem não tem permissão de unidades (ex: Manobrista)
-    requirePermission: ['units:read', 'admin:all'],
-    permissionMode: 'any',
+    requirePermission: ["units:read", "admin:all"],
+    permissionMode: "any",
   },
   {
     title: "Usuários",
     href: "/usuarios",
     icon: Users,
     // Visível para RH (users:read) e admins
-    requirePermission: ['users:read', 'admin:all'],
-    permissionMode: 'any',
+    requirePermission: ["users:read", "admin:all"],
+    permissionMode: "any",
   },
 ];
 
@@ -86,25 +86,21 @@ const configItems: MenuItem[] = [
     href: "/configuracoes",
     icon: Settings,
     // Visível para gerentes com settings:read e admins
-    requirePermission: ['settings:read', 'admin:all'],
-    permissionMode: 'any',
+    requirePermission: ["settings:read", "admin:all"],
+    permissionMode: "any",
   },
 ];
 
-function MenuItemLink({ 
-  item, 
-  isActive 
-}: { 
-  item: MenuItem; 
+function MenuItemLink({
+  item,
+  isActive,
+}: {
+  item: MenuItem;
   isActive: boolean;
 }) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActive}
-        tooltip={item.title}
-      >
+      <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
         <Link href={item.href}>
           <item.icon className="h-4 w-4" />
           <span>{item.title}</span>
@@ -126,19 +122,19 @@ export function AppSidebar() {
 
   const renderMenuItem = (item: MenuItem) => {
     const menuItemElement = (
-      <MenuItemLink 
-        key={item.href} 
-        item={item} 
-        isActive={isActive(item.href)} 
+      <MenuItemLink
+        key={item.href}
+        item={item}
+        isActive={isActive(item.href)}
       />
     );
 
     if (item.requirePermission) {
       return (
-        <RequirePermission 
+        <RequirePermission
           key={item.href}
           permission={item.requirePermission}
-          mode={item.permissionMode || 'any'}
+          mode={item.permissionMode || "any"}
         >
           {menuItemElement}
         </RequirePermission>
@@ -167,17 +163,13 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map(renderMenuItem)}
-            </SidebarMenu>
+            <SidebarMenu>{menuItems.map(renderMenuItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
-        <SidebarMenu>
-          {configItems.map(renderMenuItem)}
-        </SidebarMenu>
+        <SidebarMenu>{configItems.map(renderMenuItem)}</SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

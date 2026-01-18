@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState, useTransition, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useState, useTransition, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -12,22 +12,22 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { toast } from 'sonner'
-import { createUniform, updateUniform, type Uniform } from '../actions'
-import { UNIFORM_TYPES, UNIFORM_SIZES } from '../constants'
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { createUniform, updateUniform, type Uniform } from "../actions";
+import { UNIFORM_TYPES, UNIFORM_SIZES } from "../constants";
 
 interface UniformFormDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  uniform?: Uniform | null
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  uniform?: Uniform | null;
 }
 
 export function UniformFormDialog({
@@ -35,48 +35,47 @@ export function UniformFormDialog({
   onOpenChange,
   uniform,
 }: UniformFormDialogProps) {
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition();
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    size: '',
-    type: '',
+    name: "",
+    description: "",
+    size: "",
+    type: "",
     min_stock: 5,
     current_stock: 0,
-  })
+  });
 
-  const isEditing = !!uniform
+  const isEditing = !!uniform;
 
   useEffect(() => {
     if (uniform) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Intended: reset form state on dialog open
       setFormData({
         name: uniform.name,
-        description: uniform.description || '',
-        size: uniform.size || '',
-        type: uniform.type || '',
+        description: uniform.description || "",
+        size: uniform.size || "",
+        type: uniform.type || "",
         min_stock: uniform.min_stock,
         current_stock: uniform.current_stock,
-      })
+      });
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
-        name: '',
-        description: '',
-        size: '',
-        type: '',
+        name: "",
+        description: "",
+        size: "",
+        type: "",
         min_stock: 5,
         current_stock: 0,
-      })
+      });
     }
-  }, [uniform, open])
+  }, [uniform, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error('Nome é obrigatório')
-      return
+      toast.error("Nome é obrigatório");
+      return;
     }
 
     startTransition(async () => {
@@ -95,16 +94,16 @@ export function UniformFormDialog({
             type: formData.type,
             min_stock: formData.min_stock,
             current_stock: formData.current_stock,
-          })
+          });
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success(isEditing ? 'Uniforme atualizado' : 'Uniforme criado')
-        onOpenChange(false)
+        toast.success(isEditing ? "Uniforme atualizado" : "Uniforme criado");
+        onOpenChange(false);
       }
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,12 +111,12 @@ export function UniformFormDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? 'Editar Uniforme' : 'Novo Uniforme'}
+              {isEditing ? "Editar Uniforme" : "Novo Uniforme"}
             </DialogTitle>
             <DialogDescription>
               {isEditing
-                ? 'Edite as informações do uniforme'
-                : 'Cadastre um novo item de uniforme no estoque'}
+                ? "Edite as informações do uniforme"
+                : "Cadastre um novo item de uniforme no estoque"}
             </DialogDescription>
           </DialogHeader>
 
@@ -127,7 +126,9 @@ export function UniformFormDialog({
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Ex: Camiseta Polo"
               />
             </div>
@@ -137,7 +138,9 @@ export function UniformFormDialog({
                 <Label htmlFor="type">Tipo</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value) => setFormData({ ...formData, type: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, type: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
@@ -156,7 +159,9 @@ export function UniformFormDialog({
                 <Label htmlFor="size">Tamanho</Label>
                 <Select
                   value={formData.size}
-                  onValueChange={(value) => setFormData({ ...formData, size: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, size: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
@@ -177,7 +182,9 @@ export function UniformFormDialog({
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Detalhes adicionais do uniforme..."
                 rows={2}
               />
@@ -191,7 +198,12 @@ export function UniformFormDialog({
                   type="number"
                   min={0}
                   value={formData.min_stock}
-                  onChange={(e) => setFormData({ ...formData, min_stock: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      min_stock: parseInt(e.target.value) || 0,
+                    })
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Alerta quando atingir este valor
@@ -206,7 +218,12 @@ export function UniformFormDialog({
                     type="number"
                     min={0}
                     value={formData.current_stock}
-                    onChange={(e) => setFormData({ ...formData, current_stock: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        current_stock: parseInt(e.target.value) || 0,
+                      })
+                    }
                   />
                   <p className="text-xs text-muted-foreground">
                     Quantidade inicial disponível
@@ -226,12 +243,11 @@ export function UniformFormDialog({
               Cancelar
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar'}
+              {isPending ? "Salvando..." : isEditing ? "Salvar" : "Criar"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

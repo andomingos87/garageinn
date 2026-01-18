@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { useState, useTransition } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,14 +10,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,43 +27,43 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { MoreHorizontal, Pencil, Trash2, Globe, Users } from 'lucide-react'
-import { toast } from 'sonner'
-import type { Role } from '../actions'
-import { deleteRole } from '../actions'
+} from "@/components/ui/alert-dialog";
+import { MoreHorizontal, Pencil, Trash2, Globe, Users } from "lucide-react";
+import { toast } from "sonner";
+import type { Role } from "../actions";
+import { deleteRole } from "../actions";
 
 interface RolesListProps {
-  roles: Role[]
-  departmentId?: string | null
-  onEdit: (role: Role) => void
+  roles: Role[];
+  departmentId?: string | null;
+  onEdit: (role: Role) => void;
 }
 
 export function RolesList({ roles, departmentId, onEdit }: RolesListProps) {
-  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
-    if (!roleToDelete) return
+    if (!roleToDelete) return;
 
     startTransition(async () => {
-      const result = await deleteRole(roleToDelete.id, departmentId)
+      const result = await deleteRole(roleToDelete.id, departmentId);
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Cargo excluído com sucesso')
+        toast.success("Cargo excluído com sucesso");
       }
-      setRoleToDelete(null)
-    })
-  }
+      setRoleToDelete(null);
+    });
+  };
 
   if (roles.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         Nenhum cargo encontrado.
       </div>
-    )
+    );
   }
 
   return (
@@ -127,13 +127,17 @@ export function RolesList({ roles, departmentId, onEdit }: RolesListProps) {
         </TableBody>
       </Table>
 
-      <AlertDialog open={!!roleToDelete} onOpenChange={() => setRoleToDelete(null)}>
+      <AlertDialog
+        open={!!roleToDelete}
+        onOpenChange={() => setRoleToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir cargo</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o cargo <strong>{roleToDelete?.name}</strong>?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o cargo{" "}
+              <strong>{roleToDelete?.name}</strong>? Esta ação não pode ser
+              desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -143,12 +147,11 @@ export function RolesList({ roles, departmentId, onEdit }: RolesListProps) {
               disabled={isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isPending ? 'Excluindo...' : 'Excluir'}
+              {isPending ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
-

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Separator } from '@/components/ui/separator'
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 
 export default function Loading() {
   return (
@@ -52,6 +52,5 @@ export default function Loading() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

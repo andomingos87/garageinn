@@ -1,17 +1,22 @@
-import { Wrench } from 'lucide-react'
-import { createMaintenanceTicket, getMaintenanceCategories, getUserUnits, getUserFixedUnit } from '../actions'
-import { MaintenanceTicketForm } from '../components'
+import { Wrench } from "lucide-react";
+import {
+  createMaintenanceTicket,
+  getMaintenanceCategories,
+  getUserUnits,
+  getUserFixedUnit,
+} from "../actions";
+import { MaintenanceTicketForm } from "../components";
 
 export default async function NovoChamadoManutencaoPage() {
   const [categories, units, fixedUnit] = await Promise.all([
     getMaintenanceCategories(),
     getUserUnits(),
     getUserFixedUnit(),
-  ])
+  ]);
 
   async function handleCreateTicket(formData: FormData) {
-    'use server'
-    return createMaintenanceTicket(formData)
+    "use server";
+    return createMaintenanceTicket(formData);
   }
 
   return (
@@ -20,7 +25,9 @@ export default async function NovoChamadoManutencaoPage() {
       <div>
         <div className="flex items-center gap-2">
           <Wrench className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-semibold tracking-tight">Novo Chamado de Manutenção</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Novo Chamado de Manutenção
+          </h2>
         </div>
         <p className="text-muted-foreground mt-1">
           Preencha o formulário abaixo para solicitar um serviço de manutenção
@@ -37,6 +44,5 @@ export default async function NovoChamadoManutencaoPage() {
         />
       </div>
     </div>
-  )
+  );
 }
-

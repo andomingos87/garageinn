@@ -1,83 +1,108 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useCallback } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Building2, FileText, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react'
-import { getExecution, type ExecutionWithDetails } from '../actions'
-import { QuestionItem, ExecutionProgress, ExecutionSummary } from '../components'
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  Building2,
+  FileText,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
+import { getExecution, type ExecutionWithDetails } from "../actions";
+import {
+  QuestionItem,
+  ExecutionProgress,
+  ExecutionSummary,
+} from "../components";
 
 export default function ExecutionPage() {
-  const params = useParams()
-  const router = useRouter()
-  const executionId = params.executionId as string
+  const params = useParams();
+  const router = useRouter();
+  const executionId = params.executionId as string;
 
-  const [execution, setExecution] = useState<ExecutionWithDetails | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [showSummary, setShowSummary] = useState(false)
+  const [execution, setExecution] = useState<ExecutionWithDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showSummary, setShowSummary] = useState(false);
 
   const loadExecution = useCallback(async () => {
     try {
-      const data = await getExecution(executionId)
+      const data = await getExecution(executionId);
       if (!data) {
-        router.push('/checklists/executar')
-        return
+        router.push("/checklists/executar");
+        return;
       }
-      setExecution(data)
-      
+      setExecution(data);
+
       // Se já está completo, redirecionar
-      if (data.status === 'completed') {
-        router.push('/checklists')
+      if (data.status === "completed") {
+        router.push("/checklists");
       }
     } catch (error) {
-      console.error('Error loading execution:', error)
-      router.push('/checklists/executar')
+      console.error("Error loading execution:", error);
+      router.push("/checklists/executar");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [executionId, router])
+  }, [executionId, router]);
 
   useEffect(() => {
-    loadExecution()
-  }, [loadExecution])
+    loadExecution();
+  }, [loadExecution]);
 
   // Refresh execution data periodically for answer updates
   useEffect(() => {
-    if (!execution || execution.status === 'completed') return
+    if (!execution || execution.status === "completed") return;
 
-    const interval = setInterval(loadExecution, 5000) // Refresh every 5 seconds
-    return () => clearInterval(interval)
-  }, [execution, loadExecution])
+    const interval = setInterval(loadExecution, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
+  }, [execution, loadExecution]);
 
   if (loading) {
-    return <LoadingSkeleton />
+    return <LoadingSkeleton />;
   }
 
   if (!execution) {
-    return null
+    return null;
   }
 
-  const activeQuestions = execution.questions.filter(q => q.status === 'active')
-  const answersMap = new Map(execution.answers.map(a => [a.question_id, a]))
-  const answeredCount = activeQuestions.filter(q => answersMap.has(q.id)).length
+  const activeQuestions = execution.questions.filter(
+    (q) => q.status === "active"
+  );
+  const answersMap = new Map(execution.answers.map((a) => [a.question_id, a]));
+  const answeredCount = activeQuestions.filter((q) =>
+    answersMap.has(q.id)
+  ).length;
 
   // Check if can show summary
   const requiredAnswered = activeQuestions
-    .filter(q => q.is_required)
-    .every(q => answersMap.has(q.id))
+    .filter((q) => q.is_required)
+    .every((q) => answersMap.has(q.id));
 
-  const canShowSummary = answeredCount > 0
+  const canShowSummary = answeredCount > 0;
 
   if (showSummary) {
     return (
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setShowSummary(false)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowSummary(false)}
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1 min-w-0">
@@ -97,7 +122,7 @@ export default function ExecutionPage() {
           onCancel={() => setShowSummary(false)}
         />
       </div>
-    )
+    );
   }
 
   return (
@@ -117,7 +142,9 @@ export default function ExecutionPage() {
             <div className="flex items-center gap-2 text-muted-foreground flex-wrap">
               <Building2 className="h-4 w-4 shrink-0" />
               <span className="truncate">{execution.unit.name}</span>
-              <Badge variant="outline" className="shrink-0">{execution.unit.code}</Badge>
+              <Badge variant="outline" className="shrink-0">
+                {execution.unit.code}
+              </Badge>
             </div>
           </div>
         </div>
@@ -187,7 +214,10 @@ export default function ExecutionPage() {
               <div className="flex items-center justify-between gap-4">
                 <div className="text-sm">
                   <span className="font-medium">{answeredCount}</span>
-                  <span className="text-muted-foreground"> de {activeQuestions.length}</span>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    de {activeQuestions.length}
+                  </span>
                 </div>
                 <Button
                   onClick={() => setShowSummary(true)}
@@ -203,7 +233,7 @@ export default function ExecutionPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -249,6 +279,5 @@ function LoadingSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
-

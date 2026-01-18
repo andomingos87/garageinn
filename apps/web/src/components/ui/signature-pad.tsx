@@ -1,29 +1,35 @@
-'use client'
+"use client";
 
-import { useRef, useEffect, useState, useCallback } from 'react'
-import SignatureCanvas from 'react-signature-canvas'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Eraser, Check, RotateCcw } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useRef, useEffect, useState, useCallback } from "react";
+import SignatureCanvas from "react-signature-canvas";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Eraser, Check, RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SignaturePadProps {
-  title?: string
-  description?: string
-  onSave?: (dataUrl: string) => void
-  onClear?: () => void
-  width?: number
-  height?: number
-  className?: string
-  disabled?: boolean
-  penColor?: string
-  backgroundColor?: string
-  required?: boolean
-  value?: string | null
+  title?: string;
+  description?: string;
+  onSave?: (dataUrl: string) => void;
+  onClear?: () => void;
+  width?: number;
+  height?: number;
+  className?: string;
+  disabled?: boolean;
+  penColor?: string;
+  backgroundColor?: string;
+  required?: boolean;
+  value?: string | null;
 }
 
 export function SignaturePad({
-  title = 'Assinatura',
+  title = "Assinatura",
   description,
   onSave,
   onClear,
@@ -31,87 +37,87 @@ export function SignaturePad({
   height = 200,
   className,
   disabled = false,
-  penColor = '#000000',
-  backgroundColor = '#ffffff',
+  penColor = "#000000",
+  backgroundColor = "#ffffff",
   required = false,
   value,
 }: SignaturePadProps) {
-  const sigCanvasRef = useRef<SignatureCanvas>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [isEmpty, setIsEmpty] = useState(true)
-  const [canvasWidth, setCanvasWidth] = useState(width || 400)
+  const sigCanvasRef = useRef<SignatureCanvas>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isEmpty, setIsEmpty] = useState(true);
+  const [canvasWidth, setCanvasWidth] = useState(width || 400);
 
   // Handle responsive width
   useEffect(() => {
     if (width) {
-      setCanvasWidth(width)
-      return
+      setCanvasWidth(width);
+      return;
     }
 
     const updateWidth = () => {
       if (containerRef.current) {
         // Leave some padding
-        const containerWidth = containerRef.current.offsetWidth - 32
-        setCanvasWidth(Math.max(containerWidth, 200))
+        const containerWidth = containerRef.current.offsetWidth - 32;
+        setCanvasWidth(Math.max(containerWidth, 200));
       }
-    }
+    };
 
-    updateWidth()
-    window.addEventListener('resize', updateWidth)
-    return () => window.removeEventListener('resize', updateWidth)
-  }, [width])
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, [width]);
 
   // Load existing signature if provided
   useEffect(() => {
     if (value && sigCanvasRef.current) {
       // Clear first
-      sigCanvasRef.current.clear()
+      sigCanvasRef.current.clear();
       // Load image
-      const img = new Image()
+      const img = new Image();
       img.onload = () => {
-        const canvas = sigCanvasRef.current?.getCanvas()
+        const canvas = sigCanvasRef.current?.getCanvas();
         if (canvas) {
-          const ctx = canvas.getContext('2d')
+          const ctx = canvas.getContext("2d");
           if (ctx) {
-            ctx.fillStyle = backgroundColor
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
-            ctx.drawImage(img, 0, 0)
-            setIsEmpty(false)
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            setIsEmpty(false);
           }
         }
-      }
-      img.src = value
+      };
+      img.src = value;
     }
-  }, [value, backgroundColor])
+  }, [value, backgroundColor]);
 
   const handleClear = useCallback(() => {
     if (sigCanvasRef.current) {
-      sigCanvasRef.current.clear()
-      setIsEmpty(true)
-      onClear?.()
+      sigCanvasRef.current.clear();
+      setIsEmpty(true);
+      onClear?.();
     }
-  }, [onClear])
+  }, [onClear]);
 
   const handleEnd = useCallback(() => {
     if (sigCanvasRef.current) {
-      const empty = sigCanvasRef.current.isEmpty()
-      setIsEmpty(empty)
+      const empty = sigCanvasRef.current.isEmpty();
+      setIsEmpty(empty);
       if (!empty && onSave) {
-        const dataUrl = sigCanvasRef.current.toDataURL('image/png')
-        onSave(dataUrl)
+        const dataUrl = sigCanvasRef.current.toDataURL("image/png");
+        onSave(dataUrl);
       }
     }
-  }, [onSave])
+  }, [onSave]);
 
   const handleSave = useCallback(() => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
-      const dataUrl = sigCanvasRef.current.toDataURL('image/png')
-      onSave?.(dataUrl)
+      const dataUrl = sigCanvasRef.current.toDataURL("image/png");
+      onSave?.(dataUrl);
     }
-  }, [onSave])
+  }, [onSave]);
 
   return (
-    <Card className={cn('overflow-hidden', className)}>
+    <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
@@ -142,9 +148,9 @@ export function SignaturePad({
       <CardContent ref={containerRef} className="p-4 pt-0">
         <div
           className={cn(
-            'border-2 border-dashed rounded-lg overflow-hidden transition-colors',
-            isEmpty ? 'border-muted-foreground/25' : 'border-primary/50',
-            disabled && 'opacity-50 pointer-events-none'
+            "border-2 border-dashed rounded-lg overflow-hidden transition-colors",
+            isEmpty ? "border-muted-foreground/25" : "border-primary/50",
+            disabled && "opacity-50 pointer-events-none"
           )}
           style={{ backgroundColor }}
         >
@@ -155,9 +161,9 @@ export function SignaturePad({
             canvasProps={{
               width: canvasWidth,
               height: height,
-              className: 'touch-none',
+              className: "touch-none",
               style: {
-                width: '100%',
+                width: "100%",
                 height: `${height}px`,
               },
             }}
@@ -177,17 +183,17 @@ export function SignaturePad({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // Simple inline signature for smaller spaces
 interface InlineSignaturePadProps {
-  label: string
-  value?: string | null
-  onChange: (dataUrl: string | null) => void
-  height?: number
-  disabled?: boolean
-  required?: boolean
+  label: string;
+  value?: string | null;
+  onChange: (dataUrl: string | null) => void;
+  height?: number;
+  disabled?: boolean;
+  required?: boolean;
 }
 
 export function InlineSignaturePad({
@@ -198,63 +204,63 @@ export function InlineSignaturePad({
   disabled = false,
   required = false,
 }: InlineSignaturePadProps) {
-  const sigCanvasRef = useRef<SignatureCanvas>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [isEmpty, setIsEmpty] = useState(!value)
-  const [canvasWidth, setCanvasWidth] = useState(300)
+  const sigCanvasRef = useRef<SignatureCanvas>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isEmpty, setIsEmpty] = useState(!value);
+  const [canvasWidth, setCanvasWidth] = useState(300);
 
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth
-        setCanvasWidth(Math.max(containerWidth, 200))
+        const containerWidth = containerRef.current.offsetWidth;
+        setCanvasWidth(Math.max(containerWidth, 200));
       }
-    }
+    };
 
-    updateWidth()
-    window.addEventListener('resize', updateWidth)
-    return () => window.removeEventListener('resize', updateWidth)
-  }, [])
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   // Load existing signature if provided
   useEffect(() => {
     if (value && sigCanvasRef.current) {
-      sigCanvasRef.current.clear()
-      const img = new Image()
+      sigCanvasRef.current.clear();
+      const img = new Image();
       img.onload = () => {
-        const canvas = sigCanvasRef.current?.getCanvas()
+        const canvas = sigCanvasRef.current?.getCanvas();
         if (canvas) {
-          const ctx = canvas.getContext('2d')
+          const ctx = canvas.getContext("2d");
           if (ctx) {
-            ctx.fillStyle = '#ffffff'
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
-            ctx.drawImage(img, 0, 0)
-            setIsEmpty(false)
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            setIsEmpty(false);
           }
         }
-      }
-      img.src = value
+      };
+      img.src = value;
     }
-  }, [value])
+  }, [value]);
 
   const handleClear = useCallback(() => {
     if (sigCanvasRef.current) {
-      sigCanvasRef.current.clear()
-      setIsEmpty(true)
-      onChange(null)
+      sigCanvasRef.current.clear();
+      setIsEmpty(true);
+      onChange(null);
     }
-  }, [onChange])
+  }, [onChange]);
 
   const handleEnd = useCallback(() => {
     if (sigCanvasRef.current) {
-      const empty = sigCanvasRef.current.isEmpty()
-      setIsEmpty(empty)
+      const empty = sigCanvasRef.current.isEmpty();
+      setIsEmpty(empty);
       if (!empty) {
-        const dataUrl = sigCanvasRef.current.toDataURL('image/png')
-        onChange(dataUrl)
+        const dataUrl = sigCanvasRef.current.toDataURL("image/png");
+        onChange(dataUrl);
       }
     }
-  }, [onChange])
+  }, [onChange]);
 
   return (
     <div className="space-y-2">
@@ -278,9 +284,9 @@ export function InlineSignaturePad({
       <div
         ref={containerRef}
         className={cn(
-          'border-2 border-dashed rounded-lg overflow-hidden bg-white transition-colors',
-          isEmpty ? 'border-muted-foreground/25' : 'border-primary/50',
-          disabled && 'opacity-50 pointer-events-none'
+          "border-2 border-dashed rounded-lg overflow-hidden bg-white transition-colors",
+          isEmpty ? "border-muted-foreground/25" : "border-primary/50",
+          disabled && "opacity-50 pointer-events-none"
         )}
       >
         <SignatureCanvas
@@ -290,9 +296,9 @@ export function InlineSignaturePad({
           canvasProps={{
             width: canvasWidth,
             height: height,
-            className: 'touch-none',
+            className: "touch-none",
             style: {
-              width: '100%',
+              width: "100%",
               height: `${height}px`,
             },
           }}
@@ -305,5 +311,5 @@ export function InlineSignaturePad({
         </p>
       )}
     </div>
-  )
+  );
 }

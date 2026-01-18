@@ -30,7 +30,18 @@
       "mcp__supabase_gapp__execute_sql",
       "mcp__supabase_gapp__apply_migration",
       "Bash(npm install:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Skill(nothing)",
+      "Bash(ls:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_wait_for",
+      "Bash(netstat:*)",
+      "mcp__playwright__browser_close",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "mcp__ai-context__scaffoldPlan",
+      "mcp__supabase_gapp__get_advisors",
+      "mcp__supabase_gapp__generate_typescript_types"
     ],
     "deny": [
       "Bash(rm -rf:*)",

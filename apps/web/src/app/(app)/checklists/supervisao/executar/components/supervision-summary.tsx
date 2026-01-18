@@ -1,37 +1,56 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { AlertTriangle, Check, CheckCircle2, Loader2, X, PenLine, ShieldCheck, User } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { completeSupervisionExecution, type SupervisionSignatureData } from '../../../executar/actions'
-import { InlineSignaturePad } from '@/components/ui/signature-pad'
+import { useState, useTransition } from "react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  Loader2,
+  X,
+  PenLine,
+  ShieldCheck,
+  User,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  completeSupervisionExecution,
+  type SupervisionSignatureData,
+} from "../../../executar/actions";
+import { InlineSignaturePad } from "@/components/ui/signature-pad";
 
 interface Question {
-  id: string
-  question_text: string
-  order_index: number
-  is_required: boolean | null
-  requires_observation_on_no: boolean | null
+  id: string;
+  question_text: string;
+  order_index: number;
+  is_required: boolean | null;
+  requires_observation_on_no: boolean | null;
 }
 
 interface Answer {
-  id: string
-  question_id: string
-  answer: boolean
-  observation: string | null
+  id: string;
+  question_id: string;
+  answer: boolean;
+  observation: string | null;
 }
 
 interface SupervisionSummaryProps {
-  executionId: string
-  questions: Question[]
-  answers: Answer[]
-  onCancel: () => void
+  executionId: string;
+  questions: Question[];
+  answers: Answer[];
+  onCancel: () => void;
 }
 
 export function SupervisionSummary({
@@ -40,61 +59,69 @@ export function SupervisionSummary({
   answers,
   onCancel,
 }: SupervisionSummaryProps) {
-  const [isPending, startTransition] = useTransition()
-  const [generalObservations, setGeneralObservations] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition();
+  const [generalObservations, setGeneralObservations] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   // Signature state
-  const [supervisorSignature, setSupervisorSignature] = useState<string | null>(null)
-  const [attendantSignature, setAttendantSignature] = useState<string | null>(null)
-  const [attendantName, setAttendantName] = useState('')
+  const [supervisorSignature, setSupervisorSignature] = useState<string | null>(
+    null
+  );
+  const [attendantSignature, setAttendantSignature] = useState<string | null>(
+    null
+  );
+  const [attendantName, setAttendantName] = useState("");
 
-  const answersMap = new Map(answers.map(a => [a.question_id, a]))
+  const answersMap = new Map(answers.map((a) => [a.question_id, a]));
 
-  const yesCount = answers.filter(a => a.answer === true).length
-  const noCount = answers.filter(a => a.answer === false).length
+  const yesCount = answers.filter((a) => a.answer === true).length;
+  const noCount = answers.filter((a) => a.answer === false).length;
   const unansweredRequired = questions.filter(
-    q => q.is_required && !answersMap.has(q.id)
-  )
-  const missingObservations = questions.filter(q => {
-    const ans = answersMap.get(q.id)
-    return q.requires_observation_on_no && ans?.answer === false && !ans.observation
-  })
+    (q) => q.is_required && !answersMap.has(q.id)
+  );
+  const missingObservations = questions.filter((q) => {
+    const ans = answersMap.get(q.id);
+    return (
+      q.requires_observation_on_no && ans?.answer === false && !ans.observation
+    );
+  });
 
   const nonConformities = questions
-    .filter(q => answersMap.get(q.id)?.answer === false)
-    .map(q => ({
+    .filter((q) => answersMap.get(q.id)?.answer === false)
+    .map((q) => ({
       question: q,
       answer: answersMap.get(q.id)!,
-    }))
+    }));
 
   // Validation
-  const hasRequiredAnswers = unansweredRequired.length === 0 && missingObservations.length === 0
-  const hasSignatures = !!supervisorSignature && !!attendantSignature && !!attendantName.trim()
-  const canComplete = hasRequiredAnswers && hasSignatures
+  const hasRequiredAnswers =
+    unansweredRequired.length === 0 && missingObservations.length === 0;
+  const hasSignatures =
+    !!supervisorSignature && !!attendantSignature && !!attendantName.trim();
+  const canComplete = hasRequiredAnswers && hasSignatures;
 
   const handleComplete = () => {
-    if (!canComplete) return
+    if (!canComplete) return;
 
-    setError(null)
+    setError(null);
     startTransition(async () => {
       const signatureData: SupervisionSignatureData = {
         supervisorSignature: supervisorSignature!,
         attendantSignature: attendantSignature!,
         attendantName: attendantName.trim(),
-      }
+      };
 
       const result = await completeSupervisionExecution(
         executionId,
         signatureData,
         generalObservations || undefined
-      )
+      );
 
       if (result?.error) {
-        setError(result.error)
+        setError(result.error);
       }
-    })
-  }
+    });
+  };
 
   return (
     <Card className="border-2">
@@ -119,20 +146,26 @@ export function SupervisionSummary({
             <p className="text-2xl font-bold text-success">{yesCount}</p>
             <p className="text-xs text-success">Conforme</p>
           </div>
-          <div className={cn(
-            'p-3 rounded-lg',
-            noCount > 0 ? 'bg-destructive/10' : 'bg-muted'
-          )}>
-            <p className={cn(
-              'text-2xl font-bold',
-              noCount > 0 ? 'text-destructive' : ''
-            )}>
+          <div
+            className={cn(
+              "p-3 rounded-lg",
+              noCount > 0 ? "bg-destructive/10" : "bg-muted"
+            )}
+          >
+            <p
+              className={cn(
+                "text-2xl font-bold",
+                noCount > 0 ? "text-destructive" : ""
+              )}
+            >
               {noCount}
             </p>
-            <p className={cn(
-              'text-xs',
-              noCount > 0 ? 'text-destructive' : 'text-muted-foreground'
-            )}>
+            <p
+              className={cn(
+                "text-xs",
+                noCount > 0 ? "text-destructive" : "text-muted-foreground"
+              )}
+            >
               Não Conforme
             </p>
           </div>
@@ -147,12 +180,18 @@ export function SupervisionSummary({
             </p>
             {unansweredRequired.length > 0 && (
               <p className="text-sm text-destructive">
-                {unansweredRequired.length} {unansweredRequired.length === 1 ? 'pergunta obrigatória não respondida' : 'perguntas obrigatórias não respondidas'}
+                {unansweredRequired.length}{" "}
+                {unansweredRequired.length === 1
+                  ? "pergunta obrigatória não respondida"
+                  : "perguntas obrigatórias não respondidas"}
               </p>
             )}
             {missingObservations.length > 0 && (
               <p className="text-sm text-destructive">
-                {missingObservations.length} {missingObservations.length === 1 ? 'observação obrigatória faltando' : 'observações obrigatórias faltando'}
+                {missingObservations.length}{" "}
+                {missingObservations.length === 1
+                  ? "observação obrigatória faltando"
+                  : "observações obrigatórias faltando"}
               </p>
             )}
           </div>
@@ -171,7 +210,9 @@ export function SupervisionSummary({
                   key={question.id}
                   className="p-3 bg-destructive/5 border border-destructive/20 rounded-lg"
                 >
-                  <p className="text-sm font-medium">{question.question_text}</p>
+                  <p className="text-sm font-medium">
+                    {question.question_text}
+                  </p>
                   {answer.observation && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Obs: {answer.observation}
@@ -195,7 +236,9 @@ export function SupervisionSummary({
 
         {/* General Observations */}
         <div className="space-y-2">
-          <Label htmlFor="general-observations">Observações Gerais (opcional)</Label>
+          <Label htmlFor="general-observations">
+            Observações Gerais (opcional)
+          </Label>
           <Textarea
             id="general-observations"
             placeholder="Adicione observações gerais sobre esta supervisão..."
@@ -296,5 +339,5 @@ export function SupervisionSummary({
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Command,
   CommandEmpty,
@@ -22,162 +22,171 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command'
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
-import { Switch } from '@/components/ui/switch'
-import { Plus, Loader2, Check, ChevronsUpDown, Building2 } from 'lucide-react'
-import { addClaimQuotation, getAccreditedSuppliers } from '../actions'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Loader2, Check, ChevronsUpDown, Building2 } from "lucide-react";
+import { addClaimQuotation, getAccreditedSuppliers } from "../actions";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Supplier {
-  id: string
-  name: string
-  cnpj: string | null
-  contact_name: string | null
-  phone: string | null
-  email: string | null
-  category: string | null
+  id: string;
+  name: string;
+  cnpj: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  email: string | null;
+  category: string | null;
 }
 
 interface ClaimQuotationFormProps {
-  ticketId: string
-  purchaseId: string
-  onSuccess?: () => void
+  ticketId: string;
+  purchaseId: string;
+  onSuccess?: () => void;
 }
 
-export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuotationFormProps) {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [loadingSuppliers, setLoadingSuppliers] = useState(false)
-  
+export function ClaimQuotationForm({
+  ticketId,
+  purchaseId,
+  onSuccess,
+}: ClaimQuotationFormProps) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingSuppliers, setLoadingSuppliers] = useState(false);
+
   // Suppliers
-  const [suppliers, setSuppliers] = useState<Supplier[]>([])
-  const [supplierOpen, setSupplierOpen] = useState(false)
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
-  const [useCredentialed, setUseCredentialed] = useState(true)
-  
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [supplierOpen, setSupplierOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+    null
+  );
+  const [useCredentialed, setUseCredentialed] = useState(true);
+
   // Form fields
-  const [supplierName, setSupplierName] = useState('')
-  const [supplierCnpj, setSupplierCnpj] = useState('')
-  const [supplierContact, setSupplierContact] = useState('')
-  const [supplierPhone, setSupplierPhone] = useState('')
-  const [totalPrice, setTotalPrice] = useState('')
-  const [paymentTerms, setPaymentTerms] = useState('')
-  const [deliveryDeadline, setDeliveryDeadline] = useState('')
-  const [validityDate, setValidityDate] = useState('')
-  const [notes, setNotes] = useState('')
+  const [supplierName, setSupplierName] = useState("");
+  const [supplierCnpj, setSupplierCnpj] = useState("");
+  const [supplierContact, setSupplierContact] = useState("");
+  const [supplierPhone, setSupplierPhone] = useState("");
+  const [totalPrice, setTotalPrice] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("");
+  const [deliveryDeadline, setDeliveryDeadline] = useState("");
+  const [validityDate, setValidityDate] = useState("");
+  const [notes, setNotes] = useState("");
 
   // Load suppliers
   useEffect(() => {
     if (open && useCredentialed) {
-      loadSuppliers()
+      loadSuppliers();
     }
-  }, [open, useCredentialed])
-  
+  }, [open, useCredentialed]);
+
   const loadSuppliers = async () => {
-    setLoadingSuppliers(true)
+    setLoadingSuppliers(true);
     try {
-      const data = await getAccreditedSuppliers()
-      setSuppliers(data)
+      const data = await getAccreditedSuppliers();
+      setSuppliers(data);
     } catch (error) {
-      console.error('Error loading suppliers:', error)
+      console.error("Error loading suppliers:", error);
     } finally {
-      setLoadingSuppliers(false)
+      setLoadingSuppliers(false);
     }
-  }
-  
+  };
+
   // Handle supplier selection
   const handleSupplierSelect = (supplier: Supplier) => {
-    setSelectedSupplier(supplier)
-    setSupplierName(supplier.name)
-    setSupplierCnpj(supplier.cnpj || '')
-    setSupplierContact(supplier.contact_name || '')
-    setSupplierPhone(supplier.phone || '')
-    setSupplierOpen(false)
-  }
-  
+    setSelectedSupplier(supplier);
+    setSupplierName(supplier.name);
+    setSupplierCnpj(supplier.cnpj || "");
+    setSupplierContact(supplier.contact_name || "");
+    setSupplierPhone(supplier.phone || "");
+    setSupplierOpen(false);
+  };
+
   // Reset form
   const resetForm = () => {
-    setSelectedSupplier(null)
-    setSupplierName('')
-    setSupplierCnpj('')
-    setSupplierContact('')
-    setSupplierPhone('')
-    setTotalPrice('')
-    setPaymentTerms('')
-    setDeliveryDeadline('')
-    setValidityDate('')
-    setNotes('')
-    setUseCredentialed(true)
-  }
-  
+    setSelectedSupplier(null);
+    setSupplierName("");
+    setSupplierCnpj("");
+    setSupplierContact("");
+    setSupplierPhone("");
+    setTotalPrice("");
+    setPaymentTerms("");
+    setDeliveryDeadline("");
+    setValidityDate("");
+    setNotes("");
+    setUseCredentialed(true);
+  };
+
   // Format CNPJ
   const formatCnpj = (value: string) => {
-    const numbers = value.replace(/\D/g, '')
+    const numbers = value.replace(/\D/g, "");
     if (numbers.length <= 14) {
       return numbers
-        .replace(/(\d{2})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1/$2')
-        .replace(/(\d{4})(\d)/, '$1-$2')
+        .replace(/(\d{2})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1/$2")
+        .replace(/(\d{4})(\d)/, "$1-$2");
     }
-    return value
-  }
-  
+    return value;
+  };
+
   // Format phone
   const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '')
+    const numbers = value.replace(/\D/g, "");
     if (numbers.length <= 11) {
       if (numbers.length <= 10) {
         return numbers
-          .replace(/(\d{2})(\d)/, '($1) $2')
-          .replace(/(\d{4})(\d)/, '$1-$2')
+          .replace(/(\d{2})(\d)/, "($1) $2")
+          .replace(/(\d{4})(\d)/, "$1-$2");
       }
       return numbers
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2");
     }
-    return value
-  }
-  
+    return value;
+  };
+
   // Format currency input
   const formatCurrency = (value: string) => {
-    const numbers = value.replace(/\D/g, '')
-    const amount = parseInt(numbers) / 100
-    if (isNaN(amount)) return ''
-    return amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
-  
+    const numbers = value.replace(/\D/g, "");
+    const amount = parseInt(numbers) / 100;
+    if (isNaN(amount)) return "";
+    return amount.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   // Parse currency to number
   const parseCurrency = (value: string): number => {
-    const numbers = value.replace(/\D/g, '')
-    return parseInt(numbers) / 100 || 0
-  }
-  
+    const numbers = value.replace(/\D/g, "");
+    return parseInt(numbers) / 100 || 0;
+  };
+
   // Submit
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     // Validações
     if (!supplierName.trim()) {
-      toast.error('Nome do fornecedor é obrigatório')
-      return
+      toast.error("Nome do fornecedor é obrigatório");
+      return;
     }
-    
-    const price = parseCurrency(totalPrice)
+
+    const price = parseCurrency(totalPrice);
     if (!price || price <= 0) {
-      toast.error('Preço total deve ser maior que zero')
-      return
+      toast.error("Preço total deve ser maior que zero");
+      return;
     }
-    
-    setLoading(true)
-    
+
+    setLoading(true);
+
     try {
       const result = await addClaimQuotation(ticketId, purchaseId, {
         supplier_id: selectedSupplier?.id,
@@ -190,35 +199,38 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
         delivery_deadline: deliveryDeadline || undefined,
         validity_date: validityDate || undefined,
         notes: notes.trim() || undefined,
-      })
-      
+      });
+
       if (result.error) {
-        toast.error(result.error)
-        return
+        toast.error(result.error);
+        return;
       }
-      
-      toast.success('Cotação adicionada com sucesso!')
-      
+
+      toast.success("Cotação adicionada com sucesso!");
+
       // Se marcou para selecionar, buscar a cotação recém criada e selecionar
       // Por simplicidade, vamos apenas fechar e atualizar
-      
-      setOpen(false)
-      resetForm()
-      router.refresh()
-      onSuccess?.()
+
+      setOpen(false);
+      resetForm();
+      router.refresh();
+      onSuccess?.();
     } catch (error) {
-      console.error('Error adding quotation:', error)
-      toast.error('Erro ao adicionar cotação')
+      console.error("Error adding quotation:", error);
+      toast.error("Erro ao adicionar cotação");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-  
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      setOpen(isOpen)
-      if (!isOpen) resetForm()
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) resetForm();
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1">
           <Plus className="h-4 w-4" />
@@ -232,7 +244,7 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
             Adicione uma cotação de fornecedor para esta compra.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Toggle Fornecedor Credenciado */}
           <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
@@ -248,14 +260,14 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
               id="use_credentialed"
               checked={useCredentialed}
               onCheckedChange={(checked) => {
-                setUseCredentialed(checked)
+                setUseCredentialed(checked);
                 if (!checked) {
-                  setSelectedSupplier(null)
+                  setSelectedSupplier(null);
                 }
               }}
             />
           </div>
-          
+
           {/* Seleção de Fornecedor Credenciado */}
           {useCredentialed ? (
             <div className="space-y-2">
@@ -280,7 +292,9 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                         {selectedSupplier.name}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground">Selecione um fornecedor...</span>
+                      <span className="text-muted-foreground">
+                        Selecione um fornecedor...
+                      </span>
                     )}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -295,8 +309,8 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                           variant="link"
                           className="px-0 mt-1"
                           onClick={() => {
-                            setUseCredentialed(false)
-                            setSupplierOpen(false)
+                            setUseCredentialed(false);
+                            setSupplierOpen(false);
                           }}
                         >
                           Cadastrar manualmente
@@ -312,14 +326,16 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                selectedSupplier?.id === supplier.id ? "opacity-100" : "opacity-0"
+                                selectedSupplier?.id === supplier.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             <div className="flex-1">
                               <p className="font-medium">{supplier.name}</p>
                               <p className="text-xs text-muted-foreground">
                                 {supplier.category && `${supplier.category} • `}
-                                {supplier.cnpj || 'Sem CNPJ'}
+                                {supplier.cnpj || "Sem CNPJ"}
                               </p>
                             </div>
                           </CommandItem>
@@ -329,17 +345,23 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                   </Command>
                 </PopoverContent>
               </Popover>
-              
+
               {selectedSupplier && (
                 <div className="p-3 border rounded-lg bg-muted/30 text-sm space-y-1">
                   {selectedSupplier.cnpj && (
-                    <p><strong>CNPJ:</strong> {selectedSupplier.cnpj}</p>
+                    <p>
+                      <strong>CNPJ:</strong> {selectedSupplier.cnpj}
+                    </p>
                   )}
                   {selectedSupplier.contact_name && (
-                    <p><strong>Contato:</strong> {selectedSupplier.contact_name}</p>
+                    <p>
+                      <strong>Contato:</strong> {selectedSupplier.contact_name}
+                    </p>
                   )}
                   {selectedSupplier.phone && (
-                    <p><strong>Telefone:</strong> {selectedSupplier.phone}</p>
+                    <p>
+                      <strong>Telefone:</strong> {selectedSupplier.phone}
+                    </p>
                   )}
                 </div>
               )}
@@ -357,7 +379,7 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="supplier_cnpj">CNPJ</Label>
@@ -365,23 +387,27 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                     id="supplier_cnpj"
                     placeholder="00.000.000/0000-00"
                     value={supplierCnpj}
-                    onChange={(e) => setSupplierCnpj(formatCnpj(e.target.value))}
+                    onChange={(e) =>
+                      setSupplierCnpj(formatCnpj(e.target.value))
+                    }
                     maxLength={18}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="supplier_phone">Telefone</Label>
                   <Input
                     id="supplier_phone"
                     placeholder="(00) 00000-0000"
                     value={supplierPhone}
-                    onChange={(e) => setSupplierPhone(formatPhone(e.target.value))}
+                    onChange={(e) =>
+                      setSupplierPhone(formatPhone(e.target.value))
+                    }
                     maxLength={15}
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="supplier_contact">Nome do Contato</Label>
                 <Input
@@ -393,11 +419,11 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
               </div>
             </div>
           )}
-          
+
           {/* Valores da Cotação */}
           <div className="space-y-4 pt-4 border-t">
             <h4 className="font-medium">Valores da Cotação</h4>
-            
+
             <div className="space-y-2">
               <Label htmlFor="total_price">Preço Total *</Label>
               <div className="relative">
@@ -408,13 +434,15 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                   id="total_price"
                   placeholder="0,00"
                   value={totalPrice}
-                  onChange={(e) => setTotalPrice(formatCurrency(e.target.value))}
+                  onChange={(e) =>
+                    setTotalPrice(formatCurrency(e.target.value))
+                  }
                   className="pl-10"
                   required
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="payment_terms">Forma de Pagamento</Label>
               <Input
@@ -424,7 +452,7 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                 onChange={(e) => setPaymentTerms(e.target.value)}
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="delivery_deadline">Prazo de Entrega</Label>
@@ -433,10 +461,10 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                   type="date"
                   value={deliveryDeadline}
                   onChange={(e) => setDeliveryDeadline(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="validity_date">Validade da Cotação</Label>
                 <Input
@@ -444,11 +472,11 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
                   type="date"
                   value={validityDate}
                   onChange={(e) => setValidityDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="notes">Observações</Label>
               <Textarea
@@ -460,11 +488,11 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
               />
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setOpen(false)}
               disabled={loading}
             >
@@ -478,6 +506,5 @@ export function ClaimQuotationForm({ ticketId, purchaseId, onSuccess }: ClaimQuo
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

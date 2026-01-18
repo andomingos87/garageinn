@@ -1,16 +1,11 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  Ticket, 
-  CheckSquare, 
-  AlertTriangle,
-  TrendingUp,
-} from 'lucide-react'
-import type { UnitMetrics } from '../../actions'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Ticket, CheckSquare, AlertTriangle, TrendingUp } from "lucide-react";
+import type { UnitMetrics } from "../../actions";
 
 interface UnitMetricsCardProps {
-  metrics: UnitMetrics
+  metrics: UnitMetrics;
 }
 
 export function UnitMetricsCard({ metrics }: UnitMetricsCardProps) {
@@ -35,11 +30,15 @@ export function UnitMetricsCard({ metrics }: UnitMetricsCardProps) {
               <p className="text-xs text-muted-foreground">Total</p>
             </div>
             <div className="rounded-lg bg-yellow-500/10 p-2">
-              <p className="text-lg font-bold text-yellow-600">{metrics.openTickets}</p>
+              <p className="text-lg font-bold text-yellow-600">
+                {metrics.openTickets}
+              </p>
               <p className="text-xs text-muted-foreground">Abertos</p>
             </div>
             <div className="rounded-lg bg-green-500/10 p-2">
-              <p className="text-lg font-bold text-green-600">{metrics.resolvedTickets}</p>
+              <p className="text-lg font-bold text-green-600">
+                {metrics.resolvedTickets}
+              </p>
               <p className="text-xs text-muted-foreground">Resolvidos</p>
             </div>
           </div>
@@ -57,7 +56,9 @@ export function UnitMetricsCard({ metrics }: UnitMetricsCardProps) {
               <p className="text-xs text-muted-foreground">Concluídos</p>
             </div>
             <div className="rounded-lg bg-blue-500/10 p-2">
-              <p className="text-lg font-bold text-blue-600">{metrics.checklistsThisMonth}</p>
+              <p className="text-lg font-bold text-blue-600">
+                {metrics.checklistsThisMonth}
+              </p>
               <p className="text-xs text-muted-foreground">Este mês</p>
             </div>
           </div>
@@ -70,28 +71,18 @@ export function UnitMetricsCard({ metrics }: UnitMetricsCardProps) {
               <AlertTriangle className="h-4 w-4 text-orange-500" />
               <span className="text-muted-foreground">Não-conformidades</span>
             </div>
-            <span className={`font-medium ${
-              metrics.nonConformityRate > 20 ? 'text-red-500' : 'text-green-500'
-            }`}>
+            <span
+              className={`font-medium ${
+                metrics.nonConformityRate > 20
+                  ? "text-red-500"
+                  : "text-green-500"
+              }`}
+            >
               {metrics.nonConformityRate}%
             </span>
           </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

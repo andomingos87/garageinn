@@ -9,7 +9,8 @@ import { Eye, X } from "lucide-react";
  * Displays at the top of the page with option to exit impersonation.
  */
 export function ImpersonationBanner() {
-  const { isImpersonating, impersonatedUserName, exitImpersonation } = useImpersonation();
+  const { isImpersonating, impersonatedUserName, exitImpersonation } =
+    useImpersonation();
 
   if (!isImpersonating) return null;
 
@@ -42,4 +43,3 @@ export function ImpersonationBanner() {
     </div>
   );
 }
-

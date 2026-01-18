@@ -1,39 +1,47 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Plus } from 'lucide-react'
-import { getTemplates, getTemplatesStats, checkCanConfigureChecklists } from './actions'
+import { Suspense } from "react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus } from "lucide-react";
+import {
+  getTemplates,
+  getTemplatesStats,
+  checkCanConfigureChecklists,
+} from "./actions";
 import {
   TemplatesFilters,
   TemplatesGrid,
   TemplatesStatsCards,
-} from './components'
-import type { TemplateFilters } from './actions'
+} from "./components";
+import type { TemplateFilters } from "./actions";
 
 interface PageProps {
   searchParams: Promise<{
-    search?: string
-    type?: string
-    status?: string
-  }>
+    search?: string;
+    type?: string;
+    status?: string;
+  }>;
 }
 
-async function TemplatesContent({ searchParams }: { searchParams: PageProps['searchParams'] }) {
-  const params = await searchParams
+async function TemplatesContent({
+  searchParams,
+}: {
+  searchParams: PageProps["searchParams"];
+}) {
+  const params = await searchParams;
 
   const filters: TemplateFilters = {
     search: params.search,
-    type: (params.type as TemplateFilters['type']) || 'all',
-    status: (params.status as TemplateFilters['status']) || 'all',
-  }
+    type: (params.type as TemplateFilters["type"]) || "all",
+    status: (params.status as TemplateFilters["status"]) || "all",
+  };
 
   const [templates, stats] = await Promise.all([
     getTemplates(filters),
     getTemplatesStats(),
-  ])
+  ]);
 
   return (
     <>
@@ -55,7 +63,7 @@ async function TemplatesContent({ searchParams }: { searchParams: PageProps['sea
         </CardContent>
       </Card>
     </>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -111,15 +119,17 @@ function LoadingSkeleton() {
         </CardContent>
       </Card>
     </>
-  )
+  );
 }
 
-export default async function ConfigurarChecklistsPage({ searchParams }: PageProps) {
+export default async function ConfigurarChecklistsPage({
+  searchParams,
+}: PageProps) {
   // Verifica permissão 'checklists:configure' (não apenas admin)
-  const canConfigure = await checkCanConfigureChecklists()
+  const canConfigure = await checkCanConfigureChecklists();
 
   if (!canConfigure) {
-    redirect('/')
+    redirect("/");
   }
 
   return (
@@ -146,6 +156,5 @@ export default async function ConfigurarChecklistsPage({ searchParams }: PagePro
         <TemplatesContent searchParams={searchParams} />
       </Suspense>
     </div>
-  )
+  );
 }
-

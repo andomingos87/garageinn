@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { useState, useTransition } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,74 +11,78 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Settings, Loader2, ArrowRight, X, CheckCircle } from 'lucide-react'
-import { statusLabels, getAllowedTransitions } from '../../constants'
-import { updateComercialTicketStatus } from '../../actions'
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Settings, Loader2, ArrowRight, X, CheckCircle } from "lucide-react";
+import { statusLabels, getAllowedTransitions } from "../../constants";
+import { updateComercialTicketStatus } from "../../actions";
 
 interface ComercialStatusActionsProps {
-  ticketId: string
-  currentStatus: string
-  canManage: boolean
+  ticketId: string;
+  currentStatus: string;
+  canManage: boolean;
 }
 
-export function ComercialStatusActions({ ticketId, currentStatus, canManage }: ComercialStatusActionsProps) {
-  const [isPending, startTransition] = useTransition()
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
-  const [reason, setReason] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
+export function ComercialStatusActions({
+  ticketId,
+  currentStatus,
+  canManage,
+}: ComercialStatusActionsProps) {
+  const [isPending, startTransition] = useTransition();
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
-  const allowedTransitions = getAllowedTransitions(currentStatus)
+  const allowedTransitions = getAllowedTransitions(currentStatus);
 
   if (!canManage || allowedTransitions.length === 0) {
-    return null
+    return null;
   }
 
   const handleStatusChange = () => {
-    if (!selectedStatus) return
+    if (!selectedStatus) return;
 
     startTransition(async () => {
       const result = await updateComercialTicketStatus(
         ticketId,
         selectedStatus,
-        selectedStatus === 'denied' ? reason : undefined
-      )
+        selectedStatus === "denied" ? reason : undefined
+      );
 
       if (result.success) {
-        setIsOpen(false)
-        setSelectedStatus(null)
-        setReason('')
+        setIsOpen(false);
+        setSelectedStatus(null);
+        setReason("");
       }
-    })
-  }
+    });
+  };
 
   const getStatusButtonVariant = (status: string) => {
     switch (status) {
-      case 'denied':
-      case 'cancelled':
-        return 'destructive'
-      case 'resolved':
-      case 'closed':
-        return 'default'
+      case "denied":
+      case "cancelled":
+        return "destructive";
+      case "resolved":
+      case "closed":
+        return "default";
       default:
-        return 'outline'
+        return "outline";
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'denied':
-      case 'cancelled':
-        return <X className="h-4 w-4 mr-2" />
-      case 'resolved':
-      case 'closed':
-        return <CheckCircle className="h-4 w-4 mr-2" />
+      case "denied":
+      case "cancelled":
+        return <X className="h-4 w-4 mr-2" />;
+      case "resolved":
+      case "closed":
+        return <CheckCircle className="h-4 w-4 mr-2" />;
       default:
-        return <ArrowRight className="h-4 w-4 mr-2" />
+        return <ArrowRight className="h-4 w-4 mr-2" />;
     }
-  }
+  };
 
   return (
     <Card>
@@ -90,7 +94,8 @@ export function ComercialStatusActions({ ticketId, currentStatus, canManage }: C
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground mb-4">
-          Status atual: <span className="font-medium">{statusLabels[currentStatus]}</span>
+          Status atual:{" "}
+          <span className="font-medium">{statusLabels[currentStatus]}</span>
         </p>
 
         <div className="flex flex-wrap gap-2">
@@ -99,12 +104,12 @@ export function ComercialStatusActions({ ticketId, currentStatus, canManage }: C
               key={status}
               open={isOpen && selectedStatus === status}
               onOpenChange={(open) => {
-                setIsOpen(open)
+                setIsOpen(open);
                 if (open) {
-                  setSelectedStatus(status)
+                  setSelectedStatus(status);
                 } else {
-                  setSelectedStatus(null)
-                  setReason('')
+                  setSelectedStatus(null);
+                  setReason("");
                 }
               }}
             >
@@ -118,13 +123,13 @@ export function ComercialStatusActions({ ticketId, currentStatus, canManage }: C
                 <DialogHeader>
                   <DialogTitle>Alterar Status</DialogTitle>
                   <DialogDescription>
-                    Voce esta alterando o status de{' '}
-                    <strong>{statusLabels[currentStatus]}</strong> para{' '}
+                    Voce esta alterando o status de{" "}
+                    <strong>{statusLabels[currentStatus]}</strong> para{" "}
                     <strong>{statusLabels[status]}</strong>.
                   </DialogDescription>
                 </DialogHeader>
 
-                {status === 'denied' && (
+                {status === "denied" && (
                   <div className="space-y-2">
                     <Label htmlFor="reason">Motivo da negacao *</Label>
                     <Textarea
@@ -147,7 +152,9 @@ export function ComercialStatusActions({ ticketId, currentStatus, canManage }: C
                   </Button>
                   <Button
                     onClick={handleStatusChange}
-                    disabled={isPending || (status === 'denied' && !reason.trim())}
+                    disabled={
+                      isPending || (status === "denied" && !reason.trim())
+                    }
                     variant={getStatusButtonVariant(status)}
                   >
                     {isPending ? (
@@ -156,7 +163,7 @@ export function ComercialStatusActions({ ticketId, currentStatus, canManage }: C
                         Alterando...
                       </>
                     ) : (
-                      'Confirmar'
+                      "Confirmar"
                     )}
                   </Button>
                 </DialogFooter>
@@ -166,5 +173,5 @@ export function ComercialStatusActions({ ticketId, currentStatus, canManage }: C
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

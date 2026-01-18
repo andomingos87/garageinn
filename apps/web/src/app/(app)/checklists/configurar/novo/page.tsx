@@ -1,16 +1,22 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import { checkCanConfigureChecklists, createTemplate } from '../actions'
-import { TemplateForm } from '../components'
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { checkCanConfigureChecklists, createTemplate } from "../actions";
+import { TemplateForm } from "../components";
 
 export default async function NovoTemplatePage() {
-  const canConfigure = await checkCanConfigureChecklists()
+  const canConfigure = await checkCanConfigureChecklists();
 
   if (!canConfigure) {
-    redirect('/')
+    redirect("/");
   }
 
   return (
@@ -23,7 +29,9 @@ export default async function NovoTemplatePage() {
           </Link>
         </Button>
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Novo Template</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Novo Template
+          </h2>
           <p className="text-muted-foreground">
             Crie um novo template de checklist
           </p>
@@ -43,6 +51,5 @@ export default async function NovoTemplatePage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

@@ -22,39 +22,41 @@ export function NewPasswordForm() {
     let isSubscribed = true;
 
     // Escutar eventos de autenticação - abordagem recomendada pelo Supabase
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isSubscribed) return;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isSubscribed) return;
 
-        console.log("Auth event:", event);
+      console.log("Auth event:", event);
 
-        if (event === "PASSWORD_RECOVERY") {
-          // Sessão estabelecida via link de recuperação
-          // Limpar hash da URL por segurança
-          window.history.replaceState(null, "", window.location.pathname);
-          setSessionReady(true);
-          setIsProcessingToken(false);
-        } else if (event === "SIGNED_IN" && session) {
-          // Fallback: usuário já estava logado ou sessão restaurada
-          setSessionReady(true);
-          setIsProcessingToken(false);
-        } else if (event === "TOKEN_REFRESHED" && session) {
-          // Token foi atualizado, sessão válida
-          setSessionReady(true);
-          setIsProcessingToken(false);
-        }
+      if (event === "PASSWORD_RECOVERY") {
+        // Sessão estabelecida via link de recuperação
+        // Limpar hash da URL por segurança
+        window.history.replaceState(null, "", window.location.pathname);
+        setSessionReady(true);
+        setIsProcessingToken(false);
+      } else if (event === "SIGNED_IN" && session) {
+        // Fallback: usuário já estava logado ou sessão restaurada
+        setSessionReady(true);
+        setIsProcessingToken(false);
+      } else if (event === "TOKEN_REFRESHED" && session) {
+        // Token foi atualizado, sessão válida
+        setSessionReady(true);
+        setIsProcessingToken(false);
       }
-    );
+    });
 
     // Verificar se já existe sessão (usuário acessou diretamente ou hash já foi processado)
     const checkExistingSession = async () => {
       // Dar tempo para o Supabase processar o hash automaticamente
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       if (!isSubscribed) return;
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session) {
         setSessionReady(true);
         setIsProcessingToken(false);
@@ -68,7 +70,9 @@ export function NewPasswordForm() {
       // Se não há sessão e não há hash, mostrar erro
       const hash = window.location.hash;
       if (!hash || hash.length <= 1) {
-        setTokenError("Link inválido ou expirado. Solicite um novo link de redefinição de senha.");
+        setTokenError(
+          "Link inválido ou expirado. Solicite um novo link de redefinição de senha."
+        );
         setIsProcessingToken(false);
         return;
       }
@@ -87,7 +91,9 @@ export function NewPasswordForm() {
 
           if (setError) {
             console.error("Erro ao definir sessão:", setError);
-            setTokenError("Link expirado ou inválido. Solicite um novo link de redefinição.");
+            setTokenError(
+              "Link expirado ou inválido. Solicite um novo link de redefinição."
+            );
             setIsProcessingToken(false);
             return;
           }
@@ -106,7 +112,9 @@ export function NewPasswordForm() {
         setTimeout(() => {
           if (!isSubscribed) return;
           if (!sessionReady && isProcessingToken) {
-            setTokenError("Não foi possível verificar o link. Solicite um novo link de redefinição.");
+            setTokenError(
+              "Não foi possível verificar o link. Solicite um novo link de redefinição."
+            );
             setIsProcessingToken(false);
           }
         }, 3000);
@@ -122,58 +130,63 @@ export function NewPasswordForm() {
   }, [sessionReady, isProcessingToken]);
 
   // Handler para atualizar senha no cliente (não server action)
-  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setFormError(null);
-    setIsPending(true);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setFormError(null);
+      setIsPending(true);
 
-    const formData = new FormData(e.currentTarget);
-    const password = formData.get("password") as string;
-    const confirmPassword = formData.get("confirmPassword") as string;
+      const formData = new FormData(e.currentTarget);
+      const password = formData.get("password") as string;
+      const confirmPassword = formData.get("confirmPassword") as string;
 
-    // Validações
-    if (!password || !confirmPassword) {
-      setFormError("Todos os campos são obrigatórios");
-      setIsPending(false);
-      return;
-    }
-
-    if (password.length < 6) {
-      setFormError("A senha deve ter pelo menos 6 caracteres");
-      setIsPending(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setFormError("As senhas não coincidem");
-      setIsPending(false);
-      return;
-    }
-
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({ password });
-
-      if (error) {
-        if (error.message.includes("should be different")) {
-          setFormError("A nova senha deve ser diferente da anterior");
-        } else if (error.message.includes("Auth session missing")) {
-          setFormError("Sessão expirada. Solicite um novo link de redefinição.");
-        } else {
-          setFormError(error.message);
-        }
+      // Validações
+      if (!password || !confirmPassword) {
+        setFormError("Todos os campos são obrigatórios");
         setIsPending(false);
         return;
       }
 
-      // Sucesso! Redirecionar para login
-      router.push("/login?message=password_updated");
-    } catch (err) {
-      console.error("Erro ao atualizar senha:", err);
-      setFormError("Ocorreu um erro inesperado. Tente novamente.");
-      setIsPending(false);
-    }
-  }, [router]);
+      if (password.length < 6) {
+        setFormError("A senha deve ter pelo menos 6 caracteres");
+        setIsPending(false);
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setFormError("As senhas não coincidem");
+        setIsPending(false);
+        return;
+      }
+
+      try {
+        const supabase = createClient();
+        const { error } = await supabase.auth.updateUser({ password });
+
+        if (error) {
+          if (error.message.includes("should be different")) {
+            setFormError("A nova senha deve ser diferente da anterior");
+          } else if (error.message.includes("Auth session missing")) {
+            setFormError(
+              "Sessão expirada. Solicite um novo link de redefinição."
+            );
+          } else {
+            setFormError(error.message);
+          }
+          setIsPending(false);
+          return;
+        }
+
+        // Sucesso! Redirecionar para login
+        router.push("/login?message=password_updated");
+      } catch (err) {
+        console.error("Erro ao atualizar senha:", err);
+        setFormError("Ocorreu um erro inesperado. Tente novamente.");
+        setIsPending(false);
+      }
+    },
+    [router]
+  );
 
   // Mostrar loading enquanto processa o token
   if (isProcessingToken) {
@@ -205,7 +218,9 @@ export function NewPasswordForm() {
     return (
       <div className="flex flex-col items-center justify-center py-8 space-y-4">
         <AlertCircle className="h-8 w-8 text-destructive" />
-        <p className="text-sm text-muted-foreground">Sessão não estabelecida. Tente novamente.</p>
+        <p className="text-sm text-muted-foreground">
+          Sessão não estabelecida. Tente novamente.
+        </p>
         <Button asChild className="w-full h-11">
           <a href="/esqueci-senha">Solicitar novo link</a>
         </Button>
@@ -253,7 +268,11 @@ export function NewPasswordForm() {
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             tabIndex={-1}
           >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
         </div>
         <p className="text-xs text-muted-foreground">Mínimo de 6 caracteres</p>
@@ -261,7 +280,10 @@ export function NewPasswordForm() {
 
       {/* Confirm password field */}
       <div className="space-y-2">
-        <label htmlFor="confirmPassword" className="text-sm font-medium leading-none">
+        <label
+          htmlFor="confirmPassword"
+          className="text-sm font-medium leading-none"
+        >
           Confirmar nova senha
         </label>
         <div className="relative">
@@ -282,7 +304,11 @@ export function NewPasswordForm() {
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             tabIndex={-1}
           >
-            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showConfirmPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>

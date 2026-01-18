@@ -1,96 +1,115 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Loader2, Save, ArrowLeft, Wrench, AlertTriangle, MapPin, Settings } from 'lucide-react'
-import Link from 'next/link'
-import type { MaintenanceCategory, UserUnit } from '../actions'
-import { MAINTENANCE_TYPES } from '../constants'
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Loader2,
+  Save,
+  ArrowLeft,
+  Wrench,
+  AlertTriangle,
+  MapPin,
+  Settings,
+} from "lucide-react";
+import Link from "next/link";
+import type { MaintenanceCategory, UserUnit } from "../actions";
+import { MAINTENANCE_TYPES } from "../constants";
 
 interface MaintenanceTicketFormProps {
-  categories: MaintenanceCategory[]
-  units: UserUnit[]
-  fixedUnit?: UserUnit | null  // Unidade fixa para Manobrista/Encarregado
-  onSubmit: (formData: FormData) => Promise<{ error?: string } | void>
+  categories: MaintenanceCategory[];
+  units: UserUnit[];
+  fixedUnit?: UserUnit | null; // Unidade fixa para Manobrista/Encarregado
+  onSubmit: (formData: FormData) => Promise<{ error?: string } | void>;
 }
 
-export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }: MaintenanceTicketFormProps) {
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+export function MaintenanceTicketForm({
+  categories,
+  units,
+  fixedUnit,
+  onSubmit,
+}: MaintenanceTicketFormProps) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   // Flags de comportamento baseado no role do usuário
-  const isUnitFixed = !!fixedUnit  // Unidade fixa para Manobrista/Encarregado
-  const hasUnits = units.length > 0  // Usuário tem unidades disponíveis
-  const isUnitRequired = hasUnits  // Obrigatório se tem unidades
-  const showUnitWarning = !hasUnits && !isUnitFixed  // Aviso se sem unidades
+  const isUnitFixed = !!fixedUnit; // Unidade fixa para Manobrista/Encarregado
+  const hasUnits = units.length > 0; // Usuário tem unidades disponíveis
+  const isUnitRequired = hasUnits; // Obrigatório se tem unidades
+  const showUnitWarning = !hasUnits && !isUnitFixed; // Aviso se sem unidades
 
   const [formData, setFormData] = useState({
-    title: '',
-    category_id: '',
-    unit_id: fixedUnit?.id || '',  // Auto-preencher se tiver unidade fixa
-    maintenance_type: 'corretiva',
-    location_description: '',
-    equipment_affected: '',
-    description: '',
-    perceived_urgency: '',
-  })
+    title: "",
+    category_id: "",
+    unit_id: fixedUnit?.id || "", // Auto-preencher se tiver unidade fixa
+    maintenance_type: "corretiva",
+    location_description: "",
+    equipment_affected: "",
+    description: "",
+    perceived_urgency: "",
+  });
 
   const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    setError(null)
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setError(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validação básica
     if (!formData.title.trim() || formData.title.length < 5) {
-      setError('Título deve ter pelo menos 5 caracteres')
-      return
+      setError("Título deve ter pelo menos 5 caracteres");
+      return;
     }
     if (!formData.category_id) {
-      setError('Selecione um assunto para a manutenção')
-      return
+      setError("Selecione um assunto para a manutenção");
+      return;
     }
     if (!formData.description.trim() || formData.description.length < 10) {
-      setError('Descrição deve ter pelo menos 10 caracteres')
-      return
+      setError("Descrição deve ter pelo menos 10 caracteres");
+      return;
     }
 
     // Validação de unidade (obrigatória se usuário tem unidades disponíveis)
     if (isUnitRequired && !formData.unit_id) {
-      setError('Selecione uma unidade para continuar')
-      return
+      setError("Selecione uma unidade para continuar");
+      return;
     }
 
-    const data = new FormData()
-    data.set('title', formData.title)
-    data.set('category_id', formData.category_id)
-    data.set('unit_id', formData.unit_id)
-    data.set('maintenance_type', formData.maintenance_type)
-    data.set('location_description', formData.location_description)
-    data.set('equipment_affected', formData.equipment_affected)
-    data.set('description', formData.description)
-    data.set('perceived_urgency', formData.perceived_urgency)
+    const data = new FormData();
+    data.set("title", formData.title);
+    data.set("category_id", formData.category_id);
+    data.set("unit_id", formData.unit_id);
+    data.set("maintenance_type", formData.maintenance_type);
+    data.set("location_description", formData.location_description);
+    data.set("equipment_affected", formData.equipment_affected);
+    data.set("description", formData.description);
+    data.set("perceived_urgency", formData.perceived_urgency);
 
     startTransition(async () => {
-      const result = await onSubmit(data)
+      const result = await onSubmit(data);
       if (result?.error) {
-        setError(result.error)
+        setError(result.error);
       }
-    })
-  }
+    });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -119,7 +138,7 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => handleChange('title', e.target.value)}
+              onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Ex: Vazamento no banheiro masculino"
               disabled={isPending}
               maxLength={100}
@@ -134,7 +153,7 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
               <Label htmlFor="category_id">Assunto *</Label>
               <Select
                 value={formData.category_id}
-                onValueChange={(value) => handleChange('category_id', value)}
+                onValueChange={(value) => handleChange("category_id", value)}
                 disabled={isPending}
               >
                 <SelectTrigger id="category_id">
@@ -156,7 +175,9 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
               <Label htmlFor="maintenance_type">Tipo de Manutenção</Label>
               <Select
                 value={formData.maintenance_type}
-                onValueChange={(value) => handleChange('maintenance_type', value)}
+                onValueChange={(value) =>
+                  handleChange("maintenance_type", value)
+                }
                 disabled={isPending}
               >
                 <SelectTrigger id="maintenance_type">
@@ -193,21 +214,23 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="unit_id">
-                Unidade {isUnitRequired && <span className="text-destructive">*</span>}
+                Unidade{" "}
+                {isUnitRequired && <span className="text-destructive">*</span>}
               </Label>
 
               {showUnitWarning ? (
                 <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 p-3 rounded-md flex items-start gap-2">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>
-                    Você não possui unidades vinculadas. Entre em contato com o administrador.
+                    Você não possui unidades vinculadas. Entre em contato com o
+                    administrador.
                   </span>
                 </div>
               ) : (
                 <>
                   <Select
                     value={formData.unit_id}
-                    onValueChange={(value) => handleChange('unit_id', value)}
+                    onValueChange={(value) => handleChange("unit_id", value)}
                     disabled={isPending || isUnitFixed}
                   >
                     <SelectTrigger id="unit_id">
@@ -215,7 +238,7 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
                         placeholder={
                           isUnitFixed
                             ? `${fixedUnit?.code} - ${fixedUnit?.name}`
-                            : 'Selecione a unidade'
+                            : "Selecione a unidade"
                         }
                       />
                     </SelectTrigger>
@@ -239,7 +262,9 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
               <Label htmlFor="perceived_urgency">Urgência Percebida</Label>
               <Select
                 value={formData.perceived_urgency}
-                onValueChange={(value) => handleChange('perceived_urgency', value)}
+                onValueChange={(value) =>
+                  handleChange("perceived_urgency", value)
+                }
                 disabled={isPending}
               >
                 <SelectTrigger id="perceived_urgency">
@@ -262,7 +287,9 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
             <Input
               id="location_description"
               value={formData.location_description}
-              onChange={(e) => handleChange('location_description', e.target.value)}
+              onChange={(e) =>
+                handleChange("location_description", e.target.value)
+              }
               placeholder="Ex: 2º andar, banheiro masculino, próximo à escada"
               disabled={isPending}
               maxLength={200}
@@ -273,14 +300,19 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="equipment_affected" className="flex items-center gap-2">
+            <Label
+              htmlFor="equipment_affected"
+              className="flex items-center gap-2"
+            >
               <Settings className="h-4 w-4" />
               Equipamento Afetado
             </Label>
             <Input
               id="equipment_affected"
               value={formData.equipment_affected}
-              onChange={(e) => handleChange('equipment_affected', e.target.value)}
+              onChange={(e) =>
+                handleChange("equipment_affected", e.target.value)
+              }
               placeholder="Ex: Ar condicionado Split LG 12000 BTUs"
               disabled={isPending}
               maxLength={200}
@@ -306,7 +338,7 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
+              onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Descreva o problema em detalhes: o que está acontecendo, quando começou, se há riscos de segurança, etc. Quanto mais informações, mais rápido será o atendimento..."
               disabled={isPending}
               rows={5}
@@ -342,6 +374,5 @@ export function MaintenanceTicketForm({ categories, units, fixedUnit, onSubmit }
         </Button>
       </div>
     </form>
-  )
+  );
 }
-

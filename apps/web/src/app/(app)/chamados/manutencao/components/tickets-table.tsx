@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   Table,
   TableBody,
@@ -10,36 +10,40 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { StatusBadge, PriorityBadge, MaintenanceTypeBadge } from './status-badge'
-import { Badge } from '@/components/ui/badge'
-import { Wrench, MessageSquare, Paperclip } from 'lucide-react'
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  StatusBadge,
+  PriorityBadge,
+  MaintenanceTypeBadge,
+} from "./status-badge";
+import { Badge } from "@/components/ui/badge";
+import { Wrench, MessageSquare, Paperclip } from "lucide-react";
 
 interface Ticket {
-  id: string
-  ticket_number: number
-  title: string
-  status: string
-  priority: string | null
-  perceived_urgency: string | null
-  created_at: string
-  category_name: string | null
-  unit_name: string | null
-  unit_code: string | null
-  maintenance_type?: string | null
-  location_description?: string | null
-  equipment_affected?: string | null
-  created_by_id: string
-  created_by_name: string
-  created_by_avatar: string | null
-  comments_count: number | null
-  attachments_count: number | null
+  id: string;
+  ticket_number: number;
+  title: string;
+  status: string;
+  priority: string | null;
+  perceived_urgency: string | null;
+  created_at: string;
+  category_name: string | null;
+  unit_name: string | null;
+  unit_code: string | null;
+  maintenance_type?: string | null;
+  location_description?: string | null;
+  equipment_affected?: string | null;
+  created_by_id: string;
+  created_by_name: string;
+  created_by_avatar: string | null;
+  comments_count: number | null;
+  attachments_count: number | null;
 }
 
 interface TicketsTableProps {
-  tickets: Ticket[]
+  tickets: Ticket[];
 }
 
 export function TicketsTable({ tickets }: TicketsTableProps) {
@@ -54,7 +58,7 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
           </p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -72,9 +76,15 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
                 <TableHead className="hidden md:table-cell">Assunto</TableHead>
                 <TableHead className="hidden lg:table-cell">Unidade</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="hidden sm:table-cell">Prioridade</TableHead>
-                <TableHead className="hidden lg:table-cell">Solicitante</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Criado</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  Prioridade
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Solicitante
+                </TableHead>
+                <TableHead className="hidden md:table-cell text-right">
+                  Criado
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -93,10 +103,15 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
                       href={`/chamados/manutencao/${ticket.id}`}
                       className="block group-hover:text-primary transition-colors"
                     >
-                      <div className="font-medium line-clamp-1">{ticket.title}</div>
+                      <div className="font-medium line-clamp-1">
+                        {ticket.title}
+                      </div>
                       {ticket.maintenance_type && (
                         <div className="mt-1">
-                          <MaintenanceTypeBadge type={ticket.maintenance_type} size="sm" />
+                          <MaintenanceTypeBadge
+                            type={ticket.maintenance_type}
+                            size="sm"
+                          />
                         </div>
                       )}
                       <div className="flex items-center gap-3 mt-1 text-muted-foreground">
@@ -127,7 +142,9 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
                   <TableCell className="hidden lg:table-cell">
                     {ticket.unit_code ? (
                       <span className="text-sm">
-                        <span className="font-mono text-muted-foreground">{ticket.unit_code}</span>
+                        <span className="font-mono text-muted-foreground">
+                          {ticket.unit_code}
+                        </span>
                         {ticket.unit_name && (
                           <span className="hidden xl:inline ml-1 text-muted-foreground">
                             - {ticket.unit_name}
@@ -147,13 +164,17 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
                   <TableCell className="hidden lg:table-cell">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-7 w-7">
-                        <AvatarImage src={ticket.created_by_avatar || undefined} />
+                        <AvatarImage
+                          src={ticket.created_by_avatar || undefined}
+                        />
                         <AvatarFallback className="text-xs">
-                          {ticket.created_by_name?.slice(0, 2).toUpperCase() || '?'}
+                          {ticket.created_by_name?.slice(0, 2).toUpperCase() ||
+                            "?"}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm line-clamp-1">
-                        {ticket.created_by_name?.split(' ')[0] || 'Desconhecido'}
+                        {ticket.created_by_name?.split(" ")[0] ||
+                          "Desconhecido"}
                       </span>
                     </div>
                   </TableCell>
@@ -170,6 +191,5 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-

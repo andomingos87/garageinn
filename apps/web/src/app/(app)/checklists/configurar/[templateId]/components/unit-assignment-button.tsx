@@ -1,22 +1,24 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Building2 } from 'lucide-react'
-import { UnitAssignmentDialog } from '../../components'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Building2 } from "lucide-react";
+import { UnitAssignmentDialog } from "../../components";
 
 interface UnitAssignmentButtonProps {
-  templateId: string
+  templateId: string;
 }
 
-export function UnitAssignmentButton({ templateId }: UnitAssignmentButtonProps) {
-  const router = useRouter()
-  const [dialogOpen, setDialogOpen] = useState(false)
+export function UnitAssignmentButton({
+  templateId,
+}: UnitAssignmentButtonProps) {
+  const router = useRouter();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleSuccess = () => {
-    router.refresh()
-  }
+    router.refresh();
+  };
 
   return (
     <>
@@ -32,6 +34,5 @@ export function UnitAssignmentButton({ templateId }: UnitAssignmentButtonProps) 
         onSuccess={handleSuccess}
       />
     </>
-  )
+  );
 }
-

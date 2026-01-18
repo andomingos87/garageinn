@@ -1,44 +1,48 @@
-'use client'
+"use client";
 
-import { useFormStatus } from 'react-dom'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useFormStatus } from "react-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
+} from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 interface TemplateFormProps {
-  action: (formData: FormData) => void
+  action: (formData: FormData) => void;
   defaultValues?: {
-    name?: string
-    description?: string | null
-    type?: string
-    is_default?: boolean | null
-    status?: string
-  }
-  isEdit?: boolean
+    name?: string;
+    description?: string | null;
+    type?: string;
+    is_default?: boolean | null;
+    status?: string;
+  };
+  isEdit?: boolean;
 }
 
 function SubmitButton({ isEdit }: { isEdit?: boolean }) {
-  const { pending } = useFormStatus()
+  const { pending } = useFormStatus();
 
   return (
     <Button type="submit" disabled={pending}>
       {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {isEdit ? 'Salvar Alterações' : 'Criar Template'}
+      {isEdit ? "Salvar Alterações" : "Criar Template"}
     </Button>
-  )
+  );
 }
 
-export function TemplateForm({ action, defaultValues, isEdit }: TemplateFormProps) {
+export function TemplateForm({
+  action,
+  defaultValues,
+  isEdit,
+}: TemplateFormProps) {
   return (
     <form action={action} className="space-y-6">
       <div className="space-y-4">
@@ -63,14 +67,14 @@ export function TemplateForm({ action, defaultValues, isEdit }: TemplateFormProp
             id="description"
             name="description"
             placeholder="Descrição opcional do template..."
-            defaultValue={defaultValues?.description || ''}
+            defaultValue={defaultValues?.description || ""}
             rows={3}
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="type">Tipo</Label>
-          <Select name="type" defaultValue={defaultValues?.type || 'opening'}>
+          <Select name="type" defaultValue={defaultValues?.type || "opening"}>
             <SelectTrigger id="type">
               <SelectValue placeholder="Selecione o tipo" />
             </SelectTrigger>
@@ -80,14 +84,18 @@ export function TemplateForm({ action, defaultValues, isEdit }: TemplateFormProp
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
-            Abertura: executado no início das operações. Supervisão: executado por supervisores.
+            Abertura: executado no início das operações. Supervisão: executado
+            por supervisores.
           </p>
         </div>
 
         {isEdit && (
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select name="status" defaultValue={defaultValues?.status || 'active'}>
+            <Select
+              name="status"
+              defaultValue={defaultValues?.status || "active"}
+            >
               <SelectTrigger id="status">
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
@@ -119,6 +127,5 @@ export function TemplateForm({ action, defaultValues, isEdit }: TemplateFormProp
         <SubmitButton isEdit={isEdit} />
       </div>
     </form>
-  )
+  );
 }
-

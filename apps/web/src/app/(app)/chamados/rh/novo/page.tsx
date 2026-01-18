@@ -1,8 +1,8 @@
-import { Users } from 'lucide-react'
-import { createRHTicket, getRHCategories, getUniforms } from '../actions'
-import { getUserUnits, getUserFixedUnit } from '@/lib/units'
-import { RHTicketForm } from '../components/rh-ticket-form'
-import { redirect } from 'next/navigation'
+import { Users } from "lucide-react";
+import { createRHTicket, getRHCategories, getUniforms } from "../actions";
+import { getUserUnits, getUserFixedUnit } from "@/lib/units";
+import { RHTicketForm } from "../components/rh-ticket-form";
+import { redirect } from "next/navigation";
 
 export default async function NovoChamadoRHPage() {
   const [categories, units, fixedUnit, uniforms] = await Promise.all([
@@ -10,17 +10,17 @@ export default async function NovoChamadoRHPage() {
     getUserUnits(),
     getUserFixedUnit(),
     getUniforms(),
-  ])
+  ]);
 
   async function handleCreateTicket(formData: FormData) {
-    'use server'
-    const result = await createRHTicket(formData)
-    
+    "use server";
+    const result = await createRHTicket(formData);
+
     if (result.success && result.ticketId) {
-      redirect(`/chamados/rh/${result.ticketId}`)
+      redirect(`/chamados/rh/${result.ticketId}`);
     }
-    
-    return result
+
+    return result;
   }
 
   return (
@@ -29,10 +29,13 @@ export default async function NovoChamadoRHPage() {
       <div>
         <div className="flex items-center gap-2">
           <Users className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-semibold tracking-tight">Novo Chamado de RH</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Novo Chamado de RH
+          </h2>
         </div>
         <p className="text-muted-foreground mt-1">
-          Preencha o formulário abaixo para enviar sua solicitação ao departamento de Recursos Humanos
+          Preencha o formulário abaixo para enviar sua solicitação ao
+          departamento de Recursos Humanos
         </p>
       </div>
 
@@ -47,6 +50,5 @@ export default async function NovoChamadoRHPage() {
         />
       </div>
     </div>
-  )
+  );
 }
-

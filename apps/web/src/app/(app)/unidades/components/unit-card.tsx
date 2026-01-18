@@ -1,36 +1,44 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
+import Link from "next/link";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Building2, MapPin, Users, MoreVertical, Pencil, Eye, Power } from 'lucide-react'
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Building2,
+  MapPin,
+  Users,
+  MoreVertical,
+  Pencil,
+  Eye,
+  Power,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { UnitStatusBadge } from './unit-status-badge'
-import type { UnitWithStaffCount } from '@/lib/supabase/custom-types'
+} from "@/components/ui/dropdown-menu";
+import { UnitStatusBadge } from "./unit-status-badge";
+import type { UnitWithStaffCount } from "@/lib/supabase/custom-types";
 
 interface UnitCardProps {
-  unit: UnitWithStaffCount
-  canEdit: boolean
-  onToggleStatus?: (unitId: string, newStatus: 'active' | 'inactive') => void
+  unit: UnitWithStaffCount;
+  canEdit: boolean;
+  onToggleStatus?: (unitId: string, newStatus: "active" | "inactive") => void;
 }
 
 export function UnitCard({ unit, canEdit, onToggleStatus }: UnitCardProps) {
   const handleToggleStatus = () => {
-    const newStatus = unit.status === 'active' ? 'inactive' : 'active'
-    onToggleStatus?.(unit.id, newStatus)
-  }
+    const newStatus = unit.status === "active" ? "inactive" : "active";
+    onToggleStatus?.(unit.id, newStatus);
+  };
 
   return (
     <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/20">
@@ -73,7 +81,7 @@ export function UnitCard({ unit, canEdit, onToggleStatus }: UnitCardProps) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleToggleStatus}>
                     <Power className="mr-2 h-4 w-4" />
-                    {unit.status === 'active' ? 'Desativar' : 'Ativar'}
+                    {unit.status === "active" ? "Desativar" : "Ativar"}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -88,7 +96,9 @@ export function UnitCard({ unit, canEdit, onToggleStatus }: UnitCardProps) {
             <div className="min-w-0">
               <p className="truncate">{unit.address}</p>
               <p className="text-muted-foreground truncate">
-                {[unit.neighborhood, unit.city, unit.state].filter(Boolean).join(', ') || 'Endereço não informado'}
+                {[unit.neighborhood, unit.city, unit.state]
+                  .filter(Boolean)
+                  .join(", ") || "Endereço não informado"}
               </p>
             </div>
           </div>
@@ -97,7 +107,9 @@ export function UnitCard({ unit, canEdit, onToggleStatus }: UnitCardProps) {
           <div className="flex items-center gap-1">
             {unit.capacity ? (
               <>
-                <span className="font-medium">{unit.capacity.toLocaleString('pt-BR')}</span>
+                <span className="font-medium">
+                  {unit.capacity.toLocaleString("pt-BR")}
+                </span>
                 <span className="text-muted-foreground">vagas</span>
               </>
             ) : (
@@ -106,7 +118,9 @@ export function UnitCard({ unit, canEdit, onToggleStatus }: UnitCardProps) {
           </div>
           <div className="flex items-center gap-1 text-muted-foreground">
             <Users className="h-4 w-4" />
-            <span>{unit.staff_count} funcionário{unit.staff_count !== 1 ? 's' : ''}</span>
+            <span>
+              {unit.staff_count} funcionário{unit.staff_count !== 1 ? "s" : ""}
+            </span>
           </div>
         </div>
         {unit.region && (
@@ -123,6 +137,5 @@ export function UnitCard({ unit, canEdit, onToggleStatus }: UnitCardProps) {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
-

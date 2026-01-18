@@ -1,19 +1,28 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowLeft, ClipboardList, Building2, AlertTriangle } from 'lucide-react'
-import { getAvailableChecklists } from './actions'
-import { ExecutionStartCard } from './components'
+import { Suspense } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ArrowLeft,
+  ClipboardList,
+  Building2,
+  AlertTriangle,
+} from "lucide-react";
+import { getAvailableChecklists } from "./actions";
+import { ExecutionStartCard } from "./components";
 
 async function ChecklistsContent() {
-  const checklists = await getAvailableChecklists()
+  const checklists = await getAvailableChecklists();
 
   // Agrupar por status
-  const pending = checklists.filter(c => !c.todayExecution)
-  const inProgress = checklists.filter(c => c.todayExecution?.status === 'in_progress')
-  const completed = checklists.filter(c => c.todayExecution?.status === 'completed')
+  const pending = checklists.filter((c) => !c.todayExecution);
+  const inProgress = checklists.filter(
+    (c) => c.todayExecution?.status === "in_progress"
+  );
+  const completed = checklists.filter(
+    (c) => c.todayExecution?.status === "completed"
+  );
 
   if (checklists.length === 0) {
     return (
@@ -24,7 +33,9 @@ async function ChecklistsContent() {
               <AlertTriangle className="h-6 w-6 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg">Nenhum checklist disponível</h3>
+              <h3 className="font-semibold text-lg">
+                Nenhum checklist disponível
+              </h3>
               <p className="text-muted-foreground text-sm mt-1">
                 Você não tem unidades vinculadas com checklists configurados.
               </p>
@@ -35,7 +46,7 @@ async function ChecklistsContent() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -93,7 +104,7 @@ async function ChecklistsContent() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function LoadingSkeleton() {
@@ -122,7 +133,7 @@ function LoadingSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function ExecutarChecklistPage() {
@@ -137,7 +148,9 @@ export default function ExecutarChecklistPage() {
             </Link>
           </Button>
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Executar Checklist</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Executar Checklist
+            </h2>
             <p className="text-muted-foreground">
               Selecione uma unidade para iniciar o checklist de abertura
             </p>
@@ -189,22 +202,28 @@ export default function ExecutarChecklistPage() {
         <ChecklistsContent />
       </Suspense>
     </div>
-  )
+  );
 }
 
-async function ChecklistsStats({ type }: { type: 'total' | 'pending' | 'completed' }) {
-  const checklists = await getAvailableChecklists()
-  
-  const total = checklists.length
-  const pending = checklists.filter(c => !c.todayExecution).length
-  const completed = checklists.filter(c => c.todayExecution?.status === 'completed').length
+async function ChecklistsStats({
+  type,
+}: {
+  type: "total" | "pending" | "completed";
+}) {
+  const checklists = await getAvailableChecklists();
 
-  const value = type === 'total' ? total : type === 'pending' ? pending : completed
+  const total = checklists.length;
+  const pending = checklists.filter((c) => !c.todayExecution).length;
+  const completed = checklists.filter(
+    (c) => c.todayExecution?.status === "completed"
+  ).length;
+
+  const value =
+    type === "total" ? total : type === "pending" ? pending : completed;
 
   return (
     <div className="text-2xl font-bold">
-      {type === 'completed' ? `${completed}/${total}` : value}
+      {type === "completed" ? `${completed}/${total}` : value}
     </div>
-  )
+  );
 }
-

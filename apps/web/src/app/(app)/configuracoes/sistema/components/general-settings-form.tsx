@@ -1,63 +1,66 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Loader2, Save } from 'lucide-react'
-import { toast } from 'sonner'
-import { updateGeneralSettings } from '../actions'
-import { TIMEZONE_OPTIONS } from '../constants'
-import type { SystemSettingsMap } from '../actions'
+} from "@/components/ui/select";
+import { Loader2, Save } from "lucide-react";
+import { toast } from "sonner";
+import { updateGeneralSettings } from "../actions";
+import { TIMEZONE_OPTIONS } from "../constants";
+import type { SystemSettingsMap } from "../actions";
 
 interface GeneralSettingsFormProps {
-  settings: SystemSettingsMap
-  onUpdate: () => void
+  settings: SystemSettingsMap;
+  onUpdate: () => void;
 }
 
-export function GeneralSettingsForm({ settings, onUpdate }: GeneralSettingsFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [companyName, setCompanyName] = useState(settings.company_name)
-  const [timezone, setTimezone] = useState(settings.timezone)
+export function GeneralSettingsForm({
+  settings,
+  onUpdate,
+}: GeneralSettingsFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [companyName, setCompanyName] = useState(settings.company_name);
+  const [timezone, setTimezone] = useState(settings.timezone);
 
   const hasChanges =
-    companyName !== settings.company_name || timezone !== settings.timezone
+    companyName !== settings.company_name || timezone !== settings.timezone;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!companyName.trim()) {
-      toast.error('Nome da empresa é obrigatório')
-      return
+      toast.error("Nome da empresa é obrigatório");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const result = await updateGeneralSettings({
         company_name: companyName.trim(),
         timezone,
-      })
+      });
 
       if (result.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success('Configurações atualizadas com sucesso')
-        onUpdate()
+        toast.success("Configurações atualizadas com sucesso");
+        onUpdate();
       }
     } catch (error) {
-      console.error('Error updating settings:', error)
-      toast.error('Erro ao atualizar configurações')
+      console.error("Error updating settings:", error);
+      toast.error("Erro ao atualizar configurações");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -100,6 +103,5 @@ export function GeneralSettingsForm({ settings, onUpdate }: GeneralSettingsFormP
         </Button>
       </div>
     </form>
-  )
+  );
 }
-
