@@ -299,9 +299,9 @@ Estas melhorias NAO bloqueiam a entrega mas podem ser consideradas:
 
 ### Proximos Passos:
 
-1. [ ] Executar testes E2E das funcionalidades de autenticacao
+1. [ ] Executar testes E2E das funcionalidades de autenticacao (manual: `npm run test:e2e`)
 2. [x] Atualizar `docs/BACKLOG.md` marcando tarefas como concluidas
-3. [ ] Commit das alteracoes
+3. [x] Commit das alteracoes (882a408)
 4. [ ] Atualizar `AGENTS.md` e `CLAUDE.md` conforme necessario
 
 ---
