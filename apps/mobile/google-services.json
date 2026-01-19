@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "936387543041",
+    "project_id": "garageinn-mobile",
+    "storage_bucket": "garageinn-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:936387543041:android:19b10cd8cacdb2d4440000",
+        "android_client_info": {
+          "package_name": "com.garageinn.gapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBxTRjFWYkzMBAiBDlrDz-zEn7Kwa1TVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

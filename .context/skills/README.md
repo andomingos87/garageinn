@@ -2,7 +2,7 @@
 
 On-demand expertise for AI agents. Skills are task-specific procedures that get activated when relevant.
 
-> Project: web
+> Project: garageinn-app
 
 ## How Skills Work
 
@@ -26,6 +26,12 @@ On-demand expertise for AI agents. Skills are task-specific procedures that get 
 | [feature-breakdown](./feature-breakdown/SKILL.md) | Break down features into implementable tasks | P |
 | [api-design](./api-design/SKILL.md) | Design RESTful APIs following best practices | P, R |
 | [security-audit](./security-audit/SKILL.md) | Security review checklist for code and infrastructure | R, V |
+
+### Custom Skills
+
+| Skill | Description | Phases |
+|-------|-------------|--------|
+| [e2e-test](./e2e-test/SKILL.md) | TODO: Describe when to use e2e-test | E |
 
 ## Creating Custom Skills
 

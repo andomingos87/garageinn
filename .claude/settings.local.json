@@ -41,7 +41,10 @@
       "mcp__context7__query-docs",
       "mcp__ai-context__scaffoldPlan",
       "mcp__supabase_gapp__get_advisors",
-      "mcp__supabase_gapp__generate_typescript_types"
+      "mcp__supabase_gapp__generate_typescript_types",
+      "mcp__ai-context__listSkills",
+      "mcp__ai-context__scaffoldSkills",
+      "mcp__ai-context__exportSkills"
     ],
     "deny": [
       "Bash(rm -rf:*)",

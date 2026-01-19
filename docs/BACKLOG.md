@@ -781,6 +781,253 @@
   - [ ] Subtarefa: Build iOS e Android ⚠️ NAO EXISTE eas.json
   - [ ] Subtarefa: Publicar nas lojas ⚠️ NAO INICIADO
 
+#### Critérios de Aceite — Épico 4.4
+
+##### Tarefa 4.4.1: Push notifications (FCM)
+
+**Subtarefa: Configurar projeto Firebase**
+
+✅ **Critérios de Aceite:**
+1. **Projeto Firebase criado e configurado:**
+   - Projeto Firebase criado no console (https://console.firebase.google.com)
+   - Aplicativos iOS e Android registrados no projeto Firebase
+   - Bundle ID iOS: `com.garageinn.gapp` (conforme `app.json`)
+   - Package Name Android: `com.garageinn.gapp` (conforme `app.json`)
+
+2. **Arquivos de configuração presentes:**
+   - `apps/mobile/google-services.json` (Android) existe e está configurado corretamente
+   - `apps/mobile/GoogleService-Info.plist` (iOS) existe e está configurado corretamente
+   - Arquivos adicionados ao `.gitignore` ou versionados com dados não sensíveis (conforme política do projeto)
+
+3. **Dependências instaladas:**
+   - `expo-notifications` instalado e configurado no `package.json`
+   - Versão compatível com Expo SDK 54
+   - Plugin `expo-notifications` adicionado ao `app.json` na seção `plugins`
+
+4. **Configuração no app.json:**
+   - Seção `expo.notifications` configurada com ícone e cores apropriadas
+   - Configuração de Android e iOS presente
+
+5. **Permissões configuradas:**
+   - Permissões de notificação declaradas no `app.json` para Android (`android.permissions`)
+   - Info.plist iOS configurado com permissões de notificação (via `app.json` → `ios.infoPlist`)
+
+6. **Validação técnica:**
+   - `npx expo-doctor` não reporta erros relacionados a notificações
+   - Build de desenvolvimento executa sem erros relacionados ao Firebase/FCM
+
+---
+
+**Subtarefa: Integrar no app**
+
+✅ **Critérios de Aceite:**
+1. **Serviço de notificações implementado:**
+   - Módulo `apps/mobile/src/lib/notifications/` criado com:
+     - Função para solicitar permissões de notificação
+     - Função para registrar token FCM no Supabase (tabela `user_push_tokens` ou similar)
+     - Função para inicializar listener de notificações
+     - Handler para notificações recebidas em foreground
+     - Handler para notificações recebidas em background
+     - Handler para cliques em notificações (deep linking)
+
+2. **Integração com Supabase:**
+   - Tabela `user_push_tokens` criada no Supabase com campos:
+     - `id` (uuid, primary key)
+     - `user_id` (uuid, foreign key para `auth.users`)
+     - `token` (text, unique)
+     - `platform` (text: 'ios' | 'android')
+     - `device_id` (text, opcional)
+     - `created_at` (timestamp)
+     - `updated_at` (timestamp)
+   - RLS configurado: usuário só pode gerenciar seus próprios tokens
+   - Função server-side para enviar notificações via FCM (Edge Function ou Server Action)
+
+3. **NotificationsScreen funcional:**
+   - Tela `NotificationsScreen.tsx` atualizada para exibir notificações reais do Supabase
+   - Lista de notificações ordenada por data (mais recentes primeiro)
+   - Estados de loading, empty e error implementados
+   - Pull-to-refresh funcional
+   - Marcação de notificações como lidas ao visualizar
+   - Badge de contador de não lidas no ícone de notificações (tab bar)
+
+4. **Fluxo completo de notificações:**
+   - Ao abrir o app, solicita permissão de notificação (primeira vez)
+   - Ao receber token FCM, registra automaticamente no Supabase
+   - Notificações recebidas são exibidas no sistema operacional
+   - Ao clicar em notificação, navega para tela apropriada (deep linking)
+   - Notificações em foreground são exibidas via componente nativo ou custom
+
+5. **Eventos que disparam notificações (MVP):**
+   - Novo chamado atribuído ao usuário
+   - Mudança de status em chamado do usuário
+   - Novo comentário em chamado do usuário
+   - Checklist pendente (abertura diária)
+   - Aprovação/negação de chamado (quando aplicável)
+
+6. **Configurações de notificação:**
+   - Tela de configurações permite ativar/desativar notificações por tipo
+   - Preferências salvas no Supabase (tabela `user_notification_preferences`)
+   - Respeita preferências do usuário ao enviar notificações
+
+7. **Validação técnica:**
+   - Notificações funcionam em iOS (simulador e dispositivo físico)
+   - Notificações funcionam em Android (emulador e dispositivo físico)
+   - Deep linking funciona corretamente
+   - Token é atualizado quando necessário (refresh automático)
+   - Não há memory leaks nos listeners de notificações
+
+8. **Tratamento de erros:**
+   - Erro ao solicitar permissão exibe mensagem amigável
+   - Erro ao registrar token é logado mas não quebra o app
+   - Notificações falhadas são logadas para debugging
+
+---
+
+##### Tarefa 4.4.2: Publicação
+
+**Subtarefa: Build iOS e Android**
+
+✅ **Critérios de Aceite:**
+1. **EAS Build configurado:**
+   - Arquivo `apps/mobile/eas.json` criado na raiz do projeto mobile
+   - Configurações de build para `development`, `preview` e `production`
+   - Perfis de build definidos com:
+     - `development`: para testes internos
+     - `preview`: para testes com testers externos
+     - `production`: para publicação nas lojas
+
+2. **Configuração iOS:**
+   - Apple Developer Account configurada
+   - App ID criado no Apple Developer Portal: `com.garageinn.gapp`
+   - Certificados de desenvolvimento e distribuição configurados
+   - Provisioning profiles criados
+   - `app.json` contém:
+     - `ios.bundleIdentifier`: `com.garageinn.gapp`
+     - `ios.buildNumber`: incrementado para cada build
+     - `ios.supportsTablet`: `true` (conforme PRD)
+   - Build iOS executado com sucesso via `eas build --platform ios --profile production`
+
+3. **Configuração Android:**
+   - Google Play Console configurado
+   - App criado no Google Play Console
+   - Keystore gerado e armazenado de forma segura (EAS Secrets ou similar)
+   - `app.json` contém:
+     - `android.package`: `com.garageinn.gapp`
+     - `android.versionCode`: incrementado para cada build
+     - `android.adaptiveIcon` configurado
+   - Build Android executado com sucesso via `eas build --platform android --profile production`
+
+4. **Assets e metadados:**
+   - Ícone do app (`assets/icon.png`) presente e no formato correto (1024x1024)
+   - Splash screen configurada (`assets/splash-icon.png`)
+   - Adaptive icon Android configurado (`assets/adaptive-icon.png`)
+   - Todas as imagens seguem as especificações do Design System (cor primária: `hsl(0, 95%, 60%)`)
+
+5. **Validação de builds:**
+   - Build de desenvolvimento instala e executa corretamente
+   - Build de preview pode ser instalado via link de download
+   - Build de produção está pronto para submissão nas lojas
+   - Versão do app incrementada corretamente (`app.json` → `version`)
+   - Changelog preparado para a versão
+
+6. **Testes em dispositivos:**
+   - Build iOS testado em dispositivo físico iOS
+   - Build Android testado em dispositivo físico Android
+   - Funcionalidades críticas validadas:
+     - Autenticação
+     - Navegação
+     - Chamados
+     - Checklists
+     - Notificações (se implementadas)
+
+---
+
+**Subtarefa: Publicar nas lojas**
+
+✅ **Critérios de Aceite:**
+1. **Publicação iOS (App Store):**
+   - App submetido para revisão na App Store Connect
+   - Informações da App Store preenchidas:
+     - Nome: "Gapp" (ou conforme definição do produto)
+     - Subtítulo (se aplicável)
+     - Descrição completa em português
+     - Palavras-chave (keywords)
+     - Categoria: Business ou Productivity
+     - Classificação etária configurada
+     - Screenshots para iPhone (vários tamanhos)
+     - Screenshots para iPad (se `supportsTablet: true`)
+     - Ícone do app (1024x1024)
+     - Política de privacidade (URL)
+   - Preço configurado (gratuito ou pago)
+   - Informações de suporte (URL, email)
+   - App aprovado e publicado na App Store
+   - Link de download funcional: `https://apps.apple.com/app/id{APP_ID}`
+
+2. **Publicação Android (Google Play Store):**
+   - App submetido para revisão no Google Play Console
+   - Informações da Play Store preenchidas:
+     - Nome: "Gapp" (ou conforme definição do produto)
+     - Descrição curta (80 caracteres)
+     - Descrição completa em português
+     - Screenshots para telefones (mínimo 2)
+     - Screenshots para tablets (se suportado)
+     - Ícone do app (512x512)
+     - Feature graphic (1024x500)
+     - Política de privacidade (URL)
+     - Classificação de conteúdo
+     - Categoria: Business ou Productivity
+   - Preço configurado (gratuito ou pago)
+   - Informações de contato do desenvolvedor
+   - App aprovado e publicado na Google Play Store
+   - Link de download funcional: `https://play.google.com/store/apps/details?id=com.garageinn.gapp`
+
+3. **Documentação de publicação:**
+   - Processo de publicação documentado (README ou documentação interna)
+   - Checklist de publicação criado para futuras versões
+   - Credenciais e acessos documentados de forma segura
+   - Versionamento e changelog documentados
+
+4. **Pós-publicação:**
+   - App disponível para download nas lojas
+   - Usuários podem instalar e usar o app
+   - Monitoramento de crashes configurado (Sentry já integrado)
+   - Analytics básico configurado (se aplicável)
+   - Feedback inicial coletado e documentado
+
+5. **Validação final:**
+   - App instalado via App Store funciona corretamente
+   - App instalado via Play Store funciona corretamente
+   - Autenticação funciona em produção
+   - Integração com Supabase funciona em produção
+   - Notificações funcionam em produção (se implementadas)
+   - Performance aceitável em dispositivos reais
+
+---
+
+**Critérios de Aceite Gerais do Épico:**
+
+1. **Documentação:**
+   - README do mobile atualizado com instruções de build e publicação
+   - Guia de configuração do Firebase documentado
+   - Processo de atualização de versão documentado
+
+2. **Segurança:**
+   - Credenciais do Firebase não expostas no código
+   - Keystore Android protegido (EAS Secrets)
+   - Certificados iOS protegidos (EAS Secrets)
+
+3. **Conformidade:**
+   - App segue políticas das lojas (App Store Guidelines e Google Play Policies)
+   - Política de privacidade publicada e acessível
+   - Termos de uso publicados (se aplicável)
+   - LGPD compliance (conforme PRD seção 8.3)
+
+4. **Qualidade:**
+   - App não apresenta crashes críticos em produção
+   - Performance aceitável (tempo de abertura < 3s)
+   - Acessibilidade básica implementada
+   - Design System aplicado consistentemente
+
 ## 6. Fase 5 — Pos‑Entrega (Continuo)
 
 ### Épico 5.1 — Performance e Otimizacao
