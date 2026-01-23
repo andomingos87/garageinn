@@ -1,1 +1,0 @@
-Consulte o documento AGENTS.md na raiz do projeto para entender estrutura, documentação e usar agentes especializados.

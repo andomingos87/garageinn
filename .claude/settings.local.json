@@ -1,64 +1,12 @@
 {
-  "permissions": {
-    "allow": [
-      "Read",
-      "Edit",
-      "Write",
-      "Grep",
-      "Glob",
-      "LS",
-      "-la",
-      "Bash(npm run:*)",
-      "Bash(npx:*)",
-      "Bash(pytest:*)",
-      "Bash(ruff:*)",
-      "Bash(alembic:*)",
-      "Bash(docker-compose:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "mcp__ai-context__getFileStructure",
-      "Bash(find:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(cat:*)",
-      "Bash(wc:*)",
-      "Bash(findstr:*)",
-      "Bash(dir:*)",
-      "mcp__supabase_gapp__list_tables",
-      "mcp__supabase_gapp__list_extensions",
-      "mcp__supabase_gapp__execute_sql",
-      "mcp__supabase_gapp__apply_migration",
-      "Bash(npm install:*)",
-      "Bash(npm ls:*)",
-      "Skill(nothing)",
-      "Bash(ls:*)",
-      "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_wait_for",
-      "Bash(netstat:*)",
-      "mcp__playwright__browser_close",
-      "mcp__context7__resolve-library-id",
-      "mcp__context7__query-docs",
-      "mcp__ai-context__scaffoldPlan",
-      "mcp__supabase_gapp__get_advisors",
-      "mcp__supabase_gapp__generate_typescript_types",
-      "mcp__ai-context__listSkills",
-      "mcp__ai-context__scaffoldSkills",
-      "mcp__ai-context__exportSkills"
-    ],
-    "deny": [
-      "Bash(rm -rf:*)",
-      "Bash(curl:*)",
-      "Read(.env)",
-      "Read(secrets/**)",
-      "Edit(.env)"
-    ]
-  },
-  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase_gapp",
-    "context7",
     "playwright",
     "ai-context"
-  ]
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(uv tool install:*)"
+    ]
+  }
 }

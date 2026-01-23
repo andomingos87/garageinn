@@ -1,2 +1,0 @@
-- Documente a solução estratégicamente como uma lição aprendida em @.context/docs/lessons-learned.md;
-- Faça menção em @AGENTS.md seguindo o padrão do documento;

@@ -18,6 +18,3 @@ Este projeto usa o MCP do Playwright para validar fluxos E2E e correcoes de bugs
 4. Re-capture snapshot quando houver mudancas esperadas.
 5. Use screenshot quando precisar de verificacao visual.
 6. Salve evidencias em `.playwright-mcp/` quando aplicavel.
-
-## Referencias
-- `.context/docs/e2e-testing-playwright-mcp.md`
