@@ -66,6 +66,80 @@ export interface ExecutionWithDetails {
 }
 
 // ============================================
+// Permission Checks
+// ============================================
+
+/**
+ * Verifica se o usuário atual pode acessar Supervisão
+ */
+export async function checkCanAccessSupervision(): Promise<boolean> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data: userRoles, error } = await supabase
+    .from("user_roles")
+    .select(
+      `
+      role:roles (
+        name,
+        is_global,
+        department:departments (
+          name
+        )
+      )
+    `
+    )
+    .eq("user_id", user.id);
+
+  if (error || !userRoles) {
+    console.error("Error fetching user roles:", error);
+    return false;
+  }
+
+  const { getUserPermissions, hasPermission } = await import("@/lib/auth/rbac");
+
+  interface RoleData {
+    role:
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }[]
+      | null;
+  }
+
+  const roles = userRoles
+    .map((ur: RoleData) => {
+      const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+      if (!role) return null;
+      const dept = Array.isArray(role.department)
+        ? role.department[0]
+        : role.department;
+      return {
+        role_name: role.name,
+        department_name: dept?.name ?? null,
+        is_global: role.is_global ?? false,
+      };
+    })
+    .filter(
+      (role): role is { role_name: string; department_name: string | null; is_global: boolean } =>
+        role !== null
+    );
+
+  const permissions = getUserPermissions(roles);
+  return hasPermission(permissions, "supervision:read");
+}
+
+// ============================================
 // Query Functions
 // ============================================
 

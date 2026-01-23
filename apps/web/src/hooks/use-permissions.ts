@@ -75,22 +75,33 @@ export function usePermissions(): UsePermissionsReturn {
 
       // Transformar para o formato esperado
       interface RoleQueryData {
-        role: {
-          name: string;
-          is_global: boolean;
-          department: { name: string }[];
-        }[];
+        role:
+          | {
+              name: string;
+              is_global: boolean;
+              department: { name: string }[] | null;
+            }
+          | {
+              name: string;
+              is_global: boolean;
+              department: { name: string }[] | null;
+            }[]
+          | null;
       }
       const roles: UserRole[] = (userRoles || [])
-        .filter((ur: RoleQueryData) => ur.role && ur.role.length > 0)
         .map((ur: RoleQueryData) => {
-          const role = ur.role[0];
+          const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+          if (!role) return null;
+          const dept = Array.isArray(role.department)
+            ? role.department[0]
+            : role.department;
           return {
             role_name: role.name,
-            department_name: role.department?.[0]?.name ?? null,
+            department_name: dept?.name ?? null,
             is_global: role.is_global ?? false,
           };
-        });
+        })
+        .filter((role): role is UserRole => role !== null);
 
       const userPermissions = getUserPermissions(roles);
       setPermissions(userPermissions);

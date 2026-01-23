@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   getFinanceiroTicket,
   canTriageFinanceiroTicket,
   getFinanceiroDepartmentMembers,
   checkIsAdmin,
+  checkCanAccessFinanceiro,
 } from "../actions";
 import {
   FinanceiroHeader,
@@ -23,6 +24,11 @@ export default async function FinanceiroTicketDetailPage({
   params,
 }: PageProps) {
   const { ticketId } = await params;
+
+  const canAccess = await checkCanAccessFinanceiro();
+  if (!canAccess) {
+    redirect("/dashboard");
+  }
 
   const [ticket, canTriage, departmentMembers, isAdmin] = await Promise.all([
     getFinanceiroTicket(ticketId),

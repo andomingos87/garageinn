@@ -451,22 +451,33 @@ export async function checkCanAccessUnits(): Promise<boolean> {
   const { getUserPermissions, hasPermission } = await import("@/lib/auth/rbac");
 
   interface RoleData {
-    role: {
-      name: string;
-      is_global: boolean;
-      department: { name: string }[];
-    }[];
+    role:
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }[]
+      | null;
   }
   const roles = userRoles
-    .filter((ur: RoleData) => ur.role && ur.role.length > 0)
     .map((ur: RoleData) => {
-      const role = ur.role[0];
+      const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+      if (!role) return null;
+      const dept = Array.isArray(role.department)
+        ? role.department[0]
+        : role.department;
       return {
         role_name: role.name,
-        department_name: role.department?.[0]?.name ?? null,
+        department_name: dept?.name ?? null,
         is_global: role.is_global ?? false,
       };
-    });
+    })
+    .filter((role): role is { role_name: string; department_name: string | null; is_global: boolean } => role !== null);
 
   const permissions = getUserPermissions(roles);
   return hasPermission(permissions, "units:read");
@@ -508,22 +519,33 @@ export async function checkCanEditUnits(): Promise<boolean> {
   const { getUserPermissions, hasPermission } = await import("@/lib/auth/rbac");
 
   interface RoleDataEdit {
-    role: {
-      name: string;
-      is_global: boolean;
-      department: { name: string }[];
-    }[];
+    role:
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }[]
+      | null;
   }
   const roles = userRoles
-    .filter((ur: RoleDataEdit) => ur.role && ur.role.length > 0)
     .map((ur: RoleDataEdit) => {
-      const role = ur.role[0];
+      const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+      if (!role) return null;
+      const dept = Array.isArray(role.department)
+        ? role.department[0]
+        : role.department;
       return {
         role_name: role.name,
-        department_name: role.department?.[0]?.name ?? null,
+        department_name: dept?.name ?? null,
         is_global: role.is_global ?? false,
       };
-    });
+    })
+    .filter((role): role is { role_name: string; department_name: string | null; is_global: boolean } => role !== null);
 
   const permissions = getUserPermissions(roles);
   return hasPermission(permissions, "units:update");

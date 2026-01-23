@@ -30,6 +30,8 @@ export type Permission =
   | "checklists:read"
   | "checklists:execute"
   | "checklists:configure"
+  // Supervisão
+  | "supervision:read"
   // Configurações
   | "settings:read"
   | "settings:update"
@@ -78,7 +80,6 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "tickets:approve",
       "checklists:read",
       "checklists:execute",
-      "units:read",
     ],
     Supervisor: [
       "tickets:read",
@@ -86,6 +87,7 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "tickets:approve",
       "checklists:read",
       "checklists:execute",
+      "supervision:read",
       "units:read",
     ],
     Gerente: [
@@ -96,9 +98,9 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "checklists:read",
       "checklists:execute",
       "checklists:configure",
+      "supervision:read",
       "units:read",
       "units:update",
-      "reports:read",
     ],
   },
 
@@ -222,6 +224,7 @@ export const ALL_PERMISSIONS: Permission[] = [
   "checklists:read",
   "checklists:execute",
   "checklists:configure",
+  "supervision:read",
   "settings:read",
   "settings:update",
   "reports:read",

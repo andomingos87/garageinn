@@ -1,0 +1,10 @@
+openapi: 3.0.3
+info:
+  title: Controle de Acesso - Usuarios e Configuracoes
+  version: 1.0.0
+  description: >
+    Este recurso nao introduz novos endpoints de API.
+    O controle de acesso utiliza fluxos existentes de autenticacao e RBAC.
+paths: {}
+x-notes:
+  - "Sem novos contratos de API. Reaproveita autorizacao existente."

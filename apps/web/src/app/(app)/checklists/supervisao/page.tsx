@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +11,10 @@ import {
   ArrowLeft,
   ShieldCheck,
 } from "lucide-react";
-import { getSupervisionChecklists } from "../executar/actions";
+import {
+  checkCanAccessSupervision,
+  getSupervisionChecklists,
+} from "../executar/actions";
 
 async function SupervisionStats() {
   const checklists = await getSupervisionChecklists();
@@ -92,7 +96,12 @@ function StatsLoading() {
   );
 }
 
-export default function SupervisaoPage() {
+export default async function SupervisaoPage() {
+  const canAccess = await checkCanAccessSupervision();
+  if (!canAccess) {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}

@@ -54,6 +54,7 @@ describe("getUserPermissions", () => {
     expect(permissions).toContain("tickets:create");
     expect(permissions).toContain("checklists:read");
     expect(permissions).toContain("checklists:execute");
+    expect(permissions).not.toContain("supervision:read");
     expect(permissions).not.toContain("admin:all");
     expect(permissions).not.toContain("users:read");
   });
@@ -241,13 +242,13 @@ describe("getUserPermissions", () => {
         role: "Supervisor",
         dept: "Operações",
         global: false,
-        expectedPerms: ["tickets:read", "tickets:approve"],
+        expectedPerms: ["tickets:read", "tickets:approve", "supervision:read"],
       },
       {
         role: "Gerente",
         dept: "Operações",
         global: false,
-        expectedPerms: ["tickets:read", "tickets:triage"],
+        expectedPerms: ["tickets:read", "tickets:triage", "supervision:read"],
       },
       // Compras e Manutenção
       {

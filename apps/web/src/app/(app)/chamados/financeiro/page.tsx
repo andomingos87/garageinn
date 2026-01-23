@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Wallet } from "lucide-react";
@@ -8,6 +9,7 @@ import {
   getFinanceiroStats,
   getFinanceiroCategories,
   type FinanceiroFilters,
+  checkCanAccessFinanceiro,
 } from "./actions";
 import { getUserUnits } from "@/lib/units";
 import {
@@ -80,6 +82,11 @@ export default async function ChamadosFinanceiroPage({
   searchParams,
 }: PageProps) {
   const params = await searchParams;
+
+  const canAccess = await checkCanAccessFinanceiro();
+  if (!canAccess) {
+    redirect("/dashboard");
+  }
 
   const filters: FinanceiroFilters = {
     search: params.search,
