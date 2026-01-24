@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { COMERCIAL_TYPES, PERCEIVED_URGENCY } from "../constants";
-import type { ComercialCategory } from "../actions";
+import type { ComercialCategory } from "../types";
 import type { UserUnit } from "@/lib/units";
 
 interface ComercialFormProps {

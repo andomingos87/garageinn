@@ -120,13 +120,9 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.ticket_categories (name, department_id, status)
 SELECT c.name, d.id, 'active'
 FROM (VALUES 
-  ('Suporte Técnico'),
-  ('Solicitação de Equipamento'),
-  ('Problema de Sistema'),
-  ('Acesso/Permissões'),
-  ('Email'),
-  ('Internet/Rede'),
-  ('Impressora'),
+  ('Equipamento'),
+  ('Rede'),
+  ('Internet'),
   ('Outros')
 ) AS c(name)
 CROSS JOIN public.departments d

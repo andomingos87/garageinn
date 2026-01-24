@@ -7,8 +7,8 @@ import {
   getComercialTickets,
   getComercialStats,
   getComercialCategories,
-  type ComercialFilters,
 } from "./actions";
+import type { ComercialFilters } from "./types";
 import { getUserUnits } from "@/lib/units";
 import {
   ComercialStatsCards,

@@ -6,6 +6,7 @@ import {
   CheckSquare,
   Home,
   MessageSquareMore,
+  Monitor,
   Settings,
   ShieldCheck,
   Users,
@@ -61,6 +62,11 @@ const menuItems: MenuItem[] = [
     icon: Wallet,
     // Visível apenas para usuários do departamento Financeiro ou admins
     requireDepartment: "Financeiro",
+  },
+  {
+    title: "TI",
+    href: "/chamados/ti",
+    icon: Monitor,
   },
   {
     title: "Checklists",

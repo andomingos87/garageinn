@@ -22,8 +22,9 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { createFinanceiroTicket, type FinanceiroCategory } from "../actions";
+import { createFinanceiroTicket } from "../actions";
 import { PERCEIVED_URGENCY } from "../constants";
+import type { FinanceiroCategory } from "../types";
 
 interface FinanceiroFormProps {
   categories: FinanceiroCategory[];

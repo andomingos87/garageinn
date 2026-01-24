@@ -8,9 +8,9 @@ import {
   getFinanceiroTickets,
   getFinanceiroStats,
   getFinanceiroCategories,
-  type FinanceiroFilters,
   checkCanAccessFinanceiro,
 } from "./actions";
+import type { FinanceiroFilters } from "./types";
 import { getUserUnits } from "@/lib/units";
 import {
   FinanceiroStatsCards,

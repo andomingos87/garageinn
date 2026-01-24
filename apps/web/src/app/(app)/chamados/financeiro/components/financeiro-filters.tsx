@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Search, X, Loader2 } from "lucide-react";
 import { statusLabels, PRIORITIES } from "../constants";
-import type { FinanceiroCategory } from "../actions";
+import type { FinanceiroCategory } from "../types";
 
 interface FinanceiroFiltersProps {
   categories: FinanceiroCategory[];

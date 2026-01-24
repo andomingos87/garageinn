@@ -3,63 +3,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import {
   statusTransitions,
   statusLabels,
   FINANCEIRO_DEPARTMENT_ID,
 } from "./constants";
-
-// ============================================
-// Types
-// ============================================
-
-export interface FinanceiroFilters {
-  status?: string;
-  priority?: string;
-  category_id?: string;
-  unit_id?: string;
-  assigned_to?: string;
-  search?: string;
-  startDate?: string;
-  endDate?: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface FinanceiroStats {
-  total: number;
-  awaitingTriage: number;
-  inProgress: number;
-  resolved: number;
-}
-
-export interface FinanceiroCategory {
-  id: string;
-  name: string;
-  department_id: string;
-  status: string;
-}
-
-// ============================================
-// Validation Schemas
-// ============================================
-
-export const createFinanceiroTicketSchema = z.object({
-  title: z.string().min(3, "Titulo deve ter no minimo 3 caracteres"),
-  description: z.string().min(10, "Descricao deve ter no minimo 10 caracteres"),
-  categoryId: z.string().uuid("Categoria invalida"),
-  unitId: z.string().uuid("Unidade invalida").optional(),
-  perceivedUrgency: z.string().optional(),
-});
-
-export const triageFinanceiroTicketSchema = z.object({
-  ticketId: z.string().uuid(),
-  priority: z.enum(["low", "medium", "high", "urgent"]),
-  assignedTo: z.string().uuid().optional(),
-  dueDate: z.string().optional(),
-  notes: z.string().optional(),
-});
+import type {
+  FinanceiroCategory,
+  FinanceiroFilters,
+  FinanceiroStats,
+} from "./types";
 
 // ============================================
 // Query Functions

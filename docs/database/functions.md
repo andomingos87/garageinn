@@ -246,7 +246,7 @@ SELECT restore_deleted_user('uuid-do-usuario');
 
 Verifica se um chamado precisa passar por aprovações internas.
 
-**Regra**: Chamados criados por Manobristas para Compras ou Manutenção precisam de aprovação.
+**Regra**: Chamados criados por Manobristas para Compras e Manutenção ou TI precisam de aprovação.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.ticket_needs_approval(
@@ -276,12 +276,12 @@ BEGIN
     RETURN false;
   END IF;
   
-  -- Verifica se o departamento destino é Compras ou Manutenção
+  -- Verifica se o departamento destino é Compras e Manutenção ou TI
   SELECT EXISTS (
     SELECT 1
     FROM departments
     WHERE id = p_department_id
-    AND name IN ('Compras e Manutenção')
+    AND name IN ('Compras e Manutenção', 'TI')
   ) INTO v_is_target_dept;
   
   RETURN v_is_target_dept;

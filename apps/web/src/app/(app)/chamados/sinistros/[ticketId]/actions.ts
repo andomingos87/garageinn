@@ -1139,7 +1139,7 @@ export async function createMaintenanceFromClaim(ticketId: string) {
   const { data: manutencaoDept } = await supabase
     .from("departments")
     .select("id")
-    .eq("name", "Manutenção")
+    .eq("name", "Compras e Manutenção")
     .single();
 
   if (!manutencaoDept) {

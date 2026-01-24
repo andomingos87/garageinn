@@ -1,3 +1,6 @@
 admin@garageinn.com.br
 Teste123!
 
+sk-user-w5fMKaJ2hobRcfIjVm3DSdbfByGpPVDwgsmA10CI8vy7HtlvjwatAulU_pWfCuameDwIs911fYSuaC1fNgG6hE1t3i3uzpxWnsoq3doTBpWxKFqN4IQFcdSmiafbM-SLo8c
+
+claude mcp add TestSprite --env API_KEY=sk-user-w5fMKaJ2hobRcfIjVm3DSdbfByGpPVDwgsmA10CI8vy7HtlvjwatAulU_pWfCuameDwIs911fYSuaC1fNgG6hE1t3i3uzpxWnsoq3doTBpWxKFqN4IQFcdSmiafbM-SLo8c -- npx @testsprite/testsprite-mcp@latest

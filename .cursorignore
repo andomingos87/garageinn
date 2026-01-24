@@ -22,8 +22,6 @@ logs/
 *.log
 npm-debug.log*
 .temp/
-tmp/
-
 # Ambientes virtuais (se usar Python no backend)
 venv/
 .venv/
