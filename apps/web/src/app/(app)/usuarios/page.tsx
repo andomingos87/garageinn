@@ -11,6 +11,7 @@ import {
   checkIsAdmin,
   getCurrentUserId,
 } from "./actions";
+import { AccessDenied } from "@/components/auth/access-denied";
 import {
   UsersTable,
   UsersFilters,
@@ -18,7 +19,6 @@ import {
   UsersPagination,
 } from "./components";
 import type { UserStatus } from "@/lib/supabase/custom-types";
-import { redirect } from "next/navigation";
 
 interface PageProps {
   searchParams: Promise<{
@@ -137,7 +137,7 @@ export default async function UsuariosPage({ searchParams }: PageProps) {
   const isAdmin = await checkIsAdmin();
 
   if (!isAdmin) {
-    redirect("/");
+    return <AccessDenied />;
   }
 
   return (

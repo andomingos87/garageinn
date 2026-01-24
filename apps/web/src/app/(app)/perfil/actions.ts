@@ -58,18 +58,28 @@ export async function getCurrentUserProfile(): Promise<UserWithRoles | null> {
   }
 
   interface UserRoleData {
-    role: {
-      id: string;
-      name: string;
-      is_global: boolean;
-      department: { id: string; name: string }[];
-    }[];
+    role:
+      | {
+          id: string;
+          name: string;
+          is_global: boolean;
+          department: { id: string; name: string }[] | null;
+        }
+      | {
+          id: string;
+          name: string;
+          is_global: boolean;
+          department: { id: string; name: string }[] | null;
+        }[]
+      | null;
   }
   const roles: UserRoleInfo[] = (profile.user_roles || [])
-    .filter((ur: UserRoleData) => ur.role && ur.role.length > 0)
     .map((ur: UserRoleData) => {
-      const role = ur.role[0];
-      const dept = role.department?.[0];
+      const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+      if (!role) return null;
+      const dept = Array.isArray(role.department)
+        ? role.department[0]
+        : role.department;
       return {
         role_id: role.id,
         role_name: role.name,
@@ -77,7 +87,8 @@ export async function getCurrentUserProfile(): Promise<UserWithRoles | null> {
         department_name: dept?.name ?? null,
         is_global: role.is_global ?? false,
       };
-    });
+    })
+    .filter((role): role is UserRoleInfo => role !== null);
 
   return {
     id: profile.id,

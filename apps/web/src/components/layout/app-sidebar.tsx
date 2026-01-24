@@ -28,6 +28,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { RequirePermission } from "@/components/auth/require-permission";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useProfile } from "@/hooks/use-profile";
 import type { Permission } from "@/lib/auth/permissions";
 
 interface MenuItem {
@@ -38,6 +40,8 @@ interface MenuItem {
   requirePermission?: Permission | Permission[];
   /** Modo de verificação: 'any' = qualquer permissão, 'all' = todas */
   permissionMode?: "any" | "all";
+  /** Restringe visualização por departamento */
+  requireDepartment?: string;
 }
 
 const menuItems: MenuItem[] = [
@@ -55,9 +59,8 @@ const menuItems: MenuItem[] = [
     title: "Financeiro",
     href: "/chamados/financeiro",
     icon: Wallet,
-    // Visível para quem pode ler tickets ou admins
-    requirePermission: ["tickets:read", "admin:all"],
-    permissionMode: "any",
+    // Visível apenas para usuários do departamento Financeiro ou admins
+    requireDepartment: "Financeiro",
   },
   {
     title: "Checklists",
@@ -68,9 +71,8 @@ const menuItems: MenuItem[] = [
     title: "Supervisão",
     href: "/checklists/supervisao",
     icon: ShieldCheck,
-    // Visível para quem pode executar checklists (supervisores e admins)
-    requirePermission: ["checklists:execute", "admin:all"],
-    permissionMode: "any",
+    // Visível para quem tem permissão de supervisão
+    requirePermission: "supervision:read",
   },
   {
     title: "Unidades",
@@ -130,6 +132,17 @@ function MenuItemLink({
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { isAdmin, isLoading: permissionsLoading } = usePermissions();
+  const { profile, isLoading: profileLoading } = useProfile();
+
+  const hasDepartmentAccess = (department: string) => {
+    if (permissionsLoading || profileLoading) return false;
+    if (isAdmin) return true;
+    return (
+      profile?.roles.some((role) => role.department_name === department) ??
+      false
+    );
+  };
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -146,6 +159,10 @@ export function AppSidebar() {
         isActive={isActive(item.href)}
       />
     );
+
+    if (item.requireDepartment && !hasDepartmentAccess(item.requireDepartment)) {
+      return null;
+    }
 
     if (item.requirePermission) {
       return (

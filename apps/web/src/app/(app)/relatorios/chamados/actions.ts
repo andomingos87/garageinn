@@ -78,48 +78,43 @@ export async function canAccessReports(): Promise<boolean> {
 
   if (!userRoles || userRoles.length === 0) return false;
 
-  // Verificar se é admin ou tem permissão de relatórios
-  for (const ur of userRoles) {
-    const role = ur.role as unknown as {
-      name: string;
-      is_global: boolean;
-      department: { name: string } | null;
-    };
+  const { getUserPermissions, hasPermission } = await import("@/lib/auth/rbac");
 
-    // Cargos globais com admin
-    if (
-      role.is_global &&
-      ["Desenvolvedor", "Diretor", "Administrador"].includes(role.name)
-    ) {
-      return true;
-    }
-
-    // Gerentes têm acesso a relatórios
-    if (role.name === "Gerente") {
-      return true;
-    }
-
-    // Supervisor de Financeiro e Operações
-    if (
-      role.name === "Supervisor" &&
-      role.department?.name &&
-      ["Financeiro", "Operações"].includes(role.department.name)
-    ) {
-      return true;
-    }
-
-    // Analista de TI
-    if (role.name === "Analista" && role.department?.name === "TI") {
-      return true;
-    }
-
-    // Auditor
-    if (role.name === "Auditor") {
-      return true;
-    }
+  interface RoleData {
+    role:
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }[]
+      | null;
   }
 
-  return false;
+  const roles = userRoles
+    .map((ur: RoleData) => {
+      const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+      if (!role) return null;
+      const dept = Array.isArray(role.department)
+        ? role.department[0]
+        : role.department;
+      return {
+        role_name: role.name,
+        department_name: dept?.name ?? null,
+        is_global: role.is_global ?? false,
+      };
+    })
+    .filter(
+      (role): role is { role_name: string; department_name: string | null; is_global: boolean } =>
+        role !== null
+    );
+
+  const permissions = getUserPermissions(roles);
+  return hasPermission(permissions, "reports:read");
 }
 
 // ============================================================================

@@ -195,18 +195,18 @@ Cargos globais **não pertencem a nenhum departamento específico** e possuem **
 | Cargo | Permissões |
 |-------|------------|
 | **Manobrista** | `tickets:read`, `tickets:create`, `checklists:read`, `checklists:execute` |
-| **Encarregado** | `tickets:read`, `tickets:create`, `tickets:approve`, `checklists:read`, `checklists:execute`, `units:read` |
-| **Supervisor** | `tickets:read`, `tickets:create`, `tickets:approve`, `checklists:read`, `checklists:execute`, `units:read` |
-| **Gerente** | `tickets:read`, `tickets:create`, `tickets:triage`, `tickets:approve`, `checklists:read`, `checklists:execute`, `checklists:configure`, `units:read`, `units:update` |
+| **Encarregado** | `tickets:read`, `tickets:create`, `tickets:approve`, `checklists:read`, `checklists:execute` |
+| **Supervisor** | `tickets:read`, `tickets:create`, `tickets:approve`, `checklists:read`, `checklists:execute`, `supervision:read`, `units:read` |
+| **Gerente** | `tickets:read`, `tickets:create`, `tickets:triage`, `tickets:approve`, `checklists:read`, `checklists:execute`, `checklists:configure`, `supervision:read`, `units:read`, `units:update` |
 
 **Detalhamento:**
 
 | Cargo | O que pode fazer | O que NÃO pode fazer |
 |-------|------------------|----------------------|
 | **Manobrista** | Ver/criar chamados, executar checklists de abertura | Aprovar chamados, ver outras unidades, configurar sistema |
-| **Encarregado** | Tudo do Manobrista + aprovar chamados (nível 1), ver dados da unidade | Triar chamados, configurar checklists |
-| **Supervisor** | Tudo do Encarregado + aprovar chamados (nível 2) | Triar chamados, configurar checklists |
-| **Gerente** | Tudo acima + triar chamados, configurar checklists, editar unidades | Gerenciar usuários, configurações globais |
+| **Encarregado** | Tudo do Manobrista + aprovar chamados (nível 1) | Ver unidades, triar chamados, configurar checklists |
+| **Supervisor** | Tudo do Encarregado + supervisão e visão de unidades | Triar chamados, configurar checklists |
+| **Gerente** | Tudo acima + supervisão, triar chamados, configurar checklists, editar unidades | Gerenciar usuários, configurações globais |
 
 ### 5.2 Compras e Manutenção
 
@@ -380,27 +380,31 @@ Cargos globais **não pertencem a nenhum departamento específico** e possuem **
 
 ### 6.5 Usuários
 
+Acesso permitido para cargos globais (`admin:all`) e perfis de RH com permissões de usuários.
+
 | Ação | Quem pode |
 |------|-----------|
-| Visualizar lista de usuários | RH, Admins |
+| Visualizar lista de usuários | RH com `users:read`, cargos globais (`admin:all`) |
 | Ver perfil próprio | Todos |
-| Criar usuário | Analista+ de RH, Admins |
-| Editar usuário | Coordenador+ de RH, Admins |
-| Desativar/Excluir usuário | Gerente de RH, Admins |
-| Personificar (impersonate) | Apenas Admins |
+| Criar usuário | Analista+ de RH, cargos globais (`admin:all`) |
+| Editar usuário | Coordenador+ de RH, cargos globais (`admin:all`) |
+| Desativar/Excluir usuário | Gerente de RH, cargos globais (`admin:all`) |
+| Personificar (impersonate) | Apenas cargos globais (`admin:all`) |
 
 ### 6.6 Configurações
 
+Acesso ao menu de Configurações e suas seções é restrito a cargos globais (`admin:all`).
+
 | Seção | Quem pode acessar |
 |-------|-------------------|
-| Menu de Configurações | Apenas Admins |
-| Departamentos e Cargos | Apenas Admins |
-| Unidades | Admins |
-| Checklists | Admins |
-| Chamados (categorias) | Admins |
-| Permissões | Apenas Admins |
-| Uniformes | RH, Admins |
-| Sistema | Apenas Admins |
+| Menu de Configurações | Apenas cargos globais (`admin:all`) |
+| Departamentos e Cargos | Apenas cargos globais (`admin:all`) |
+| Unidades | Cargos globais (`admin:all`) |
+| Checklists | Cargos globais (`admin:all`) |
+| Chamados (categorias) | Cargos globais (`admin:all`) |
+| Permissões | Apenas cargos globais (`admin:all`) |
+| Uniformes | RH, cargos globais (`admin:all`) |
+| Sistema | Apenas cargos globais (`admin:all`) |
 
 ---
 

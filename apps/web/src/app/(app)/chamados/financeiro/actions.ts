@@ -858,3 +858,46 @@ export async function checkIsAdmin(): Promise<boolean> {
 
   return data === true;
 }
+
+/**
+ * Verifica se o usuario atual pode acessar o Financeiro
+ * Permitido para membros do departamento Financeiro ou admins
+ */
+export async function checkCanAccessFinanceiro(): Promise<boolean> {
+  if (await checkIsAdmin()) return true;
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data: userRoles, error } = await supabase
+    .from("user_roles")
+    .select(
+      `
+      role:roles (
+        name,
+        department:departments (
+          name
+        )
+      )
+    `
+    )
+    .eq("user_id", user.id);
+
+  if (error || !userRoles) {
+    console.error("Error fetching user roles:", error);
+    return false;
+  }
+
+  return userRoles.some((ur) => {
+    const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+    if (!role) return false;
+    const dept = Array.isArray(role.department)
+      ? role.department[0]
+      : role.department;
+    return dept?.name === "Financeiro";
+  });
+}
