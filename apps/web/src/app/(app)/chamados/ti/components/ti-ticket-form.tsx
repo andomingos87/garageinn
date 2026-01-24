@@ -48,6 +48,7 @@ export function TiTicketForm({
     description: "",
     perceived_urgency: "",
   });
+  const [attachments, setAttachments] = useState<FileList | null>(null);
 
   const hasUnits = units.length > 0;
   const isUnitFixed = !!fixedUnit;
@@ -85,6 +86,12 @@ export function TiTicketForm({
     data.set("unit_id", formData.unit_id);
     data.set("description", formData.description);
     data.set("perceived_urgency", formData.perceived_urgency);
+
+    if (attachments && attachments.length > 0) {
+      Array.from(attachments).forEach((file) => {
+        data.append("attachments", file);
+      });
+    }
 
     startTransition(async () => {
       const result = await onSubmit(data);
@@ -227,6 +234,21 @@ export function TiTicketForm({
               rows={5}
               className="resize-none"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="attachments">Anexos (opcional)</Label>
+            <Input
+              id="attachments"
+              type="file"
+              multiple
+              onChange={(e) => setAttachments(e.target.files)}
+              disabled={isPending}
+              accept="image/*,.pdf,.doc,.docx"
+            />
+            <p className="text-xs text-muted-foreground">
+              Voce pode anexar imagens ou documentos para complementar o chamado.
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -35,7 +35,7 @@ const STATUS_OPTIONS = [
     value: "awaiting_approval_gerente",
     label: STATUS_LABELS.awaiting_approval_gerente,
   },
-  { value: "awaiting_triage", label: STATUS_LABELS.awaiting_triage },
+  { value: "awaiting_triage", label: "Pronto para Execução" },
   { value: "in_progress", label: STATUS_LABELS.in_progress },
   { value: "executing", label: STATUS_LABELS.executing },
   { value: "waiting_parts", label: STATUS_LABELS.waiting_parts },

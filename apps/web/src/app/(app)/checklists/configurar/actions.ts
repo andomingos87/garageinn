@@ -159,13 +159,21 @@ export async function getTemplateById(templateId: string) {
     return null;
   }
 
+  interface UnitTemplateRow {
+    unit: {
+      id: string;
+      name: string;
+      code: string;
+      status: string;
+    } | null;
+  }
+
   return {
     ...data,
     questions_count: data.checklist_questions?.length || 0,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     units:
-      data.unit_checklist_templates
-        ?.map((uct: any) => uct.unit)
+      (data.unit_checklist_templates as UnitTemplateRow[] | null)
+        ?.map((uct) => uct.unit)
         .filter(Boolean) || [],
   };
 }

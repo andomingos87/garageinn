@@ -123,8 +123,9 @@ export function useNewTicket(options: UseNewTicketOptions): UseNewTicketReturn {
     } catch (err) {
       logger.error('useNewTicket: Failed to load auxiliary data', { error: err });
     } finally {
-      if (!isMounted.current) return;
-      setLoadingData(false);
+      if (isMounted.current) {
+        setLoadingData(false);
+      }
     }
   }, [departmentId]);
 
@@ -229,8 +230,9 @@ export function useNewTicket(options: UseNewTicketOptions): UseNewTicketReturn {
       setSubmitError(message);
       logger.error('useNewTicket: Failed to create ticket', { error: err });
     } finally {
-      if (!isMounted.current) return;
-      setSubmitting(false);
+      if (isMounted.current) {
+        setSubmitting(false);
+      }
     }
   }, [
     validate,

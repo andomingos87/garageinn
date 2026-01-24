@@ -154,11 +154,22 @@ async function getCurrentUserRole(): Promise<string | undefined> {
   // Retornar o role mais relevante para aprovação
   const approvalRoles = ["Gerente", "Supervisor", "Encarregado"];
 
+  interface RoleQueryData {
+    role:
+      | {
+          name: string;
+        }
+      | {
+          name: string;
+        }[]
+      | null;
+  }
+
   for (const approvalRole of approvalRoles) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const hasRole = userRoles.some(
-      (ur) => (ur.role as any)?.name === approvalRole
-    );
+    const hasRole = (userRoles as RoleQueryData[]).some((ur) => {
+      const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+      return role?.name === approvalRole;
+    });
     if (hasRole) return approvalRole;
   }
 

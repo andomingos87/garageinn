@@ -92,9 +92,10 @@ export function useTickets(options: UseTicketsOptions = {}): UseTicketsReturn {
         setError(message);
         logger.error('useTickets: Failed to load tickets', { error: err });
       } finally {
-        if (!isMounted.current) return;
-        setLoading(false);
-        setRefreshing(false);
+        if (isMounted.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [filters]

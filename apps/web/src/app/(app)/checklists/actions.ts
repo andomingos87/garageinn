@@ -272,17 +272,24 @@ export async function getExecutionDetails(
     console.error("Error fetching answers:", answersError);
   }
 
+  interface ChecklistAnswerRow {
+    id: string;
+    answer: boolean;
+    observation: string | null;
+    question: { order_index?: number | null } | null;
+  }
+
+  const mappedAnswers = (answers || []) as ChecklistAnswerRow[];
+
   return {
     ...execution,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    template: execution.template as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    unit: execution.unit as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    executed_by_profile: execution.executed_by_profile as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    answers: (answers || [])
-      .map((a: any) => ({
+    template: execution.template as Record<string, unknown> | null,
+    unit: execution.unit as Record<string, unknown> | null,
+    executed_by_profile: execution.executed_by_profile as
+      | Record<string, unknown>
+      | null,
+    answers: mappedAnswers
+      .map((a) => ({
         id: a.id,
         answer: a.answer,
         observation: a.observation,

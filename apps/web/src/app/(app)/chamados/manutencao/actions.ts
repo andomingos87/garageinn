@@ -428,10 +428,21 @@ export async function checkIsGerente(): Promise<boolean> {
     )
     .eq("user_id", user.id);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hasGerenteRole = userRoles?.some(
-    (ur: any) => ur.role?.name === "Gerente"
-  );
+  interface RoleQueryData {
+    role:
+      | {
+          name: string;
+        }
+      | {
+          name: string;
+        }[]
+      | null;
+  }
+
+  const hasGerenteRole = (userRoles as RoleQueryData[] | null)?.some((ur) => {
+    const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+    return role?.name === "Gerente";
+  });
 
   return hasGerenteRole || false;
 }
@@ -1257,10 +1268,25 @@ export async function canManageTicket(_ticketId: string) {
     )
     .eq("user_id", user.id);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isManutencaoMember = userRoles?.some(
-    (ur: any) => ur.role?.department_id === manutencaoDept.id
-  );
+  interface RoleDeptQueryData {
+    role:
+      | {
+          department_id: string | null;
+          name: string;
+        }
+      | {
+          department_id: string | null;
+          name: string;
+        }[]
+      | null;
+  }
+
+  const isManutencaoMember = (
+    userRoles as RoleDeptQueryData[] | null
+  )?.some((ur) => {
+    const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+    return role?.department_id === manutencaoDept.id;
+  });
 
   return isManutencaoMember || false;
 }

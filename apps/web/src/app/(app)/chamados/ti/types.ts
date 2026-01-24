@@ -10,7 +10,7 @@ export interface TiFilters {
 
 export interface TiStats {
   total: number;
-  awaitingTriage: number;
+  ready: number;
   inProgress: number;
   closed: number;
 }
@@ -38,4 +38,61 @@ export interface TiTicketListItem {
   created_by_avatar: string | null;
   assigned_to_name: string | null;
   assigned_to_avatar: string | null;
+}
+
+export interface TiApproval {
+  id: string;
+  approval_level: number;
+  approval_role: string;
+  status: string;
+  notes: string | null;
+  decision_at: string | null;
+  approver: {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+}
+
+export interface TiComment {
+  id: string;
+  content: string;
+  created_at: string;
+  author: {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+}
+
+export interface TiHistory {
+  id: string;
+  action: string;
+  new_value: string | null;
+  created_at: string;
+  user: {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+}
+
+export interface TiAttachment {
+  id: string;
+  file_name: string;
+  file_path: string;
+  created_at: string;
+  uploader: {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+}
+
+export interface TiTicketDetail extends TiTicketListItem {
+  description: string;
+  approvals: TiApproval[];
+  comments: TiComment[];
+  history: TiHistory[];
+  attachments: TiAttachment[];
 }

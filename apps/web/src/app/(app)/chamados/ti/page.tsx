@@ -8,6 +8,7 @@ import {
   getTiTickets,
   getTiStats,
   getTiCategories,
+  getTiReadyTickets,
 } from "./actions";
 import type { TiFilters } from "./types";
 import {
@@ -53,6 +54,23 @@ async function TiFiltersSection() {
     getUserUnits(),
   ]);
   return <TiFiltersComponent categories={categories} units={units} />;
+}
+
+async function TiReadySection() {
+  const ready = await getTiReadyTickets({ page: 1, limit: 10 });
+  if (!ready.canAccess) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Prontos para Execução</h3>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/chamados/ti?status=awaiting_triage">Ver todos</Link>
+        </Button>
+      </div>
+      <TiTable tickets={ready.data} />
+    </div>
+  );
 }
 
 async function TiListSection({ filters }: { filters: TiFilters }) {
@@ -107,6 +125,10 @@ export default async function ChamadosTiPage({ searchParams }: PageProps) {
 
       <Suspense fallback={<StatsCardsSkeleton />}>
         <TiStatsSection />
+      </Suspense>
+
+      <Suspense fallback={<TableSkeleton />}>
+        <TiReadySection />
       </Suspense>
 
       <Suspense fallback={<Skeleton className="h-10 w-full" />}>

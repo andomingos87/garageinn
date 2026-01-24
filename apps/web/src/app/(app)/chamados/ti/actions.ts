@@ -3,7 +3,30 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { TiCategory, TiFilters, TiStats, TiTicketListItem } from "./types";
+import type { Permission } from "@/lib/auth/permissions";
+import type {
+  TiCategory,
+  TiFilters,
+  TiStats,
+  TiTicketDetail,
+  TiTicketListItem,
+} from "./types";
+
+interface TiTicketListResult {
+  data: TiTicketListItem[];
+  count: number;
+  page: number;
+  limit: number;
+}
+
+interface TiReadyListResult extends TiTicketListResult {
+  canAccess: boolean;
+}
+
+interface TiApprovalContext {
+  isAdmin: boolean;
+  roles: string[];
+}
 
 // ============================================
 // Helpers
@@ -24,6 +47,75 @@ async function getTiDepartment() {
   }
 
   return data;
+}
+
+async function getCurrentUserPermissions(): Promise<Permission[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: userRoles, error } = await supabase
+    .from("user_roles")
+    .select(
+      `
+      role:roles (
+        name,
+        is_global,
+        department:departments (
+          name
+        )
+      )
+    `
+    )
+    .eq("user_id", user.id);
+
+  if (error || !userRoles) {
+    console.error("Error fetching user roles:", error);
+    return [];
+  }
+
+  const { extractPermissionsFromUserRoles } = await import("@/lib/auth/rbac");
+  interface RoleQueryData {
+    role:
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }
+      | {
+          name: string;
+          is_global: boolean;
+          department: { name: string }[] | null;
+        }[]
+      | null;
+  }
+
+  const normalizedRoles = (userRoles as RoleQueryData[]).map((ur) => {
+    const roleData = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+    if (!roleData) return { role: null };
+    const dept = Array.isArray(roleData.department)
+      ? roleData.department[0]
+      : roleData.department;
+    return {
+      role: {
+        name: roleData.name,
+        is_global: roleData.is_global ?? false,
+        department: dept ? { name: dept.name } : null,
+      },
+    };
+  });
+
+  return extractPermissionsFromUserRoles(normalizedRoles);
+}
+
+async function canAccessTiReadyList(): Promise<boolean> {
+  const permissions = await getCurrentUserPermissions();
+  if (permissions.length === 0) return false;
+
+  const { hasAnyPermission } = await import("@/lib/auth/rbac");
+  return hasAnyPermission(permissions, ["tickets:execute", "admin:all"]);
 }
 
 // ============================================
@@ -50,7 +142,9 @@ export async function getTiCategories(): Promise<TiCategory[]> {
   return data || [];
 }
 
-export async function getTiTickets(filters?: TiFilters) {
+export async function getTiTickets(
+  filters?: TiFilters
+): Promise<TiTicketListResult> {
   const supabase = await createClient();
   const page = filters?.page || 1;
   const limit = filters?.limit || 20;
@@ -106,10 +200,43 @@ export async function getTiTickets(filters?: TiFilters) {
   };
 }
 
+export async function getTiReadyTickets(
+  filters?: TiFilters
+): Promise<TiReadyListResult> {
+  const supabase = await createClient();
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 20;
+  const offset = (page - 1) * limit;
+
+  const canAccess = await canAccessTiReadyList();
+  if (!canAccess) {
+    return { data: [], count: 0, page, limit, canAccess: false };
+  }
+
+  const { data, error, count } = await supabase
+    .from("tickets_it_ready")
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error("Error fetching ready TI tickets:", error);
+    return { data: [], count: 0, page, limit, canAccess: true };
+  }
+
+  return {
+    data: (data || []) as TiTicketListItem[],
+    count: count || 0,
+    page,
+    limit,
+    canAccess: true,
+  };
+}
+
 export async function getTiStats(): Promise<TiStats> {
   const supabase = await createClient();
   const dept = await getTiDepartment();
-  if (!dept) return { total: 0, awaitingTriage: 0, inProgress: 0, closed: 0 };
+  if (!dept) return { total: 0, ready: 0, inProgress: 0, closed: 0 };
 
   const { data } = await supabase
     .from("tickets")
@@ -117,24 +244,25 @@ export async function getTiStats(): Promise<TiStats> {
     .eq("department_id", dept.id);
 
   if (!data) {
-    return { total: 0, awaitingTriage: 0, inProgress: 0, closed: 0 };
+    return { total: 0, ready: 0, inProgress: 0, closed: 0 };
   }
 
   const closedStatuses = ["closed", "cancelled", "denied"];
-  const triageStatuses = [
-    "awaiting_triage",
+  const approvalStatuses = [
     "awaiting_approval_encarregado",
     "awaiting_approval_supervisor",
     "awaiting_approval_gerente",
   ];
+  const readyStatuses = ["awaiting_triage"];
 
   return {
     total: data.length,
-    awaitingTriage: data.filter((t) => triageStatuses.includes(t.status))
-      .length,
+    ready: data.filter((t) => readyStatuses.includes(t.status)).length,
     inProgress: data.filter(
       (t) =>
-        !closedStatuses.includes(t.status) && !triageStatuses.includes(t.status)
+        !closedStatuses.includes(t.status) &&
+        !readyStatuses.includes(t.status) &&
+        !approvalStatuses.includes(t.status)
     ).length,
     closed: data.filter((t) => closedStatuses.includes(t.status)).length,
   };
@@ -144,7 +272,9 @@ export async function getTiStats(): Promise<TiStats> {
 // Mutation Functions
 // ============================================
 
-export async function createTiTicket(formData: FormData) {
+export async function createTiTicket(
+  formData: FormData
+): Promise<{ error?: string } | void> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -228,6 +358,59 @@ export async function createTiTicket(formData: FormData) {
     await supabase.rpc("create_ticket_approvals", { p_ticket_id: ticket.id });
   }
 
+  const attachments = formData.getAll("attachments") as File[];
+  const validAttachments = attachments.filter(
+    (file) => file instanceof File && file.size > 0
+  );
+  if (validAttachments.length > 0) {
+    const uploadResults = await Promise.all(
+      validAttachments.map(async (file) => {
+        const extension = file.name.split(".").pop() || "bin";
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+        const filePath = `tickets/${ticket.id}/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("ticket-attachments")
+          .upload(filePath, file, {
+            upsert: false,
+            cacheControl: "3600",
+          });
+
+        if (uploadError) {
+          console.error("Error uploading attachment:", uploadError);
+          return null;
+        }
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("ticket-attachments").getPublicUrl(filePath);
+
+        return {
+          ticket_id: ticket.id,
+          file_name: file.name,
+          file_path: publicUrl,
+          file_type: file.type || `application/${extension}`,
+          file_size: file.size,
+          uploaded_by: user.id,
+        };
+      })
+    );
+
+    const attachmentsToInsert = uploadResults.filter(
+      (item): item is NonNullable<typeof item> => item !== null
+    );
+
+    if (attachmentsToInsert.length > 0) {
+      const { error: attachmentError } = await supabase
+        .from("ticket_attachments")
+        .insert(attachmentsToInsert);
+
+      if (attachmentError) {
+        console.error("Error saving ticket attachments:", attachmentError);
+      }
+    }
+  }
+
   await supabase.from("ticket_history").insert({
     ticket_id: ticket.id,
     user_id: user.id,
@@ -243,7 +426,9 @@ export async function createTiTicket(formData: FormData) {
 // Detail Functions
 // ============================================
 
-export async function getTiTicketDetail(ticketId: string) {
+export async function getTiTicketDetail(
+  ticketId: string
+): Promise<TiTicketDetail | null> {
   const supabase = await createClient();
 
   const { data: ticket, error: ticketError } = await supabase
@@ -302,7 +487,7 @@ export async function getTiTicketDetail(ticketId: string) {
     .order("created_at", { ascending: false });
 
   return {
-    ...ticket,
+    ...(ticket as TiTicketDetail),
     approvals: approvals || [],
     comments: comments || [],
     history: history || [],
@@ -314,7 +499,10 @@ export async function getTiTicketDetail(ticketId: string) {
 // Comment/Approval helpers (shared components)
 // ============================================
 
-export async function addComment(ticketId: string, formData: FormData) {
+export async function addComment(
+  ticketId: string,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -351,7 +539,7 @@ export async function handleApproval(
   approvalId: string,
   decision: "approved" | "rejected",
   notes?: string
-) {
+): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -451,4 +639,48 @@ export async function getCurrentUser() {
     .single();
 
   return profile;
+}
+
+export async function getApprovalContext(): Promise<TiApprovalContext> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { isAdmin: false, roles: [] };
+
+  const { data: userRoles, error } = await supabase
+    .from("user_roles")
+    .select(
+      `
+      role:roles (
+        name,
+        is_global,
+        department:departments (
+          name
+        )
+      )
+    `
+    )
+    .eq("user_id", user.id);
+
+  if (error || !userRoles) {
+    console.error("Error fetching user roles:", error);
+    return { isAdmin: false, roles: [] };
+  }
+
+  const roleNames = userRoles
+    .map((ur) => {
+      const roleData = ur.role as unknown;
+      const role = Array.isArray(roleData) ? roleData[0] : roleData;
+      return role?.name || null;
+    })
+    .filter((name): name is string => !!name);
+
+  const permissions = await getCurrentUserPermissions();
+  const { isAdmin } = await import("@/lib/auth/rbac");
+
+  return {
+    isAdmin: isAdmin(permissions),
+    roles: Array.from(new Set(roleNames)),
+  };
 }
