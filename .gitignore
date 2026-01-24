@@ -11,3 +11,5 @@ Thumbs.db
 .playwright-mcp/
 test-results/
 testsprite_tests/
+.vercel
+.env*.local
