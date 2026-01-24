@@ -178,7 +178,7 @@ export async function getDepartments(): Promise<Department[]> {
   const { data, error } = await supabase
     .from("departments")
     .select("id, name")
-    .in("name", ["Compras", "Manutenção", "RH"])
+    .in("name", ["Compras", "Manutenção", "RH", "TI"])
     .order("name");
 
   if (error) {

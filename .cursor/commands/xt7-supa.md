@@ -1,0 +1,1 @@
+Use os MCPs do Supabase e Context7 quando aplicável;

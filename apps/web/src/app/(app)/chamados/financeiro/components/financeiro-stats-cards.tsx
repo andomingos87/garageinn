@@ -7,7 +7,7 @@ import {
   PlayCircle,
   CheckCircle2,
 } from "lucide-react";
-import type { FinanceiroStats } from "../actions";
+import type { FinanceiroStats } from "../types";
 
 interface FinanceiroStatsCardsProps {
   stats: FinanceiroStats;

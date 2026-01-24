@@ -26,7 +26,7 @@ import {
   COMERCIAL_TYPE_LABELS,
   PRIORITY_LABELS,
 } from "../constants";
-import type { ComercialCategory } from "../actions";
+import type { ComercialCategory } from "../types";
 import type { UserUnit } from "@/lib/units";
 
 interface ComercialFiltersProps {

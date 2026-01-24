@@ -1,5 +1,6 @@
 .env
 .env.local
+.env.*
 node_modules/
 .next/
 dist/
@@ -7,3 +8,6 @@ build/
 *.log
 .DS_Store
 Thumbs.db
+.playwright-mcp/
+test-results/
+testsprite_tests/

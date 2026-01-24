@@ -154,6 +154,7 @@ const DEPARTMENT_CONFIG: Record<string, string> = {
   Compras: "bg-purple-100 text-purple-800 border-purple-200",
   Manutenção: "bg-orange-100 text-orange-800 border-orange-200",
   RH: "bg-green-100 text-green-800 border-green-200",
+  TI: "bg-blue-100 text-blue-800 border-blue-200",
 };
 
 interface StatusBadgeProps {

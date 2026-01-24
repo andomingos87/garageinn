@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, ShoppingCart, Wrench, Users } from "lucide-react";
+import { Monitor, Plus, ShoppingCart, Wrench, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TICKET_TYPES = [
@@ -47,6 +47,17 @@ const TICKET_TYPES = [
     bgColor: "bg-green-100",
     hoverBg: "hover:bg-green-50",
     borderColor: "border-green-200",
+  },
+  {
+    id: "ti",
+    name: "TI",
+    description: "Suporte tecnico e solicitacoes de equipamentos",
+    icon: Monitor,
+    href: "/chamados/ti/novo",
+    color: "text-blue-600",
+    bgColor: "bg-blue-100",
+    hoverBg: "hover:bg-blue-50",
+    borderColor: "border-blue-200",
   },
 ];
 

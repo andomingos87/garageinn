@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Clock, Zap, CheckCircle2 } from "lucide-react";
-import type { ComercialStats } from "../actions";
+import type { ComercialStats } from "../types";
 
 interface ComercialStatsCardsProps {
   stats: ComercialStats;

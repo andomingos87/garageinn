@@ -113,7 +113,7 @@ async function getManutencaoDepartment() {
   const { data, error } = await supabase
     .from("departments")
     .select("id")
-    .eq("name", "Manutenção")
+    .eq("name", "Compras e Manutenção")
     .single();
 
   if (error) {

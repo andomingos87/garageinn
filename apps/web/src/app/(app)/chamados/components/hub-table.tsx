@@ -28,6 +28,7 @@ function getTicketDetailRoute(
     Manutenção: `/chamados/manutencao/${ticketId}`,
     RH: `/chamados/rh/${ticketId}`,
     Sinistros: `/chamados/sinistros/${ticketId}`,
+    TI: `/chamados/ti/${ticketId}`,
   };
 
   return routeMap[departmentName] || `/chamados/${ticketId}`;

@@ -13,6 +13,11 @@ export const TEST_USERS = {
     name: "Teste Supervisor - Operações",
   },
   admin: {
+    email: "admin@garageinn.com.br",
+    password: "Teste123!",
+    name: "Admin",
+  },
+  adminGlobal: {
     email: "administrador_global_teste@garageinn.com",
     password: "Teste123!",
     name: "Teste Administrador - Global",
@@ -21,6 +26,11 @@ export const TEST_USERS = {
     email: "encarregado_operacoes_teste@garageinn.com",
     password: "Teste123!",
     name: "Teste Encarregado - Operações",
+  },
+  gerente: {
+    email: "gerente_operacoes_teste@garageinn.com",
+    password: "Teste123!",
+    name: "Teste Gerente - Operações",
   },
 };
 
@@ -65,6 +75,24 @@ export async function loginAsAdmin(page: Page): Promise<void> {
 }
 
 /**
+ * Login as gerente
+ */
+export async function loginAsGerente(page: Page): Promise<void> {
+  await login(page, TEST_USERS.gerente.email, TEST_USERS.gerente.password);
+}
+
+/**
+ * Login as encarregado
+ */
+export async function loginAsEncarregado(page: Page): Promise<void> {
+  await login(
+    page,
+    TEST_USERS.encarregado.email,
+    TEST_USERS.encarregado.password
+  );
+}
+
+/**
  * Logout helper
  */
 export async function logout(page: Page): Promise<void> {
@@ -72,4 +100,12 @@ export async function logout(page: Page): Promise<void> {
   await page.locator('[data-testid="user-menu"]').click();
   await page.click("text=Sair");
   await page.waitForURL("/login");
+}
+
+/**
+ * Check if user is logged in
+ */
+export async function isLoggedIn(page: Page): Promise<boolean> {
+  const url = page.url();
+  return !url.includes("/login");
 }
