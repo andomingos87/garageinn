@@ -3,6 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  GERENTE_APPROVAL_STATUS,
+  statusLabels,
+  statusTransitions,
+} from "./constants";
 
 // ============================================
 // Types
@@ -41,9 +46,113 @@ export interface UserUnit {
   code: string;
 }
 
+interface RoleInfo {
+  name: string;
+  departmentName: string | null;
+  isGlobal: boolean;
+}
+
+interface RoleQueryRow {
+  role: {
+    name: string;
+    is_global: boolean | null;
+    department: { name: string } | null;
+  } | null;
+}
+
+interface PurchaseVisibilityFilter {
+  excludedStatuses: string[];
+  allowedUnitIds: string[] | null;
+}
+
+const OPERACOES_DEPARTMENT = "Operações";
+const COMPRAS_DEPARTMENT = "Compras e Manutenção";
+const UNIT_RESTRICTED_ROLES = [
+  "Manobrista",
+  "Encarregado",
+  "Supervisor",
+  "Gerente",
+];
+
+function formatInFilter(values: string[]) {
+  return `(${values.map((value) => `"${value}"`).join(",")})`;
+}
+
 // ============================================
 // Query Functions
 // ============================================
+
+/**
+ * Obtém roles do usuário com departamento
+ */
+async function getUserRoles(): Promise<RoleInfo[]> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select(
+      `
+      role:roles!role_id(
+        name,
+        is_global,
+        department:departments(name)
+      )
+    `
+    )
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error fetching user roles:", error);
+    return [];
+  }
+
+  return (data as RoleQueryRow[] | null | undefined)
+    ?.map((row) => row.role)
+    .filter((role): role is NonNullable<RoleQueryRow["role"]> => Boolean(role))
+    .map((role) => ({
+      name: role.name,
+      isGlobal: role.is_global ?? false,
+      departmentName: role.department?.name ?? null,
+    })) ?? [];
+}
+
+/**
+ * Regras de visibilidade baseadas em perfil/unidade
+ */
+async function buildPurchaseVisibilityFilter(): Promise<PurchaseVisibilityFilter> {
+  const roles = await getUserRoles();
+  const isGlobal = roles.some((role) => role.isGlobal);
+
+  const isAssistenteCompras = roles.some(
+    (role) =>
+      role.departmentName === COMPRAS_DEPARTMENT && role.name === "Assistente"
+  );
+  const hasGerenteRole = roles.some((role) => role.name === "Gerente");
+
+  const hasUnitRestrictedOperacoesRole = roles.some(
+    (role) =>
+      role.departmentName === OPERACOES_DEPARTMENT &&
+      UNIT_RESTRICTED_ROLES.includes(role.name)
+  );
+
+  const excludedStatuses =
+    !isGlobal && isAssistenteCompras && !hasGerenteRole
+      ? [GERENTE_APPROVAL_STATUS]
+      : [];
+
+  let allowedUnitIds: string[] | null = null;
+  if (!isGlobal && hasUnitRestrictedOperacoesRole) {
+    const units = await getUserUnits();
+    allowedUnitIds = units.map((unit) => unit.id);
+  }
+
+  return { excludedStatuses, allowedUnitIds };
+}
 
 /**
  * Busca departamento de Compras e Manutenção
@@ -167,6 +276,19 @@ export async function getPurchaseTickets(filters?: TicketFilters) {
   const comprasDept = await getComprasDepartment();
   if (!comprasDept) return { data: [], count: 0, page, limit };
 
+  const visibility = await buildPurchaseVisibilityFilter();
+  if (
+    visibility.excludedStatuses.length > 0 &&
+    filters?.status &&
+    visibility.excludedStatuses.includes(filters.status)
+  ) {
+    return { data: [], count: 0, page, limit };
+  }
+
+  if (visibility.allowedUnitIds && visibility.allowedUnitIds.length === 0) {
+    return { data: [], count: 0, page, limit };
+  }
+
   let query = supabase
     .from("tickets_with_details")
     .select("*", { count: "exact" })
@@ -215,6 +337,20 @@ export async function getPurchaseTickets(filters?: TicketFilters) {
     query = query.lte("created_at", `${filters.endDate}T23:59:59`);
   }
 
+  if (visibility.allowedUnitIds) {
+    query = query.in("unit_id", visibility.allowedUnitIds);
+  }
+
+  if (visibility.excludedStatuses.length === 1) {
+    query = query.neq("status", visibility.excludedStatuses[0]);
+  } else if (visibility.excludedStatuses.length > 1) {
+    query = query.not(
+      "status",
+      "in",
+      formatInFilter(visibility.excludedStatuses)
+    );
+  }
+
   const { data, error, count } = await query;
 
   if (error) {
@@ -236,10 +372,32 @@ export async function getPurchaseStats(): Promise<TicketStats> {
     return { total: 0, awaitingTriage: 0, inProgress: 0, closed: 0 };
   }
 
-  const { data } = await supabase
+  const visibility = await buildPurchaseVisibilityFilter();
+
+  if (visibility.allowedUnitIds && visibility.allowedUnitIds.length === 0) {
+    return { total: 0, awaitingTriage: 0, inProgress: 0, closed: 0 };
+  }
+
+  let query = supabase
     .from("tickets")
-    .select("status")
+    .select("status, unit_id")
     .eq("department_id", comprasDept.id);
+
+  if (visibility.allowedUnitIds) {
+    query = query.in("unit_id", visibility.allowedUnitIds);
+  }
+
+  if (visibility.excludedStatuses.length === 1) {
+    query = query.neq("status", visibility.excludedStatuses[0]);
+  } else if (visibility.excludedStatuses.length > 1) {
+    query = query.not(
+      "status",
+      "in",
+      formatInFilter(visibility.excludedStatuses)
+    );
+  }
+
+  const { data } = await query;
 
   if (!data) {
     return { total: 0, awaitingTriage: 0, inProgress: 0, closed: 0 };
@@ -493,6 +651,26 @@ export async function getTicketDetails(ticketId: string) {
     return null;
   }
 
+  const visibility = await buildPurchaseVisibilityFilter();
+  if (visibility.allowedUnitIds && visibility.allowedUnitIds.length === 0) {
+    return { accessDenied: true as const };
+  }
+
+  if (
+    visibility.allowedUnitIds &&
+    ticket.unit_id &&
+    !visibility.allowedUnitIds.includes(ticket.unit_id)
+  ) {
+    return { accessDenied: true as const };
+  }
+
+  if (
+    ticket.status &&
+    visibility.excludedStatuses.includes(ticket.status)
+  ) {
+    return { accessDenied: true as const };
+  }
+
   // Buscar cotações
   const { data: quotations } = await supabase
     .from("ticket_quotations")
@@ -728,8 +906,6 @@ export async function deleteQuotation(ticketId: string, quotationId: string) {
 // ============================================
 // Status Functions
 // ============================================
-
-import { statusTransitions, statusLabels } from "./constants";
 
 /**
  * Muda status do chamado

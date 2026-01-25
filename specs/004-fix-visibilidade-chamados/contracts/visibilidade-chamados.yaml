@@ -1,0 +1,10 @@
+openapi: 3.0.3
+info:
+  title: Visibilidade de Chamados por Perfil
+  version: 1.0.0
+  description: >
+    Este ajuste nao cria novos endpoints.
+    A visibilidade eh aplicada nas consultas existentes de listagem e detalhe.
+paths: {}
+x-notes:
+  - "Sem novos contratos de API. Reaproveita consultas e RBAC existentes."
