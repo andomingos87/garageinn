@@ -2,9 +2,11 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AccessDenied } from "@/components/auth/access-denied";
 import { Laptop, Plus } from "lucide-react";
 import { getUserUnits } from "@/lib/units";
 import {
+  getTiAccessContext,
   getTiTickets,
   getTiStats,
   getTiCategories,
@@ -89,6 +91,11 @@ async function TiListSection({ filters }: { filters: TiFilters }) {
 }
 
 export default async function ChamadosTiPage({ searchParams }: PageProps) {
+  const access = await getTiAccessContext();
+  if (!access.canAccess) {
+    return <AccessDenied />;
+  }
+
   const params = await searchParams;
 
   const filters: TiFilters = {
