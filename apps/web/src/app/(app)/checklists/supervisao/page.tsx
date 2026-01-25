@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +10,7 @@ import {
   ArrowLeft,
   ShieldCheck,
 } from "lucide-react";
+import { AccessDenied } from "@/components/auth/access-denied";
 import {
   checkCanAccessSupervision,
   getSupervisionChecklists,
@@ -99,7 +99,13 @@ function StatsLoading() {
 export default async function SupervisaoPage() {
   const canAccess = await checkCanAccessSupervision();
   if (!canAccess) {
-    redirect("/dashboard");
+    return (
+      <AccessDenied
+        description="Voce nao tem permissao para acessar a area de supervisao."
+        actionHref="/checklists"
+        actionLabel="Voltar para Checklists"
+      />
+    );
   }
 
   return (

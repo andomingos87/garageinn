@@ -45,6 +45,14 @@ export async function getUserUnits(): Promise<UserUnit[]> {
 }
 
 /**
+ * Obtém apenas os IDs das unidades acessíveis ao usuário atual
+ */
+export async function getUserUnitIds(): Promise<string[]> {
+  const units = await getUserUnits();
+  return units.map((unit) => unit.id);
+}
+
+/**
  * Verifica se o usuário tem unidade fixa (Manobrista/Encarregado)
  * Retorna a unidade se única e role for de unidade fixa, null caso contrário
  */

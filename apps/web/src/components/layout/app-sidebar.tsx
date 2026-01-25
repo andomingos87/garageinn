@@ -8,7 +8,6 @@ import {
   MessageSquareMore,
   Monitor,
   Settings,
-  ShieldCheck,
   Users,
   Wallet,
   LucideIcon,
@@ -27,6 +26,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { RequirePermission } from "@/components/auth/require-permission";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -46,7 +48,14 @@ interface MenuItem {
   requireDepartment?: string;
 }
 
-const menuItems: MenuItem[] = [
+interface SubMenuItem {
+  title: string;
+  href: string;
+  requirePermission?: Permission | Permission[];
+  permissionMode?: "any" | "all";
+}
+
+const menuItemsBeforeChecklists: MenuItem[] = [
   {
     title: "Início",
     href: "/dashboard",
@@ -71,18 +80,21 @@ const menuItems: MenuItem[] = [
     // Visivel apenas para usuarios do departamento TI ou admins
     requireDepartment: TI_DEPARTMENT_NAME,
   },
+];
+
+const checklistSubItems: SubMenuItem[] = [
   {
-    title: "Checklists",
+    title: "Abertura",
     href: "/checklists",
-    icon: CheckSquare,
   },
   {
     title: "Supervisão",
     href: "/checklists/supervisao",
-    icon: ShieldCheck,
-    // Visível para quem tem permissão de supervisão
     requirePermission: "supervision:read",
   },
+];
+
+const menuItemsAfterChecklists: MenuItem[] = [
   {
     title: "Unidades",
     href: "/unidades",
@@ -163,6 +175,13 @@ export function AppSidebar() {
     return pathname.startsWith(href);
   };
 
+  const isChecklistsSupervisionActive = pathname.startsWith(
+    "/checklists/supervisao"
+  );
+  const isChecklistsActive = pathname.startsWith("/checklists");
+  const isChecklistsOpeningActive =
+    isChecklistsActive && !isChecklistsSupervisionActive;
+
   const renderMenuItem = (item: MenuItem) => {
     const menuItemElement = (
       <MenuItemLink
@@ -191,6 +210,68 @@ export function AppSidebar() {
     return menuItemElement;
   };
 
+  const isChecklistSubActive = (href: string) => {
+    if (href === "/checklists") return isChecklistsOpeningActive;
+    if (href === "/checklists/supervisao") return isChecklistsSupervisionActive;
+    return pathname.startsWith(href);
+  };
+
+  const renderChecklistSubItem = (item: SubMenuItem) => {
+    const subItemElement = (
+      <SidebarMenuSubItem>
+        <SidebarMenuSubButton
+          asChild
+          size="sm"
+          isActive={isChecklistSubActive(item.href)}
+        >
+          <Link href={item.href}>{item.title}</Link>
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
+    );
+
+    if (item.requirePermission) {
+      return (
+        <RequirePermission
+          key={item.href}
+          permission={item.requirePermission}
+          mode={item.permissionMode || "any"}
+        >
+          {subItemElement}
+        </RequirePermission>
+      );
+    }
+
+    return (
+      <SidebarMenuSubItem key={item.href}>
+        <SidebarMenuSubButton
+          asChild
+          size="sm"
+          isActive={isChecklistSubActive(item.href)}
+        >
+          <Link href={item.href}>{item.title}</Link>
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
+    );
+  };
+
+  const renderChecklistsMenu = () => (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        isActive={isChecklistsActive}
+        tooltip="Checklists"
+      >
+        <Link href="/checklists">
+          <CheckSquare className="h-4 w-4" />
+          <span>Checklists</span>
+        </Link>
+      </SidebarMenuButton>
+      <SidebarMenuSub>
+        {checklistSubItems.map((item) => renderChecklistSubItem(item))}
+      </SidebarMenuSub>
+    </SidebarMenuItem>
+  );
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border p-4">
@@ -210,7 +291,11 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>{menuItems.map(renderMenuItem)}</SidebarMenu>
+            <SidebarMenu>
+              {menuItemsBeforeChecklists.map(renderMenuItem)}
+              {renderChecklistsMenu()}
+              {menuItemsAfterChecklists.map(renderMenuItem)}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
