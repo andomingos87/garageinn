@@ -1,6 +1,6 @@
 Analise este bug de forma sistêmica, não pontual.
 
-Este erro não deve ser tratado como um caso isolado, pois faz parte de um conjunto de comportamentos dentro do mesmo fluxo/regra de negócio.
+Este(s) erro(s) não deve ser tratado como um caso isolado, pois faz parte de um conjunto de comportamentos dentro do mesmo fluxo/regra de negócio.
 
 Antes de propor qualquer correção, faça:
 - Mapeamento do escopo completo afetado;
@@ -10,8 +10,8 @@ Antes de propor qualquer correção, faça:
 - Avaliação de risco de regressão;
 
 **Não aplique a correção ainda.**
-- Primeiro, explique o raciocínio e a solução proposta em alto nível.
 
 **Importante**
 - Se a solução for apenas um if ou ajuste local, considere-a incorreta;
-- Não escreva código ainda
+- Não escreva código ainda;
+- Não altere nada no projeto, não tente corrigir;

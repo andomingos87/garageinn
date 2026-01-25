@@ -19,10 +19,10 @@ export function TiStatsCards({ stats }: TiStatsCardsProps) {
       bgColor: "bg-blue-100 dark:bg-blue-900/30",
     },
     {
-      title: "Aguardando Triagem",
-      value: stats.awaitingTriage,
+      title: "Prontos para Execução",
+      value: stats.ready,
       icon: Clock,
-      description: "Aguardando analise",
+      description: "Liberados após aprovação",
       color: "text-amber-600 dark:text-amber-400",
       bgColor: "bg-amber-100 dark:bg-amber-900/30",
     },

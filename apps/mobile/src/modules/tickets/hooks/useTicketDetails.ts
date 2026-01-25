@@ -72,8 +72,9 @@ export function useTicketDetails(ticketId: string): UseTicketDetailsReturn {
       setError(message);
       logger.error('useTicketDetails: Failed to load data', { ticketId, error: err });
     } finally {
-      if (!isMounted.current) return;
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   }, [ticketId]);
 
@@ -102,8 +103,9 @@ export function useTicketDetails(ticketId: string): UseTicketDetailsReturn {
         logger.error('useTicketDetails: Failed to add comment', { ticketId, error: err });
         throw err;
       } finally {
-        if (!isMounted.current) return;
-        setAddingComment(false);
+        if (isMounted.current) {
+          setAddingComment(false);
+        }
       }
     },
     [ticketId]

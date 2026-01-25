@@ -45,20 +45,18 @@ export function SignaturePad({
   const sigCanvasRef = useRef<SignatureCanvas>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(true);
-  const [canvasWidth, setCanvasWidth] = useState(width || 400);
+  const [containerWidth, setContainerWidth] = useState(400);
+  const canvasWidth = width ?? containerWidth;
 
   // Handle responsive width
   useEffect(() => {
-    if (width) {
-      setCanvasWidth(width);
-      return;
-    }
+    if (width) return;
 
     const updateWidth = () => {
       if (containerRef.current) {
         // Leave some padding
-        const containerWidth = containerRef.current.offsetWidth - 32;
-        setCanvasWidth(Math.max(containerWidth, 200));
+        const nextWidth = containerRef.current.offsetWidth - 32;
+        setContainerWidth(Math.max(nextWidth, 200));
       }
     };
 

@@ -9,29 +9,23 @@ import {
   MessageSquare,
   Paperclip,
   User,
-  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StatusBadge } from "../../components/status-badge";
-import { getTiTicketDetail } from "../actions";
+import { TiTicketStatus } from "../components";
+import { getApprovalContext, getTiTicketDetail } from "../actions";
 
 interface PageProps {
   params: Promise<{ ticketId: string }>;
 }
 
-const approvalLabels: Record<string, string> = {
-  pending: "Pendente",
-  approved: "Aprovado",
-  rejected: "Rejeitado",
-  denied: "Negado",
-};
-
 export default async function TiTicketDetailsPage({ params }: PageProps) {
   const { ticketId } = await params;
   const ticket = await getTiTicketDetail(ticketId);
+  const approvalContext = await getApprovalContext();
 
   if (!ticket) {
     notFound();
@@ -161,37 +155,13 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {ticket.approvals?.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              Aprovações
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {ticket.approvals.map((approval: Record<string, unknown>) => (
-              <div
-                key={approval.id as string}
-                className="flex items-center justify-between border rounded-md p-3"
-              >
-                <div>
-                  <p className="text-sm font-medium">
-                    {approval.approval_role as string}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Nivel {approval.approval_level as number}
-                  </p>
-                </div>
-                <Badge variant="outline">
-                  {approvalLabels[(approval.status as string) || "pending"] ||
-                    (approval.status as string)}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      <TiTicketStatus
+        ticketId={ticketId}
+        approvals={ticket.approvals}
+        ticketStatus={ticket.status}
+        currentUserRoles={approvalContext.roles}
+        isAdmin={approvalContext.isAdmin}
+      />
 
       <Card>
         <CardHeader className="pb-3">
@@ -202,22 +172,21 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           {ticket.comments?.length ? (
-            ticket.comments.map((comment: Record<string, unknown>) => (
-              <div key={comment.id as string} className="border rounded-md p-3">
+            ticket.comments.map((comment) => (
+              <div key={comment.id} className="border rounded-md p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">
-                    {(comment.author as { full_name?: string } | null)?.full_name ||
-                      "Desconhecido"}
+                    {comment.author?.full_name || "Desconhecido"}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(comment.created_at as string), {
+                    {formatDistanceToNow(new Date(comment.created_at), {
                       addSuffix: true,
                       locale: ptBR,
                     })}
                   </span>
                 </div>
                 <p className="text-sm mt-2 whitespace-pre-wrap">
-                  {comment.content as string}
+                  {comment.content}
                 </p>
               </div>
             ))
@@ -238,23 +207,21 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           {ticket.history?.length ? (
-            ticket.history.map((item: Record<string, unknown>) => (
-              <div key={item.id as string} className="border rounded-md p-3">
+            ticket.history.map((item) => (
+              <div key={item.id} className="border rounded-md p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">
-                    {(item.user as { full_name?: string } | null)?.full_name ||
-                      "Sistema"}
+                    {item.user?.full_name || "Sistema"}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(item.created_at as string), {
+                    {formatDistanceToNow(new Date(item.created_at), {
                       addSuffix: true,
                       locale: ptBR,
                     })}
                   </span>
                 </div>
                 <p className="text-sm mt-2 text-muted-foreground">
-                  {(item.action as string) || "Atualizacao"}{" "}
-                  {(item.new_value as string) || ""}
+                  {item.action || "Atualizacao"} {item.new_value || ""}
                 </p>
               </div>
             ))
@@ -275,10 +242,10 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           {ticket.attachments?.length ? (
-            ticket.attachments.map((attachment: Record<string, unknown>) => (
-              <div key={attachment.id as string} className="border rounded-md p-3">
+            ticket.attachments.map((attachment) => (
+              <div key={attachment.id} className="border rounded-md p-3">
                 <p className="text-sm font-medium">
-                  {attachment.file_name as string}
+                  {attachment.file_name}
                 </p>
               </div>
             ))
