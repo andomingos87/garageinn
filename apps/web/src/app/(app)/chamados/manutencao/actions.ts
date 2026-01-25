@@ -384,15 +384,18 @@ export async function createMaintenanceTicket(formData: FormData) {
     return { error: "Selecione um assunto para a manutenção" };
   }
 
-  // Verificar se precisa de aprovação
+  // Verificar se precisa de aprovação e obter status inicial baseado no cargo
   const { data: needsApproval } = await supabase.rpc("ticket_needs_approval", {
     p_created_by: user.id,
     p_department_id: manutencaoDept.id,
   });
 
-  const initialStatus = needsApproval
-    ? "awaiting_approval_encarregado"
-    : "awaiting_triage";
+  // Usar função SQL que determina o status inicial correto baseado na hierarquia
+  const { data: initialStatusData } = await supabase.rpc(
+    "get_initial_approval_status",
+    { p_created_by: user.id }
+  );
+  const initialStatus = initialStatusData || "awaiting_triage";
 
   // Criar ticket
   const { data: ticket, error: ticketError } = await supabase

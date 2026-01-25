@@ -372,9 +372,12 @@ export async function createComercialTicket(formData: FormData) {
     p_department_id: COMERCIAL_DEPARTMENT_ID,
   });
 
-  const initialStatus = needsApproval
-    ? "awaiting_approval_encarregado"
-    : "awaiting_triage";
+  // Usar função SQL que determina o status inicial correto baseado na hierarquia
+  const { data: initialStatusData } = await supabase.rpc(
+    "get_initial_approval_status",
+    { p_created_by: user.id }
+  );
+  const initialStatus = initialStatusData || "awaiting_triage";
 
   // Criar ticket principal
   const { data: ticket, error: ticketError } = await supabase
