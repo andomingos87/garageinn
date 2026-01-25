@@ -10,6 +10,8 @@ Documentação das funções e stored procedures do sistema GarageInn.
 |--------|-----------|---------|
 | `is_admin()` | Verifica se o usuário atual é admin | boolean |
 | `is_rh()` | Verifica se o usuário atual é do RH | boolean |
+| `is_operacoes_creator(p_user_id)` | Verifica se usuário é criador de Operações (linha) | boolean |
+| `is_operacoes_gerente()` | Verifica se usuário atual é gerente de Operações | boolean |
 | `is_invitation_expired(p_user_id)` | Verifica se convite expirou | boolean |
 | `soft_delete_user(p_user_id)` | Soft delete de usuário | boolean |
 | `restore_deleted_user(p_user_id)` | Restaura usuário deletado | boolean |
@@ -87,6 +89,78 @@ $$;
 **Uso:**
 ```sql
 SELECT is_rh(); -- Retorna true/false
+```
+
+---
+
+### is_operacoes_creator(p_user_id)
+
+Verifica se um usuário pertence ao departamento de Operações e possui cargo de linha (Manobrista, Encarregado ou Supervisor).
+
+```sql
+CREATE OR REPLACE FUNCTION public.is_operacoes_creator(p_user_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_ops_creator boolean;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1
+    FROM user_roles ur
+    JOIN roles r ON r.id = ur.role_id
+    JOIN departments d ON d.id = r.department_id
+    WHERE ur.user_id = p_user_id
+    AND d.name = 'Operações'
+    AND r.name IN ('Manobrista', 'Encarregado', 'Supervisor')
+  ) INTO v_is_ops_creator;
+  
+  RETURN COALESCE(v_is_ops_creator, false);
+END;
+$$;
+```
+
+**Uso:**
+```sql
+SELECT is_operacoes_creator('uuid-usuario');
+```
+
+---
+
+### is_operacoes_gerente()
+
+Verifica se o usuário autenticado possui cargo de Gerente no departamento de Operações.
+
+```sql
+CREATE OR REPLACE FUNCTION public.is_operacoes_gerente()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_ops_manager boolean;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1
+    FROM user_roles ur
+    JOIN roles r ON r.id = ur.role_id
+    JOIN departments d ON d.id = r.department_id
+    WHERE ur.user_id = auth.uid()
+    AND d.name = 'Operações'
+    AND r.name = 'Gerente'
+  ) INTO v_is_ops_manager;
+  
+  RETURN COALESCE(v_is_ops_manager, false);
+END;
+$$;
+```
+
+**Uso:**
+```sql
+SELECT is_operacoes_gerente();
 ```
 
 ---
@@ -246,7 +320,7 @@ SELECT restore_deleted_user('uuid-do-usuario');
 
 Verifica se um chamado precisa passar por aprovações internas.
 
-**Regra**: Chamados criados por Manobristas para Compras e Manutenção ou TI precisam de aprovação.
+**Regra**: Chamados criados por Manobrista, Encarregado ou Supervisor do departamento Operações precisam de aprovação, independentemente do departamento do chamado.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.ticket_needs_approval(
@@ -262,29 +336,8 @@ DECLARE
   v_is_manobrista boolean;
   v_is_target_dept boolean;
 BEGIN
-  -- Verifica se o criador é Manobrista
-  SELECT EXISTS (
-    SELECT 1
-    FROM user_roles ur
-    JOIN roles r ON r.id = ur.role_id
-    WHERE ur.user_id = p_created_by
-    AND r.name = 'Manobrista'
-  ) INTO v_is_manobrista;
-  
-  -- Se não é manobrista, não precisa aprovação
-  IF NOT v_is_manobrista THEN
-    RETURN false;
-  END IF;
-  
-  -- Verifica se o departamento destino é Compras e Manutenção ou TI
-  SELECT EXISTS (
-    SELECT 1
-    FROM departments
-    WHERE id = p_department_id
-    AND name IN ('Compras e Manutenção', 'TI')
-  ) INTO v_is_target_dept;
-  
-  RETURN v_is_target_dept;
+  -- Regra baseada no criador (Operacoes)
+  RETURN is_operacoes_creator(p_created_by);
 END;
 $$;
 ```

@@ -101,6 +101,7 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
       "supervision:read",
       "units:read",
       "units:update",
+      "reports:read",
     ],
   },
 

@@ -78,6 +78,59 @@ function formatInFilter(values: string[]) {
   return `(${values.map((value) => `"${value}"`).join(",")})`;
 }
 
+async function ensureOperacoesGerenteApproval(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  ticketId: string,
+  approvalLevel?: number | null,
+  approvalRole?: string | null
+) {
+  if (approvalLevel !== 3 && approvalRole !== "Gerente") {
+    return null;
+  }
+
+  const { data: ticket, error: ticketError } = await supabase
+    .from("tickets")
+    .select("created_by")
+    .eq("id", ticketId)
+    .single();
+
+  if (ticketError || !ticket) {
+    console.error("Error fetching ticket creator:", ticketError);
+    return { error: "Nao foi possivel validar o criador do chamado" };
+  }
+
+  const { data: isOpsCreator, error: creatorError } = await supabase.rpc(
+    "is_operacoes_creator",
+    {
+      p_user_id: ticket.created_by,
+    }
+  );
+
+  if (creatorError) {
+    console.error("Error checking operations creator:", creatorError);
+    return { error: "Nao foi possivel validar permissoes de aprovacao" };
+  }
+
+  if (!isOpsCreator) {
+    return null;
+  }
+
+  const { data: isOpsManager, error: managerError } = await supabase.rpc(
+    "is_operacoes_gerente"
+  );
+
+  if (managerError) {
+    console.error("Error checking operations manager:", managerError);
+    return { error: "Nao foi possivel validar permissoes de aprovacao" };
+  }
+
+  if (!isOpsManager) {
+    return { error: "Apenas o gerente de operacoes pode aprovar este chamado" };
+  }
+
+  return null;
+}
+
 // ============================================
 // Query Functions
 // ============================================
@@ -1266,6 +1319,16 @@ export async function handleApproval(
 
   if (!approval) {
     return { error: "Aprovação não encontrada" };
+  }
+
+  const opsCheck = await ensureOperacoesGerenteApproval(
+    supabase,
+    ticketId,
+    approval.approval_level,
+    approval.approval_role
+  );
+  if (opsCheck?.error) {
+    return opsCheck;
   }
 
   // Atualizar aprovação
