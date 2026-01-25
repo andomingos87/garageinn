@@ -1,12 +1,21 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(uv tool install:*)",
+      "Bash(if [ -f \".specify/scripts/bash/check-prerequisites.sh\" ])",
+      "Bash(then bash .specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks)",
+      "Bash(else echo '{\"\"error\"\": \"\"script not found\"\"}')",
+      "Bash(fi)",
+      "mcp__supabase_gapp__apply_migration",
+      "Bash(cd:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase_gapp",
     "playwright",
     "ai-context"
-  ],
-  "permissions": {
-    "allow": [
-      "Bash(uv tool install:*)"
-    ]
-  }
+  ]
 }
