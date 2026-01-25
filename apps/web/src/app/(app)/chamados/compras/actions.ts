@@ -52,12 +52,14 @@ interface RoleInfo {
   isGlobal: boolean;
 }
 
+type RoleQueryItem = {
+  name: string;
+  is_global: boolean | null;
+  department: { name: string } | { name: string }[] | null;
+};
+
 interface RoleQueryRow {
-  role: {
-    name: string;
-    is_global: boolean | null;
-    department: { name: string } | null;
-  } | null;
+  role: RoleQueryItem | RoleQueryItem[] | null;
 }
 
 interface PurchaseVisibilityFilter {
@@ -111,14 +113,24 @@ async function getUserRoles(): Promise<RoleInfo[]> {
     return [];
   }
 
-  return (data as RoleQueryRow[] | null | undefined)
-    ?.map((row) => row.role)
-    .filter((role): role is NonNullable<RoleQueryRow["role"]> => Boolean(role))
-    .map((role) => ({
-      name: role.name,
-      isGlobal: role.is_global ?? false,
-      departmentName: role.department?.name ?? null,
-    })) ?? [];
+  const rows = (data ?? []) as RoleQueryRow[];
+
+  return rows
+    .flatMap((row) => {
+      if (!row.role) return [];
+      return Array.isArray(row.role) ? row.role : [row.role];
+    })
+    .map((role) => {
+      const department = Array.isArray(role.department)
+        ? role.department[0] ?? null
+        : role.department;
+
+      return {
+        name: role.name,
+        isGlobal: role.is_global ?? false,
+        departmentName: department?.name ?? null,
+      };
+    });
 }
 
 /**
