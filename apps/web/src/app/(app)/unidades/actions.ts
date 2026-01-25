@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getUserUnitIds } from "@/lib/units";
 import type {
   Unit,
   UnitWithStaffCount,
@@ -35,11 +36,15 @@ export interface UnitsStats {
  * Busca lista de unidades com filtros
  */
 export async function getUnits(
-  filters?: UnitsFilters
+  filters?: UnitsFilters,
+  accessibleUnitIds?: string[]
 ): Promise<UnitWithStaffCount[]> {
   const supabase = await createClient();
+  const unitIds = accessibleUnitIds ?? (await getUserUnitIds());
 
-  let query = supabase.from("units").select("*").order("name");
+  if (unitIds.length === 0) return [];
+
+  let query = supabase.from("units").select("*").order("name").in("id", unitIds);
 
   // Filtro de busca
   if (filters?.search) {
@@ -73,7 +78,8 @@ export async function getUnits(
   // Buscar contagem de staff para cada unidade
   const { data: staffCounts, error: staffError } = await supabase
     .from("user_units")
-    .select("unit_id");
+    .select("unit_id")
+    .in("unit_id", unitIds);
 
   if (staffError) {
     console.error("Error fetching staff counts:", staffError);
@@ -96,12 +102,20 @@ export async function getUnits(
 /**
  * Busca estatísticas de unidades
  */
-export async function getUnitsStats(): Promise<UnitsStats> {
+export async function getUnitsStats(
+  accessibleUnitIds?: string[]
+): Promise<UnitsStats> {
   const supabase = await createClient();
+  const unitIds = accessibleUnitIds ?? (await getUserUnitIds());
+
+  if (unitIds.length === 0) {
+    return { total: 0, active: 0, inactive: 0, totalCapacity: 0 };
+  }
 
   const { data, error } = await supabase
     .from("units")
-    .select("status, capacity");
+    .select("status, capacity")
+    .in("id", unitIds);
 
   if (error) {
     console.error("Error fetching units stats:", error);
@@ -125,12 +139,18 @@ export async function getUnitsStats(): Promise<UnitsStats> {
 /**
  * Busca lista de cidades únicas
  */
-export async function getCities(): Promise<string[]> {
+export async function getCities(
+  accessibleUnitIds?: string[]
+): Promise<string[]> {
   const supabase = await createClient();
+  const unitIds = accessibleUnitIds ?? (await getUserUnitIds());
+
+  if (unitIds.length === 0) return [];
 
   const { data, error } = await supabase
     .from("units")
     .select("city")
+    .in("id", unitIds)
     .not("city", "is", null)
     .order("city");
 
@@ -148,12 +168,18 @@ export async function getCities(): Promise<string[]> {
 /**
  * Busca lista de regiões únicas
  */
-export async function getRegions(): Promise<string[]> {
+export async function getRegions(
+  accessibleUnitIds?: string[]
+): Promise<string[]> {
   const supabase = await createClient();
+  const unitIds = accessibleUnitIds ?? (await getUserUnitIds());
+
+  if (unitIds.length === 0) return [];
 
   const { data, error } = await supabase
     .from("units")
     .select("region")
+    .in("id", unitIds)
     .not("region", "is", null)
     .order("region");
 

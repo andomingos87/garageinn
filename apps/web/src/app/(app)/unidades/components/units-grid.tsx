@@ -11,9 +11,13 @@ import type {
 interface UnitsGridProps {
   units: UnitWithStaffCount[];
   canEdit: boolean;
+  emptyState?: {
+    title: string;
+    description: string;
+  };
 }
 
-export function UnitsGrid({ units, canEdit }: UnitsGridProps) {
+export function UnitsGrid({ units, canEdit, emptyState }: UnitsGridProps) {
   const [isPending, startTransition] = useTransition();
   const [optimisticUnits, setOptimisticUnits] = useState(units);
 
@@ -50,6 +54,11 @@ export function UnitsGrid({ units, canEdit }: UnitsGridProps) {
   };
 
   if (optimisticUnits.length === 0) {
+    const emptyTitle = emptyState?.title ?? "Nenhuma unidade encontrada";
+    const emptyDescription =
+      emptyState?.description ??
+      "Tente ajustar os filtros ou criar uma nova unidade.";
+
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="rounded-full bg-muted p-4 mb-4">
@@ -67,9 +76,9 @@ export function UnitsGrid({ units, canEdit }: UnitsGridProps) {
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium">Nenhuma unidade encontrada</h3>
+        <h3 className="text-lg font-medium">{emptyTitle}</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Tente ajustar os filtros ou criar uma nova unidade.
+          {emptyDescription}
         </p>
       </div>
     );

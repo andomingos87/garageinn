@@ -17,6 +17,7 @@ import {
 } from "./actions";
 import { UnitsFilters, UnitsGrid, UnitsStatsCards } from "./components";
 import type { UnitStatus } from "@/lib/supabase/custom-types";
+import { getUserUnitIds } from "@/lib/units";
 
 interface PageProps {
   searchParams: Promise<{
@@ -42,11 +43,21 @@ async function UnitsContent({
     region: params.region,
   };
 
+  const accessibleUnitIds = await getUserUnitIds();
+  const hasAccessibleUnits = accessibleUnitIds.length > 0;
+  const emptyState = hasAccessibleUnits
+    ? undefined
+    : {
+        title: "Nenhuma unidade vinculada",
+        description:
+          "Voce ainda nao possui unidades vinculadas. Fale com o administrador para atualizar sua cobertura.",
+      };
+
   const [units, stats, cities, regions] = await Promise.all([
-    getUnits(filters),
-    getUnitsStats(),
-    getCities(),
-    getRegions(),
+    getUnits(filters, accessibleUnitIds),
+    getUnitsStats(accessibleUnitIds),
+    getCities(accessibleUnitIds),
+    getRegions(accessibleUnitIds),
   ]);
 
   return (
@@ -65,7 +76,11 @@ async function UnitsContent({
           </div>
         </CardHeader>
         <CardContent>
-          <UnitsGrid units={units} canEdit={canEditUnits} />
+          <UnitsGrid
+            units={units}
+            canEdit={canEditUnits}
+            emptyState={emptyState}
+          />
         </CardContent>
       </Card>
     </>
