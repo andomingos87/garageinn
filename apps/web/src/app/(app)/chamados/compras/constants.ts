@@ -38,6 +38,14 @@ export const statusLabels: Record<string, string> = {
   cancelled: "Cancelado",
 };
 
+export const APPROVAL_STATUSES = [
+  "awaiting_approval_encarregado",
+  "awaiting_approval_supervisor",
+  "awaiting_approval_gerente",
+] as const;
+
+export const GERENTE_APPROVAL_STATUS = "awaiting_approval_gerente";
+
 // Obtém transições permitidas para um status
 export function getAllowedTransitions(currentStatus: string): string[] {
   return statusTransitions[currentStatus] || [];

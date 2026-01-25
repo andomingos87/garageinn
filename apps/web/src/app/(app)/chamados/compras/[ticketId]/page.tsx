@@ -9,6 +9,7 @@ import {
   checkIsAdmin,
 } from "../actions";
 import { getAllowedTransitions } from "../constants";
+import { AccessDenied } from "@/components/auth/access-denied";
 import {
   TicketHeader,
   TicketInfo,
@@ -32,6 +33,10 @@ export async function generateMetadata({
 
   if (!ticket) {
     return { title: "Chamado não encontrado" };
+  }
+
+  if ("accessDenied" in ticket && ticket.accessDenied) {
+    return { title: "Acesso negado | Chamados de Compras" };
   }
 
   return {
@@ -62,6 +67,19 @@ export default async function TicketDetailsPage({ params }: PageProps) {
 
   if (!ticket) {
     notFound();
+  }
+
+  if ("accessDenied" in ticket && ticket.accessDenied) {
+    return (
+      <div className="container mx-auto py-6">
+        <AccessDenied
+          title="Acesso negado"
+          description="Voce nao tem permissao para visualizar este chamado."
+          actionHref="/chamados/compras"
+          actionLabel="Voltar para chamados"
+        />
+      </div>
+    );
   }
 
   // Determinar o cargo do usuário atual (para aprovações)
