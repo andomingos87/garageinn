@@ -4,6 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Permission } from "@/lib/auth/permissions";
+import {
+  getUserPermissions,
+  hasAnyPermission,
+  isAdmin as isAdminPermission,
+  type UserRole,
+} from "@/lib/auth/rbac";
+import { canAccessTiArea } from "@/lib/auth/ti-access";
 import type {
   TiCategory,
   TiFilters,
@@ -28,6 +35,13 @@ interface TiApprovalContext {
   roles: string[];
 }
 
+interface TiAccessContext {
+  canAccess: boolean;
+  isAdmin: boolean;
+  permissions: Permission[];
+  roles: UserRole[];
+}
+
 // ============================================
 // Helpers
 // ============================================
@@ -49,7 +63,7 @@ async function getTiDepartment() {
   return data;
 }
 
-async function getCurrentUserPermissions(): Promise<Permission[]> {
+async function getCurrentUserRoles(): Promise<UserRole[]> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -76,7 +90,6 @@ async function getCurrentUserPermissions(): Promise<Permission[]> {
     return [];
   }
 
-  const { extractPermissionsFromUserRoles } = await import("@/lib/auth/rbac");
   interface RoleQueryData {
     role:
       | {
@@ -92,30 +105,50 @@ async function getCurrentUserPermissions(): Promise<Permission[]> {
       | null;
   }
 
-  const normalizedRoles = (userRoles as RoleQueryData[]).map((ur) => {
-    const roleData = Array.isArray(ur.role) ? ur.role[0] : ur.role;
-    if (!roleData) return { role: null };
-    const dept = Array.isArray(roleData.department)
-      ? roleData.department[0]
-      : roleData.department;
-    return {
-      role: {
-        name: roleData.name,
+  return (userRoles as RoleQueryData[])
+    .map((ur) => {
+      const roleData = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+      if (!roleData) return null;
+      const dept = Array.isArray(roleData.department)
+        ? roleData.department[0]
+        : roleData.department;
+      return {
+        role_name: roleData.name,
+        department_name: dept?.name ?? null,
         is_global: roleData.is_global ?? false,
-        department: dept ? { name: dept.name } : null,
-      },
-    };
-  });
+      };
+    })
+    .filter((role): role is UserRole => role !== null);
+}
 
-  return extractPermissionsFromUserRoles(normalizedRoles);
+async function getCurrentUserPermissions(): Promise<Permission[]> {
+  const roles = await getCurrentUserRoles();
+  return getUserPermissions(roles);
+}
+
+export async function getTiAccessContext(): Promise<TiAccessContext> {
+  const roles = await getCurrentUserRoles();
+  const permissions = getUserPermissions(roles);
+  const isAdmin = isAdminPermission(permissions);
+
+  return {
+    roles,
+    permissions,
+    isAdmin,
+    canAccess: canAccessTiArea({ isAdmin, roles }),
+  };
+}
+
+async function ensureTiAccess(): Promise<boolean> {
+  const access = await getTiAccessContext();
+  return access.canAccess;
 }
 
 async function canAccessTiReadyList(): Promise<boolean> {
-  const permissions = await getCurrentUserPermissions();
-  if (permissions.length === 0) return false;
-
-  const { hasAnyPermission } = await import("@/lib/auth/rbac");
-  return hasAnyPermission(permissions, ["tickets:execute", "admin:all"]);
+  const access = await getTiAccessContext();
+  if (!access.canAccess) return false;
+  if (access.permissions.length === 0) return false;
+  return hasAnyPermission(access.permissions, ["tickets:execute", "admin:all"]);
 }
 
 // ============================================
@@ -123,6 +156,8 @@ async function canAccessTiReadyList(): Promise<boolean> {
 // ============================================
 
 export async function getTiCategories(): Promise<TiCategory[]> {
+  const canAccess = await ensureTiAccess();
+  if (!canAccess) return [];
   const supabase = await createClient();
   const dept = await getTiDepartment();
   if (!dept) return [];
@@ -145,6 +180,12 @@ export async function getTiCategories(): Promise<TiCategory[]> {
 export async function getTiTickets(
   filters?: TiFilters
 ): Promise<TiTicketListResult> {
+  const canAccess = await ensureTiAccess();
+  if (!canAccess) {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 20;
+    return { data: [], count: 0, page, limit };
+  }
   const supabase = await createClient();
   const page = filters?.page || 1;
   const limit = filters?.limit || 20;
@@ -234,6 +275,10 @@ export async function getTiReadyTickets(
 }
 
 export async function getTiStats(): Promise<TiStats> {
+  const canAccess = await ensureTiAccess();
+  if (!canAccess) {
+    return { total: 0, ready: 0, inProgress: 0, closed: 0 };
+  }
   const supabase = await createClient();
   const dept = await getTiDepartment();
   if (!dept) return { total: 0, ready: 0, inProgress: 0, closed: 0 };
@@ -275,6 +320,10 @@ export async function getTiStats(): Promise<TiStats> {
 export async function createTiTicket(
   formData: FormData
 ): Promise<{ error?: string } | void> {
+  const canAccess = await ensureTiAccess();
+  if (!canAccess) {
+    return { error: "Acesso negado" };
+  }
   const supabase = await createClient();
   const {
     data: { user },
@@ -429,6 +478,8 @@ export async function createTiTicket(
 export async function getTiTicketDetail(
   ticketId: string
 ): Promise<TiTicketDetail | null> {
+  const canAccess = await ensureTiAccess();
+  if (!canAccess) return null;
   const supabase = await createClient();
 
   const { data: ticket, error: ticketError } = await supabase
@@ -503,6 +554,10 @@ export async function addComment(
   ticketId: string,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const canAccess = await ensureTiAccess();
+  if (!canAccess) {
+    return { error: "Acesso negado" };
+  }
   const supabase = await createClient();
   const {
     data: { user },
@@ -540,6 +595,10 @@ export async function handleApproval(
   decision: "approved" | "rejected",
   notes?: string
 ): Promise<{ error?: string; success?: boolean }> {
+  const canAccess = await ensureTiAccess();
+  if (!canAccess) {
+    return { error: "Acesso negado" };
+  }
   const supabase = await createClient();
   const {
     data: { user },
@@ -677,10 +736,9 @@ export async function getApprovalContext(): Promise<TiApprovalContext> {
     .filter((name): name is string => !!name);
 
   const permissions = await getCurrentUserPermissions();
-  const { isAdmin } = await import("@/lib/auth/rbac");
 
   return {
-    isAdmin: isAdmin(permissions),
+    isAdmin: isAdminPermission(permissions),
     roles: Array.from(new Set(roleNames)),
   };
 }

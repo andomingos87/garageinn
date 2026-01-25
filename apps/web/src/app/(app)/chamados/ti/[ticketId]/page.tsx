@@ -14,15 +14,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AccessDenied } from "@/components/auth/access-denied";
 import { StatusBadge } from "../../components/status-badge";
 import { TiTicketStatus } from "../components";
-import { getApprovalContext, getTiTicketDetail } from "../actions";
+import { getApprovalContext, getTiAccessContext, getTiTicketDetail } from "../actions";
 
 interface PageProps {
   params: Promise<{ ticketId: string }>;
 }
 
 export default async function TiTicketDetailsPage({ params }: PageProps) {
+  const access = await getTiAccessContext();
+  if (!access.canAccess) {
+    return <AccessDenied />;
+  }
+
   const { ticketId } = await params;
   const ticket = await getTiTicketDetail(ticketId);
   const approvalContext = await getApprovalContext();

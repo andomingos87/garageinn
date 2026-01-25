@@ -31,6 +31,7 @@ import {
 import { RequirePermission } from "@/components/auth/require-permission";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useProfile } from "@/hooks/use-profile";
+import { canAccessTiArea, TI_DEPARTMENT_NAME } from "@/lib/auth/ti-access";
 import type { Permission } from "@/lib/auth/permissions";
 
 interface MenuItem {
@@ -67,6 +68,8 @@ const menuItems: MenuItem[] = [
     title: "TI",
     href: "/chamados/ti",
     icon: Monitor,
+    // Visivel apenas para usuarios do departamento TI ou admins
+    requireDepartment: TI_DEPARTMENT_NAME,
   },
   {
     title: "Checklists",
@@ -143,6 +146,9 @@ export function AppSidebar() {
 
   const hasDepartmentAccess = (department: string) => {
     if (permissionsLoading || profileLoading) return false;
+    if (department === TI_DEPARTMENT_NAME) {
+      return canAccessTiArea({ isAdmin, roles: profile?.roles });
+    }
     if (isAdmin) return true;
     return (
       profile?.roles.some((role) => role.department_name === department) ??
