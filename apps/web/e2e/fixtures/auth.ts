@@ -32,6 +32,11 @@ export const TEST_USERS = {
     password: "Teste123!",
     name: "Teste Gerente - Operações",
   },
+  manobrista: {
+    email: "manobrista_operacoes_teste@garageinn.com",
+    password: "Teste123!",
+    name: "Teste Manobrista - Operações",
+  },
 };
 
 /**
@@ -89,6 +94,17 @@ export async function loginAsEncarregado(page: Page): Promise<void> {
     page,
     TEST_USERS.encarregado.email,
     TEST_USERS.encarregado.password
+  );
+}
+
+/**
+ * Login as manobrista
+ */
+export async function loginAsManobrista(page: Page): Promise<void> {
+  await login(
+    page,
+    TEST_USERS.manobrista.email,
+    TEST_USERS.manobrista.password
   );
 }
 

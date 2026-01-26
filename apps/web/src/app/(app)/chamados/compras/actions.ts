@@ -13,6 +13,20 @@ import {
 // Types
 // ============================================
 
+/**
+ * Status de aprovação hierárquica para chamados de compras
+ * Baseado no nível do usuário em Operações:
+ * - Manobrista (1) → awaiting_approval_encarregado
+ * - Encarregado (2) → awaiting_approval_supervisor
+ * - Supervisor (3) → awaiting_approval_gerente
+ * - Gerente (4) → awaiting_triage
+ */
+export type ApprovalStatus =
+  | "awaiting_approval_encarregado"
+  | "awaiting_approval_supervisor"
+  | "awaiting_approval_gerente"
+  | "awaiting_triage";
+
 export interface TicketFilters {
   status?: string;
   priority?: string;
@@ -559,17 +573,40 @@ export async function createPurchaseTicket(formData: FormData) {
   }
 
   // Verificar se precisa de aprovação e obter status inicial baseado no cargo
-  const { data: needsApproval } = await supabase.rpc("ticket_needs_approval", {
-    p_created_by: user.id,
-    p_department_id: comprasDept.id,
-  });
+  const { data: needsApproval, error: needsApprovalError } = await supabase.rpc(
+    "ticket_needs_approval",
+    {
+      p_created_by: user.id,
+      p_department_id: comprasDept.id,
+    }
+  );
+
+  if (needsApprovalError) {
+    console.error("Error checking approval requirement:", needsApprovalError);
+  }
 
   // Usar função SQL que determina o status inicial correto baseado na hierarquia
-  const { data: initialStatusData } = await supabase.rpc(
+  const { data: initialStatusData, error: statusError } = await supabase.rpc(
     "get_initial_approval_status",
     { p_created_by: user.id }
   );
-  const initialStatus = initialStatusData || "awaiting_triage";
+
+  if (statusError) {
+    console.error("Error getting initial approval status:", statusError);
+    // Fallback seguro: exigir cadeia completa de aprovação
+    return { error: "Falha ao determinar status de aprovação. Tente novamente." };
+  }
+
+  // Log para debug - pode ser removido após validação
+  console.log("Initial status RPC response:", {
+    userId: user.id,
+    initialStatusData,
+    statusError,
+  });
+
+  // Usar o valor retornado ou fallback seguro (exige aprovação completa)
+  const initialStatus: ApprovalStatus =
+    (initialStatusData as ApprovalStatus) || "awaiting_approval_encarregado";
 
   // Criar ticket
   const { data: ticket, error: ticketError } = await supabase
@@ -1347,7 +1384,7 @@ export async function handleApproval(
   }
 
   // Atualizar aprovação
-  const { error } = await supabase
+  const { data: approvalUpdate, error } = await supabase
     .from("ticket_approvals")
     .update({
       approved_by: user.id,
@@ -1356,23 +1393,31 @@ export async function handleApproval(
       notes: notes || null,
     })
     .eq("id", approvalId)
-    .select("id, status, approved_by")
-    .single();
+    .select();
 
   if (error) {
     console.error("Error handling approval:", error);
     return { error: error.message };
   }
 
+  // Verify the update actually affected a row (RLS may silently block)
+  if (!approvalUpdate || approvalUpdate.length === 0) {
+    console.error("Approval update affected 0 rows - RLS may have blocked");
+    return {
+      error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+    };
+  }
+
   // Atualizar status do ticket
   if (decision === "rejected") {
-    const { error: ticketError } = await supabase
+    const { data: ticketUpdate, error: ticketError } = await supabase
       .from("tickets")
       .update({
         status: "denied",
         denial_reason: notes || "Negado na aprovação",
       })
-      .eq("id", ticketId);
+      .eq("id", ticketId)
+      .select();
 
     if (ticketError) {
       console.error("Error updating ticket status (rejected):", ticketError);
@@ -1380,23 +1425,47 @@ export async function handleApproval(
         error: "Aprovação registrada, mas falha ao atualizar status do chamado",
       };
     }
+
+    // Verify the update actually affected a row
+    if (!ticketUpdate || ticketUpdate.length === 0) {
+      console.error("Ticket update (rejected) affected 0 rows - RLS may have blocked");
+      return {
+        error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+      };
+    }
   } else {
     // Aprovar e avançar para próximo nível ou triagem
-    const nextStatusMap: Record<number, string> = {
-      1: "awaiting_approval_supervisor",
-      2: "awaiting_approval_gerente",
-      3: "awaiting_triage",
+    // Usar approval_role ao invés de approval_level para determinar próximo status
+    const nextStatusByRole: Record<string, string> = {
+      Encarregado: "awaiting_approval_supervisor",
+      Supervisor: "awaiting_approval_gerente",
+      Gerente: "awaiting_triage",
     };
 
-    const { error: ticketError } = await supabase
+    const nextStatus = nextStatusByRole[approval.approval_role];
+    if (!nextStatus) {
+      console.error("Unknown approval role:", approval.approval_role);
+      return { error: "Cargo de aprovação desconhecido" };
+    }
+
+    const { data: ticketUpdate, error: ticketError } = await supabase
       .from("tickets")
-      .update({ status: nextStatusMap[approval.approval_level] })
-      .eq("id", ticketId);
+      .update({ status: nextStatus })
+      .eq("id", ticketId)
+      .select();
 
     if (ticketError) {
       console.error("Error updating ticket status (approved):", ticketError);
       return {
         error: "Aprovação registrada, mas falha ao atualizar status do chamado",
+      };
+    }
+
+    // Verify the update actually affected a row
+    if (!ticketUpdate || ticketUpdate.length === 0) {
+      console.error("Ticket update (approved) affected 0 rows - RLS may have blocked");
+      return {
+        error: "Não foi possível processar a aprovação. Verifique suas permissões.",
       };
     }
   }
