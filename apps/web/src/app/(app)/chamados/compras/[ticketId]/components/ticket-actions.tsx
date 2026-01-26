@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Play,
   CheckCircle,
@@ -27,6 +28,9 @@ import {
 import { toast } from "sonner";
 import { changeTicketStatus } from "../../actions";
 import { TriageDialog } from "./triage-dialog";
+import { getTransitionPermission } from "../../constants";
+import { hasPermission } from "@/lib/auth/rbac";
+import type { Permission } from "@/lib/auth/permissions";
 
 interface DepartmentMember {
   id: string;
@@ -50,6 +54,7 @@ interface TicketActionsProps {
   quantity?: number;
   isAdmin?: boolean;
   userRole?: string;
+  userPermissions?: Permission[];
 }
 
 // Labels para status
@@ -118,7 +123,9 @@ export function TicketActions({
   quantity,
   isAdmin = false,
   userRole,
+  userPermissions = [],
 }: TicketActionsProps) {
+  const router = useRouter();
   const [isDenyDialogOpen, setIsDenyDialogOpen] = useState(false);
   const [denyReason, setDenyReason] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -146,10 +153,17 @@ export function TicketActions({
       const result = await changeTicketStatus(ticketId, newStatus);
 
       if (result.error) {
+        if (result.code === "conflict") {
+          toast.warning(result.error);
+          router.refresh();
+          return;
+        }
         toast.error(result.error);
-      } else {
-        toast.success(`Status alterado para: ${statusLabels[newStatus]}`);
+        return;
       }
+
+      toast.success(`Status alterado para: ${statusLabels[newStatus]}`);
+      router.refresh();
     });
   };
 
@@ -163,12 +177,19 @@ export function TicketActions({
       const result = await changeTicketStatus(ticketId, "denied", denyReason);
 
       if (result.error) {
+        if (result.code === "conflict") {
+          toast.warning(result.error);
+          router.refresh();
+          return;
+        }
         toast.error(result.error);
-      } else {
-        toast.success("Chamado negado");
-        setIsDenyDialogOpen(false);
-        setDenyReason("");
+        return;
       }
+
+      toast.success("Chamado negado");
+      setIsDenyDialogOpen(false);
+      setDenyReason("");
+      router.refresh();
     });
   };
 
@@ -207,25 +228,34 @@ export function TicketActions({
 
           {/* Botões de Transição de Status - só para quem pode gerenciar */}
           {canManage &&
-            allowedTransitions.map((status) => {
-              const action = statusActions[status];
-              if (!action) return null;
+            allowedTransitions
+              .filter((status) => {
+                // Filtrar transições baseado em permissões (dupla validação: server + client)
+                const requiredPermission = getTransitionPermission(status);
+                if (requiredPermission === null) {
+                  return true; // Sem restrição específica
+                }
+                return hasPermission(userPermissions, requiredPermission as Permission);
+              })
+              .map((status) => {
+                const action = statusActions[status];
+                if (!action) return null;
 
-              const Icon = action.icon;
+                const Icon = action.icon;
 
-              return (
-                <Button
-                  key={status}
-                  variant={action.variant}
-                  className="w-full gap-2"
-                  onClick={() => handleStatusChange(status)}
-                  disabled={isPending}
-                >
-                  <Icon className="h-4 w-4" />
-                  {action.label}
-                </Button>
-              );
-            })}
+                return (
+                  <Button
+                    key={status}
+                    variant={action.variant}
+                    className="w-full gap-2"
+                    onClick={() => handleStatusChange(status)}
+                    disabled={isPending}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {action.label}
+                  </Button>
+                );
+              })}
 
           {/* Botão de Fechar para Admin/Gerente (quando não está nas transições normais) */}
           {showCloseButton && (

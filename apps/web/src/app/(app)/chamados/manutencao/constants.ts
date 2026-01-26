@@ -98,3 +98,40 @@ export const priorityColors: Record<string, string> = {
 export function getAllowedTransitions(currentStatus: string): string[] {
   return statusTransitions[currentStatus] || [];
 }
+
+/**
+ * Mapeamento de permissões necessárias para cada transição de status
+ * 
+ * - "tickets:approve": Aprovar ou negar chamados (apenas Gerente)
+ * - "tickets:execute": Executar ações operacionais (Comprador, Gerente)
+ * - null: Sem restrição de permissão específica (qualquer usuário com canManage)
+ */
+export const transitionPermissions: Record<string, "tickets:approve" | "tickets:execute" | null> = {
+  // Transições que requerem aprovação (apenas Gerente)
+  approved: "tickets:approve",
+  denied: "tickets:approve",
+  
+  // Transições operacionais (Comprador e Gerente)
+  in_progress: "tickets:execute",
+  technical_analysis: "tickets:execute",
+  executing: "tickets:execute",
+  waiting_parts: "tickets:execute",
+  completed: "tickets:execute",
+  evaluating: "tickets:execute",
+  closed: "tickets:execute",
+  cancelled: "tickets:execute",
+  
+  // Transições sem restrição específica (herdam de canManage)
+  awaiting_approval: null,
+  awaiting_approval_encarregado: null,
+  awaiting_approval_supervisor: null,
+  awaiting_approval_gerente: null,
+  awaiting_triage: null,
+};
+
+/**
+ * Verifica se uma transição requer uma permissão específica
+ */
+export function getTransitionPermission(transition: string): "tickets:approve" | "tickets:execute" | null {
+  return transitionPermissions[transition] ?? null;
+}
