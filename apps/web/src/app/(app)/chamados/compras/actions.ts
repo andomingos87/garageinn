@@ -7,7 +7,10 @@ import {
   GERENTE_APPROVAL_STATUS,
   statusLabels,
   statusTransitions,
+  getTransitionPermission,
 } from "./constants";
+import { hasPermission } from "@/lib/auth/rbac";
+import type { Permission } from "@/lib/auth/permissions";
 
 // ============================================
 // Types
@@ -734,6 +737,56 @@ export async function getCurrentUser() {
   return profile;
 }
 
+/**
+ * Obtém permissões do usuário atual
+ */
+export async function getCurrentUserPermissions() {
+  const { extractPermissionsFromUserRoles } = await import("@/lib/auth/rbac");
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: userRoles } = await supabase
+    .from("user_roles")
+    .select(
+      `
+      role:roles!role_id(
+        name,
+        is_global,
+        department:departments(name)
+      )
+    `
+    )
+    .eq("user_id", user.id);
+
+  if (!userRoles) return [];
+
+  // Normalizar formato: department pode vir como array ou objeto único
+  const normalizedRoles = userRoles.map((ur) => {
+    // role pode vir como array ou objeto único do Supabase
+    const roleData = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+    if (!roleData) return { role: null };
+    
+    // Se department é array, pegar o primeiro elemento
+    const department = Array.isArray(roleData.department)
+      ? roleData.department[0] ?? null
+      : roleData.department;
+    
+    return {
+      role: {
+        name: roleData.name,
+        is_global: roleData.is_global,
+        department: department ? { name: department.name } : null,
+      },
+    };
+  });
+
+  return extractPermissionsFromUserRoles(normalizedRoles);
+}
+
 // ============================================
 // Ticket Details Functions
 // ============================================
@@ -1055,24 +1108,50 @@ export async function changeTicketStatus(
     }
   }
 
+  const trimmedReason = reason?.trim();
+  if (newStatus === "denied" && !trimmedReason) {
+    return { error: "Informe o motivo da negação" };
+  }
+
+  // Validar permissão para a transição solicitada
+  const requiredPermission = getTransitionPermission(newStatus);
+  if (requiredPermission !== null) {
+    const userPermissions = await getCurrentUserPermissions();
+    if (!hasPermission(userPermissions, requiredPermission as Permission)) {
+      return {
+        error: `Você não tem permissão para realizar esta ação. A transição para "${statusLabels[newStatus]}" requer permissão de ${requiredPermission === "tickets:approve" ? "aprovação" : "execução"}.`,
+        code: "forbidden",
+      };
+    }
+  }
+
   const updates: Record<string, unknown> = { status: newStatus };
 
-  if (newStatus === "denied" && reason) {
-    updates.denial_reason = reason;
+  if (newStatus === "denied" && trimmedReason) {
+    updates.denial_reason = trimmedReason;
   }
 
   if (newStatus === "closed") {
     updates.closed_at = new Date().toISOString();
   }
 
-  const { error } = await supabase
+  const { data: updatedTickets, error } = await supabase
     .from("tickets")
     .update(updates)
-    .eq("id", ticketId);
+    .eq("id", ticketId)
+    .select("id, status");
 
   if (error) {
     console.error("Error changing ticket status:", error);
     return { error: error.message };
+  }
+
+  if (!updatedTickets || updatedTickets.length === 0) {
+    return {
+      error:
+        "Não foi possível atualizar o status. O chamado pode ter sido alterado por outro usuário.",
+      code: "conflict",
+    };
   }
 
   revalidatePath(`/chamados/compras/${ticketId}`);

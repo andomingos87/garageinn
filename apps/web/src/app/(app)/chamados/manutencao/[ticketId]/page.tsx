@@ -8,8 +8,11 @@ import {
   getCurrentUser,
   getUserUnits,
   checkIsAdmin,
+  getCurrentUserPermissions,
 } from "../actions";
-import { getAllowedTransitions } from "../constants";
+import { getAllowedTransitions, getTransitionPermission } from "../constants";
+import { hasPermission } from "@/lib/auth/rbac";
+import type { Permission } from "@/lib/auth/permissions";
 import {
   TicketHeader,
   TicketInfo,
@@ -55,6 +58,7 @@ export default async function MaintenanceTicketDetailsPage({
     currentUser,
     units,
     isAdmin,
+    userPermissions,
   ] = await Promise.all([
     getTicketDetails(ticketId),
     canManageTicket(ticketId),
@@ -63,6 +67,7 @@ export default async function MaintenanceTicketDetailsPage({
     getCurrentUser(),
     getUserUnits(),
     checkIsAdmin(),
+    getCurrentUserPermissions(),
   ]);
 
   if (!ticket) {
@@ -137,6 +142,7 @@ export default async function MaintenanceTicketDetailsPage({
             locationDescription={ticket.location_description}
             isAdmin={isAdmin}
             userRole={currentUserRole}
+            userPermissions={userPermissions}
           />
 
           {/* Timeline / Histórico */}

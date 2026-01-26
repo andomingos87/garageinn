@@ -7,8 +7,11 @@ import {
   getComprasDepartmentMembers,
   getCurrentUser,
   checkIsAdmin,
+  getCurrentUserPermissions,
 } from "../actions";
-import { getAllowedTransitions } from "../constants";
+import { getAllowedTransitions, getTransitionPermission } from "../constants";
+import { hasPermission } from "@/lib/auth/rbac";
+import type { Permission } from "@/lib/auth/permissions";
 import { AccessDenied } from "@/components/auth/access-denied";
 import {
   TicketHeader,
@@ -56,6 +59,7 @@ export default async function TicketDetailsPage({ params }: PageProps) {
     departmentMembers,
     currentUser,
     isAdmin,
+    userPermissions,
   ] = await Promise.all([
     getTicketDetails(ticketId),
     canManageTicket(ticketId),
@@ -63,6 +67,7 @@ export default async function TicketDetailsPage({ params }: PageProps) {
     getComprasDepartmentMembers(),
     getCurrentUser(),
     checkIsAdmin(),
+    getCurrentUserPermissions(),
   ]);
 
   if (!ticket) {
@@ -88,7 +93,17 @@ export default async function TicketDetailsPage({ params }: PageProps) {
     : undefined;
 
   // Obter transições permitidas para o status atual
-  const allowedTransitions = getAllowedTransitions(ticket.status);
+  const allAllowedTransitions = getAllowedTransitions(ticket.status);
+  
+  // Filtrar transições baseado em permissões do usuário
+  const allowedTransitions = allAllowedTransitions.filter((transition) => {
+    const requiredPermission = getTransitionPermission(transition);
+    if (requiredPermission === null) {
+      // Sem restrição específica, herda de canManage
+      return true;
+    }
+    return hasPermission(userPermissions, requiredPermission as Permission);
+  });
 
   // Verificar se tem aprovações pendentes (para mostrar a seção de aprovações)
   const hasApprovals = ticket.approvals && ticket.approvals.length > 0;
@@ -149,6 +164,7 @@ export default async function TicketDetailsPage({ params }: PageProps) {
             quantity={ticket.quantity}
             isAdmin={isAdmin}
             userRole={currentUserRole}
+            userPermissions={userPermissions}
           />
 
           {/* Timeline / Histórico */}
