@@ -171,22 +171,42 @@ export default async function TicketDetailsPage({ params }: PageProps) {
   );
 }
 
-// Função auxiliar para obter o cargo do usuário
+// Função auxiliar para obter o cargo do usuário em Operações (para aprovações)
 async function getUserRole(userId: string): Promise<string | undefined> {
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
 
+  // Buscar o cargo mais alto do usuário no departamento Operações
+  // Prioridade: Gerente > Supervisor > Encarregado > Manobrista
   const { data } = await supabase
     .from("user_roles")
     .select(
       `
-      role:roles!role_id(name)
+      role:roles!role_id(
+        name,
+        department:departments!department_id(name)
+      )
     `
     )
-    .eq("user_id", userId)
-    .limit(1)
-    .single();
+    .eq("user_id", userId);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data?.role as any)?.name;
+  if (!data || data.length === 0) return undefined;
+
+  // Filtrar apenas cargos de Operações e ordenar por hierarquia
+  const roleHierarchy: Record<string, number> = {
+    Gerente: 4,
+    Supervisor: 3,
+    Encarregado: 2,
+    Manobrista: 1,
+  };
+
+  const operacoesRoles = data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((r: any) => r.role?.department?.name === "Operações")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((r: any) => r.role?.name)
+    .filter(Boolean)
+    .sort((a: string, b: string) => (roleHierarchy[b] || 0) - (roleHierarchy[a] || 0));
+
+  return operacoesRoles[0];
 }

@@ -9,7 +9,18 @@
       "mcp__supabase_gapp__apply_migration",
       "Bash(cd:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(bash:*)",
+      "Bash(find:*)",
+      "Bash(npx tsc:*)",
+      "mcp__supabase_gapp__execute_sql",
+      "Bash(git fetch:*)",
+      "Bash(ls:*)",
+      "Bash(echo:*)",
+      "Bash(git checkout:*)",
+      "Bash(grep:*)",
+      "Bash(npx playwright test:*)",
+      "mcp__supabase_gapp__list_migrations"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -93,29 +93,23 @@ export function TicketApprovals({
   const canApproveLevel = (approval: Approval): boolean => {
     if (approval.status !== "pending") return false;
 
-    // Verificar se é o próximo na fila (status do ticket corresponde ao nível)
-    const statusToLevel: Record<string, number> = {
-      awaiting_approval_encarregado: 1,
-      awaiting_approval_supervisor: 2,
-      awaiting_approval_gerente: 3,
+    // Mapear o status do ticket para qual cargo deve aprovar
+    const statusToExpectedRole: Record<string, string> = {
+      awaiting_approval_encarregado: "Encarregado",
+      awaiting_approval_supervisor: "Supervisor",
+      awaiting_approval_gerente: "Gerente",
     };
 
-    const currentLevel = statusToLevel[ticketStatus];
-    if (currentLevel !== approval.approval_level) return false;
+    const expectedRole = statusToExpectedRole[ticketStatus];
+
+    // Verificar se esta aprovação é do cargo esperado pelo status atual
+    if (approval.approval_role !== expectedRole) return false;
 
     // Admin pode aprovar qualquer nível pendente que seja o atual
     if (isAdmin) return true;
 
-    // Verificar se usuário tem o cargo correto
-    const roleToLevel: Record<string, number> = {
-      Encarregado: 1,
-      Supervisor: 2,
-      Gerente: 3,
-    };
-
-    return currentUserRole
-      ? roleToLevel[currentUserRole] === approval.approval_level
-      : false;
+    // Verificar se usuário tem o cargo correto para aprovar
+    return currentUserRole === approval.approval_role;
   };
 
   const handleOpenDialog = (
