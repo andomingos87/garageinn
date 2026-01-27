@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ApprovalDecision, ApprovalFlowStatus } from "@/lib/ticket-statuses";
+import { APPROVAL_FLOW_STATUS } from "@/lib/ticket-statuses";
 
 // ============================================
 // Ticket Details Functions (Fase 3)
@@ -313,7 +315,7 @@ async function ensureOperacoesGerenteApproval(
 export async function handleApproval(
   ticketId: string,
   approvalId: string,
-  decision: "approved" | "rejected",
+  decision: ApprovalDecision,
   notes?: string
 ) {
   const supabase = await createClient();
@@ -362,27 +364,27 @@ export async function handleApproval(
   }
 
   // Atualizar status do ticket
-  if (decision === "rejected") {
+  if (decision === APPROVAL_FLOW_STATUS.denied) {
     const { error: ticketError } = await supabase
       .from("tickets")
       .update({
-        status: "denied",
+        status: APPROVAL_FLOW_STATUS.denied,
         denial_reason: notes || "Negado na aprovação",
       })
       .eq("id", ticketId);
 
     if (ticketError) {
-      console.error("Error updating ticket status (rejected):", ticketError);
+      console.error("Error updating ticket status (denied):", ticketError);
       return {
         error: "Aprovação registrada, mas falha ao atualizar status do chamado",
       };
     }
   } else {
     // Aprovar e avançar para próximo nível ou triagem
-    const nextStatusMap: Record<number, string> = {
-      1: "awaiting_approval_supervisor",
-      2: "awaiting_approval_gerente",
-      3: "awaiting_triage",
+    const nextStatusMap: Record<number, ApprovalFlowStatus> = {
+      1: APPROVAL_FLOW_STATUS.awaitingApprovalSupervisor,
+      2: APPROVAL_FLOW_STATUS.awaitingApprovalGerente,
+      3: APPROVAL_FLOW_STATUS.awaitingTriage,
     };
 
     const { error: ticketError } = await supabase

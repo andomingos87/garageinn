@@ -24,12 +24,14 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { handleApproval } from "../../actions";
+import type { ApprovalDecision, ApprovalStatus } from "@/lib/ticket-statuses";
+import { APPROVAL_STATUS } from "@/lib/ticket-statuses";
 
 interface Approval {
   id: string;
   approval_level: number;
   approval_role: string;
-  status: string;
+  status: ApprovalStatus;
   notes: string | null;
   decision_at: string | null;
   created_at: string;
@@ -55,12 +57,24 @@ const roleLabels: Record<string, string> = {
 };
 
 const statusConfig: Record<
-  string,
+  ApprovalStatus,
   { icon: React.ElementType; color: string; label: string }
 > = {
-  pending: { icon: Clock, color: "text-amber-500", label: "Pendente" },
-  approved: { icon: CheckCircle2, color: "text-green-500", label: "Aprovado" },
-  rejected: { icon: XCircle, color: "text-red-500", label: "Rejeitado" },
+  [APPROVAL_STATUS.pending]: {
+    icon: Clock,
+    color: "text-amber-500",
+    label: "Pendente",
+  },
+  [APPROVAL_STATUS.approved]: {
+    icon: CheckCircle2,
+    color: "text-green-500",
+    label: "Aprovado",
+  },
+  [APPROVAL_STATUS.denied]: {
+    icon: XCircle,
+    color: "text-red-500",
+    label: "Rejeitado",
+  },
 };
 
 export function TicketApprovals({
@@ -73,7 +87,7 @@ export function TicketApprovals({
   const [selectedApproval, setSelectedApproval] = useState<Approval | null>(
     null
   );
-  const [decision, setDecision] = useState<"approved" | "rejected" | null>(
+  const [decision, setDecision] = useState<ApprovalDecision | null>(
     null
   );
   const [notes, setNotes] = useState("");
@@ -91,7 +105,7 @@ export function TicketApprovals({
 
   // Verificar se usuário pode aprovar algum nível
   const canApproveLevel = (approval: Approval): boolean => {
-    if (approval.status !== "pending") return false;
+    if (approval.status !== APPROVAL_STATUS.pending) return false;
 
     // Verificar se é o próximo na fila (status do ticket corresponde ao nível)
     const statusToLevel: Record<string, number> = {
@@ -120,7 +134,7 @@ export function TicketApprovals({
 
   const handleOpenDialog = (
     approval: Approval,
-    selectedDecision: "approved" | "rejected"
+    selectedDecision: ApprovalDecision
   ) => {
     setSelectedApproval(approval);
     setDecision(selectedDecision);
@@ -148,7 +162,9 @@ export function TicketApprovals({
         toast.error(result.error);
       } else {
         toast.success(
-          decision === "approved" ? "Chamado aprovado" : "Chamado rejeitado"
+          decision === APPROVAL_STATUS.approved
+            ? "Chamado aprovado"
+            : "Chamado rejeitado"
         );
         handleCloseDialog();
       }
@@ -185,9 +201,9 @@ export function TicketApprovals({
                     {/* Ícone de Status */}
                     <div
                       className={`z-10 p-2 bg-background border-2 rounded-full ${
-                        approval.status === "approved"
+                        approval.status === APPROVAL_STATUS.approved
                           ? "border-green-500"
-                          : approval.status === "rejected"
+                          : approval.status === APPROVAL_STATUS.denied
                             ? "border-red-500"
                             : "border-amber-500"
                       }`}
@@ -215,7 +231,7 @@ export function TicketApprovals({
                               variant="outline"
                               className="gap-1 text-green-600 border-green-300 hover:bg-green-50"
                               onClick={() =>
-                                handleOpenDialog(approval, "approved")
+                                handleOpenDialog(approval, APPROVAL_STATUS.approved)
                               }
                             >
                               <ThumbsUp className="h-3 w-3" />
@@ -226,7 +242,7 @@ export function TicketApprovals({
                               variant="outline"
                               className="gap-1 text-red-600 border-red-300 hover:bg-red-50"
                               onClick={() =>
-                                handleOpenDialog(approval, "rejected")
+                                handleOpenDialog(approval, APPROVAL_STATUS.denied)
                               }
                             >
                               <ThumbsDown className="h-3 w-3" />
@@ -286,10 +302,12 @@ export function TicketApprovals({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {decision === "approved" ? "Aprovar Chamado" : "Rejeitar Chamado"}
+              {decision === APPROVAL_STATUS.approved
+                ? "Aprovar Chamado"
+                : "Rejeitar Chamado"}
             </DialogTitle>
             <DialogDescription>
-              {decision === "approved"
+              {decision === APPROVAL_STATUS.approved
                 ? "Confirme a aprovação deste chamado. Ele seguirá para a próxima etapa."
                 : "Ao rejeitar, o chamado será negado e retornará ao solicitante."}
             </DialogDescription>
@@ -298,13 +316,13 @@ export function TicketApprovals({
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {decision === "rejected"
+                {decision === APPROVAL_STATUS.denied
                   ? "Motivo da rejeição *"
                   : "Observações (opcional)"}
               </label>
               <Textarea
                 placeholder={
-                  decision === "rejected"
+                  decision === APPROVAL_STATUS.denied
                     ? "Informe o motivo da rejeição..."
                     : "Adicione observações se necessário..."
                 }
@@ -321,16 +339,18 @@ export function TicketApprovals({
             </Button>
             <Button
               onClick={handleSubmitApproval}
-              disabled={isPending || (decision === "rejected" && !notes.trim())}
+              disabled={
+                isPending || (decision === APPROVAL_STATUS.denied && !notes.trim())
+              }
               className={
-                decision === "approved"
+                decision === APPROVAL_STATUS.approved
                   ? "bg-green-600 hover:bg-green-700"
                   : "bg-red-600 hover:bg-red-700"
               }
             >
               {isPending
                 ? "Processando..."
-                : decision === "approved"
+                : decision === APPROVAL_STATUS.approved
                   ? "Confirmar Aprovação"
                   : "Confirmar Rejeição"}
             </Button>

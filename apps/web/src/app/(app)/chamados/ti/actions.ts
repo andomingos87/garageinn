@@ -11,6 +11,8 @@ import {
   type UserRole,
 } from "@/lib/auth/rbac";
 import { canAccessTiArea } from "@/lib/auth/ti-access";
+import type { ApprovalDecision, ApprovalFlowStatus } from "@/lib/ticket-statuses";
+import { APPROVAL_FLOW_STATUS } from "@/lib/ticket-statuses";
 import type {
   TiCategory,
   TiFilters,
@@ -197,6 +199,37 @@ async function ensureTiAccess(): Promise<boolean> {
   return access.canAccess;
 }
 
+export async function canAccessTiTicketDetail(
+  ticketId: string
+): Promise<boolean> {
+  const access = await getTiAccessContext();
+  if (access.canAccess) return true;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const dept = await getTiDepartment();
+  if (!dept) return false;
+
+  const { data: ticket, error } = await supabase
+    .from("tickets")
+    .select("created_by, department_id")
+    .eq("id", ticketId)
+    .single();
+
+  if (error || !ticket) {
+    console.error("Error checking TI ticket access:", error);
+    return false;
+  }
+
+  if (ticket.department_id !== dept.id) return false;
+
+  return ticket.created_by === user.id;
+}
+
 async function canAccessTiReadyList(): Promise<boolean> {
   const access = await getTiAccessContext();
   if (!access.canAccess) return false;
@@ -209,8 +242,6 @@ async function canAccessTiReadyList(): Promise<boolean> {
 // ============================================
 
 export async function getTiCategories(): Promise<TiCategory[]> {
-  const canAccess = await ensureTiAccess();
-  if (!canAccess) return [];
   const supabase = await createClient();
   const dept = await getTiDepartment();
   if (!dept) return [];
@@ -373,10 +404,6 @@ export async function getTiStats(): Promise<TiStats> {
 export async function createTiTicket(
   formData: FormData
 ): Promise<{ error?: string } | void> {
-  const canAccess = await ensureTiAccess();
-  if (!canAccess) {
-    return { error: "Acesso negado" };
-  }
   const supabase = await createClient();
   const {
     data: { user },
@@ -535,7 +562,7 @@ export async function createTiTicket(
 export async function getTiTicketDetail(
   ticketId: string
 ): Promise<TiTicketDetail | null> {
-  const canAccess = await ensureTiAccess();
+  const canAccess = await canAccessTiTicketDetail(ticketId);
   if (!canAccess) return null;
   const supabase = await createClient();
 
@@ -649,7 +676,7 @@ export async function addComment(
 export async function handleApproval(
   ticketId: string,
   approvalId: string,
-  decision: "approved" | "rejected",
+  decision: ApprovalDecision,
   notes?: string
 ): Promise<{ error?: string; success?: boolean }> {
   const canAccess = await ensureTiAccess();
@@ -699,26 +726,26 @@ export async function handleApproval(
     return { error: error.message };
   }
 
-  if (decision === "rejected") {
+  if (decision === APPROVAL_FLOW_STATUS.denied) {
     const { error: ticketError } = await supabase
       .from("tickets")
       .update({
-        status: "denied",
+        status: APPROVAL_FLOW_STATUS.denied,
         denial_reason: notes || "Negado na aprovacao",
       })
       .eq("id", ticketId);
 
     if (ticketError) {
-      console.error("Error updating ticket status (rejected):", ticketError);
+      console.error("Error updating ticket status (denied):", ticketError);
       return {
         error: "Aprovacao registrada, mas falha ao atualizar status do chamado",
       };
     }
   } else {
-    const nextStatusMap: Record<number, string> = {
-      1: "awaiting_approval_supervisor",
-      2: "awaiting_approval_gerente",
-      3: "awaiting_triage",
+    const nextStatusMap: Record<number, ApprovalFlowStatus> = {
+      1: APPROVAL_FLOW_STATUS.awaitingApprovalSupervisor,
+      2: APPROVAL_FLOW_STATUS.awaitingApprovalGerente,
+      3: APPROVAL_FLOW_STATUS.awaitingTriage,
     };
 
     const { error: ticketError } = await supabase

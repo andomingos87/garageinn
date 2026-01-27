@@ -32,12 +32,14 @@ import {
 import { toast } from "sonner";
 import { handleFinanceiroApproval } from "../../actions";
 import { cn } from "@/lib/utils";
+import type { ApprovalStatus } from "@/lib/ticket-statuses";
+import { APPROVAL_FLOW_STATUS, APPROVAL_STATUS } from "@/lib/ticket-statuses";
 
 interface Approval {
   id: string;
   approval_level: number;
   approval_role: string;
-  status: string;
+  status: ApprovalStatus;
   approved_by: string | null;
   decision_at: string | null;
   notes: string | null;
@@ -51,12 +53,24 @@ interface FinanceiroApprovalsProps {
 }
 
 const statusConfig: Record<
-  string,
+  ApprovalStatus,
   { icon: React.ComponentType<{ className?: string }>; color: string; label: string }
 > = {
-  pending: { icon: Clock, color: "text-yellow-600", label: "Pendente" },
-  approved: { icon: CheckCircle2, color: "text-green-600", label: "Aprovado" },
-  denied: { icon: XCircle, color: "text-red-600", label: "Negado" },
+  [APPROVAL_STATUS.pending]: {
+    icon: Clock,
+    color: "text-yellow-600",
+    label: "Pendente",
+  },
+  [APPROVAL_STATUS.approved]: {
+    icon: CheckCircle2,
+    color: "text-green-600",
+    label: "Aprovado",
+  },
+  [APPROVAL_STATUS.denied]: {
+    icon: XCircle,
+    color: "text-red-600",
+    label: "Negado",
+  },
 };
 
 export function FinanceiroApprovals({
@@ -77,14 +91,11 @@ export function FinanceiroApprovals({
     (a, b) => a.approval_level - b.approval_level
   );
 
-  // Encontrar a proxima aprovacao pendente
-  const nextPendingApproval = sortedApprovals.find((a) => a.status === "pending");
-
   // Verificar se o status atual corresponde ao nivel de aprovacao
   const statusLevelMap: Record<string, number> = {
-    awaiting_approval_encarregado: 1,
-    awaiting_approval_supervisor: 2,
-    awaiting_approval_gerente: 3,
+    [APPROVAL_FLOW_STATUS.awaitingApprovalEncarregado]: 1,
+    [APPROVAL_FLOW_STATUS.awaitingApprovalSupervisor]: 2,
+    [APPROVAL_FLOW_STATUS.awaitingApprovalGerente]: 3,
   };
   const currentLevel = statusLevelMap[currentStatus] || 0;
 
@@ -93,7 +104,7 @@ export function FinanceiroApprovals({
       const result = await handleFinanceiroApproval(
         ticketId,
         approvalId,
-        "approved"
+        APPROVAL_STATUS.approved
       );
       if (result.error) {
         toast.error(result.error);
@@ -110,7 +121,7 @@ export function FinanceiroApprovals({
       const result = await handleFinanceiroApproval(
         ticketId,
         selectedApprovalId,
-        "denied",
+        APPROVAL_STATUS.denied,
         denyReason
       );
       if (result.error) {
@@ -153,7 +164,7 @@ export function FinanceiroApprovals({
               const isCurrentLevel = approval.approval_level === currentLevel;
               const canAct =
                 canApprove &&
-                approval.status === "pending" &&
+                approval.status === APPROVAL_STATUS.pending &&
                 isCurrentLevel;
 
               return (
@@ -161,7 +172,7 @@ export function FinanceiroApprovals({
                   key={approval.id}
                   className={cn(
                     "flex items-center justify-between rounded-lg border p-4",
-                    isCurrentLevel && approval.status === "pending"
+                    isCurrentLevel && approval.status === APPROVAL_STATUS.pending
                       ? "border-primary bg-primary/5"
                       : ""
                   )}
@@ -181,11 +192,11 @@ export function FinanceiroApprovals({
                       variant="outline"
                       className={cn(
                         "border-0",
-                        approval.status === "approved" &&
+                        approval.status === APPROVAL_STATUS.approved &&
                           "bg-green-100 text-green-800",
-                        approval.status === "denied" &&
+                        approval.status === APPROVAL_STATUS.denied &&
                           "bg-red-100 text-red-800",
-                        approval.status === "pending" &&
+                        approval.status === APPROVAL_STATUS.pending &&
                           "bg-yellow-100 text-yellow-800"
                       )}
                     >

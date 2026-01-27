@@ -21,12 +21,14 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { handleRHApproval } from "../../actions";
+import type { ApprovalDecision, ApprovalStatus } from "@/lib/ticket-statuses";
+import { APPROVAL_STATUS } from "@/lib/ticket-statuses";
 
 interface Approval {
   id: string;
   approval_level: number;
   approval_role: string;
-  status: string;
+  status: ApprovalStatus;
   notes: string | null;
   decision_at: string | null;
   created_at: string;
@@ -52,12 +54,24 @@ const roleLabels: Record<string, string> = {
 };
 
 const statusConfig: Record<
-  string,
+  ApprovalStatus,
   { icon: React.ElementType; color: string; label: string }
 > = {
-  pending: { icon: Clock, color: "text-amber-500", label: "Pendente" },
-  approved: { icon: CheckCircle2, color: "text-green-500", label: "Aprovado" },
-  rejected: { icon: XCircle, color: "text-red-500", label: "Rejeitado" },
+  [APPROVAL_STATUS.pending]: {
+    icon: Clock,
+    color: "text-amber-500",
+    label: "Pendente",
+  },
+  [APPROVAL_STATUS.approved]: {
+    icon: CheckCircle2,
+    color: "text-green-500",
+    label: "Aprovado",
+  },
+  [APPROVAL_STATUS.denied]: {
+    icon: XCircle,
+    color: "text-red-500",
+    label: "Rejeitado",
+  },
 };
 
 export function RHTicketApprovals({
@@ -70,7 +84,7 @@ export function RHTicketApprovals({
   const [selectedApproval, setSelectedApproval] = useState<Approval | null>(
     null
   );
-  const [decision, setDecision] = useState<"approved" | "rejected" | null>(
+  const [decision, setDecision] = useState<ApprovalDecision | null>(
     null
   );
   const [notes, setNotes] = useState("");
@@ -87,7 +101,7 @@ export function RHTicketApprovals({
   };
 
   const canApproveLevel = (approval: Approval): boolean => {
-    if (approval.status !== "pending") return false;
+    if (approval.status !== APPROVAL_STATUS.pending) return false;
     const statusToLevel: Record<string, number> = {
       awaiting_approval_encarregado: 1,
       awaiting_approval_supervisor: 2,
@@ -111,7 +125,7 @@ export function RHTicketApprovals({
 
   const handleOpenDialog = (
     approval: Approval,
-    selectedDecision: "approved" | "rejected"
+    selectedDecision: ApprovalDecision
   ) => {
     setSelectedApproval(approval);
     setDecision(selectedDecision);
@@ -129,7 +143,9 @@ export function RHTicketApprovals({
       );
       if (result.error) toast.error(result.error);
       else {
-        toast.success(decision === "approved" ? "Aprovado" : "Rejeitado");
+        toast.success(
+          decision === APPROVAL_STATUS.approved ? "Aprovado" : "Rejeitado"
+        );
         setSelectedApproval(null);
       }
     });
@@ -155,7 +171,7 @@ export function RHTicketApprovals({
               return (
                 <div key={approval.id} className="flex gap-4">
                   <div
-                    className={`p-2 bg-background border-2 rounded-full h-fit ${approval.status === "approved" ? "border-green-500" : approval.status === "rejected" ? "border-red-500" : "border-amber-500"}`}
+                    className={`p-2 bg-background border-2 rounded-full h-fit ${approval.status === APPROVAL_STATUS.approved ? "border-green-500" : approval.status === APPROVAL_STATUS.denied ? "border-red-500" : "border-amber-500"}`}
                   >
                     <Icon className={`h-4 w-4 ${config.color}`} />
                   </div>
@@ -176,7 +192,7 @@ export function RHTicketApprovals({
                             size="sm"
                             variant="outline"
                             onClick={() =>
-                              handleOpenDialog(approval, "approved")
+                              handleOpenDialog(approval, APPROVAL_STATUS.approved)
                             }
                           >
                             <ThumbsUp className="h-3 w-3 mr-1" /> Aprovar
@@ -185,7 +201,7 @@ export function RHTicketApprovals({
                             size="sm"
                             variant="outline"
                             onClick={() =>
-                              handleOpenDialog(approval, "rejected")
+                              handleOpenDialog(approval, APPROVAL_STATUS.denied)
                             }
                           >
                             <ThumbsDown className="h-3 w-3 mr-1" /> Rejeitar
@@ -222,7 +238,7 @@ export function RHTicketApprovals({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {decision === "approved" ? "Aprovar" : "Rejeitar"}
+              {decision === APPROVAL_STATUS.approved ? "Aprovar" : "Rejeitar"}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">

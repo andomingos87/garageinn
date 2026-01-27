@@ -11,6 +11,8 @@ import {
 } from "./constants";
 import { hasPermission } from "@/lib/auth/rbac";
 import type { Permission } from "@/lib/auth/permissions";
+import type { ApprovalDecision, ApprovalFlowStatus } from "@/lib/ticket-statuses";
+import { APPROVAL_FLOW_STATUS } from "@/lib/ticket-statuses";
 
 // ============================================
 // Types
@@ -24,11 +26,6 @@ import type { Permission } from "@/lib/auth/permissions";
  * - Supervisor (3) → awaiting_approval_gerente
  * - Gerente (4) → awaiting_triage
  */
-export type ApprovalStatus =
-  | "awaiting_approval_encarregado"
-  | "awaiting_approval_supervisor"
-  | "awaiting_approval_gerente"
-  | "awaiting_triage";
 
 export interface TicketFilters {
   status?: string;
@@ -608,8 +605,9 @@ export async function createPurchaseTicket(formData: FormData) {
   });
 
   // Usar o valor retornado ou fallback seguro (exige aprovação completa)
-  const initialStatus: ApprovalStatus =
-    (initialStatusData as ApprovalStatus) || "awaiting_approval_encarregado";
+  const initialStatus: ApprovalFlowStatus =
+    (initialStatusData as ApprovalFlowStatus) ||
+    APPROVAL_FLOW_STATUS.awaitingApprovalEncarregado;
 
   // Criar ticket
   const { data: ticket, error: ticketError } = await supabase
@@ -1430,7 +1428,7 @@ export async function addComment(ticketId: string, formData: FormData) {
 export async function handleApproval(
   ticketId: string,
   approvalId: string,
-  decision: "approved" | "rejected",
+  decision: ApprovalDecision,
   notes?: string
 ) {
   const supabase = await createClient();
@@ -1488,18 +1486,18 @@ export async function handleApproval(
   }
 
   // Atualizar status do ticket
-  if (decision === "rejected") {
+  if (decision === APPROVAL_FLOW_STATUS.denied) {
     const { data: ticketUpdate, error: ticketError } = await supabase
       .from("tickets")
       .update({
-        status: "denied",
+        status: APPROVAL_FLOW_STATUS.denied,
         denial_reason: notes || "Negado na aprovação",
       })
       .eq("id", ticketId)
       .select();
 
     if (ticketError) {
-      console.error("Error updating ticket status (rejected):", ticketError);
+      console.error("Error updating ticket status (denied):", ticketError);
       return {
         error: "Aprovação registrada, mas falha ao atualizar status do chamado",
       };
@@ -1507,7 +1505,7 @@ export async function handleApproval(
 
     // Verify the update actually affected a row
     if (!ticketUpdate || ticketUpdate.length === 0) {
-      console.error("Ticket update (rejected) affected 0 rows - RLS may have blocked");
+      console.error("Ticket update (denied) affected 0 rows - RLS may have blocked");
       return {
         error: "Não foi possível processar a aprovação. Verifique suas permissões.",
       };
@@ -1515,10 +1513,10 @@ export async function handleApproval(
   } else {
     // Aprovar e avançar para próximo nível ou triagem
     // Usar approval_role ao invés de approval_level para determinar próximo status
-    const nextStatusByRole: Record<string, string> = {
-      Encarregado: "awaiting_approval_supervisor",
-      Supervisor: "awaiting_approval_gerente",
-      Gerente: "awaiting_triage",
+    const nextStatusByRole: Record<string, ApprovalFlowStatus> = {
+      Encarregado: APPROVAL_FLOW_STATUS.awaitingApprovalSupervisor,
+      Supervisor: APPROVAL_FLOW_STATUS.awaitingApprovalGerente,
+      Gerente: APPROVAL_FLOW_STATUS.awaitingTriage,
     };
 
     const nextStatus = nextStatusByRole[approval.approval_role];

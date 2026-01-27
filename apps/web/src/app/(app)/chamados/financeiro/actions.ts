@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { ApprovalDecision, ApprovalFlowStatus } from "@/lib/ticket-statuses";
+import { APPROVAL_FLOW_STATUS } from "@/lib/ticket-statuses";
 import {
   statusTransitions,
   statusLabels,
@@ -746,7 +748,7 @@ async function ensureOperacoesGerenteApproval(
 export async function handleFinanceiroApproval(
   ticketId: string,
   approvalId: string,
-  decision: "approved" | "denied",
+  decision: ApprovalDecision,
   notes?: string
 ) {
   const supabase = await createClient();
@@ -807,16 +809,16 @@ export async function handleFinanceiroApproval(
 
   let newStatus = ticket.status;
 
-  if (decision === "denied") {
-    newStatus = "denied";
+  if (decision === APPROVAL_FLOW_STATUS.denied) {
+    newStatus = APPROVAL_FLOW_STATUS.denied;
   } else {
     // Verificar proxima etapa de aprovacao
-    const statusMap: Record<string, string> = {
-      awaiting_approval_encarregado: "awaiting_approval_supervisor",
-      awaiting_approval_supervisor: "awaiting_approval_gerente",
-      awaiting_approval_gerente: "awaiting_triage",
+    const statusMap: Record<string, ApprovalFlowStatus> = {
+      awaiting_approval_encarregado: APPROVAL_FLOW_STATUS.awaitingApprovalSupervisor,
+      awaiting_approval_supervisor: APPROVAL_FLOW_STATUS.awaitingApprovalGerente,
+      awaiting_approval_gerente: APPROVAL_FLOW_STATUS.awaitingTriage,
     };
-    newStatus = statusMap[ticket.status] || "awaiting_triage";
+    newStatus = statusMap[ticket.status] || APPROVAL_FLOW_STATUS.awaitingTriage;
   }
 
   // Atualizar status do ticket
