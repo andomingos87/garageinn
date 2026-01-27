@@ -33,6 +33,7 @@ import {
   Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeApprovalStatus } from "@/lib/ticket-statuses";
 
 interface PageProps {
   params: Promise<{ ticketId: string }>;
@@ -233,6 +234,27 @@ export default async function SinistroDetailsPage({ params }: PageProps) {
 
   // Verificar se tem aprovações pendentes
   const hasApprovals = ticket.approvals && ticket.approvals.length > 0;
+  const normalizedApprovals = hasApprovals
+    ? (
+        ticket.approvals as Array<{
+          id: string;
+          approval_level: number;
+          approval_role: string;
+          status: string;
+          notes: string | null;
+          decision_at: string | null;
+          created_at: string;
+          approver: {
+            id: string;
+            full_name: string;
+            avatar_url: string | null;
+          } | null;
+        }>
+      ).map((approval) => ({
+        ...approval,
+        status: normalizeApprovalStatus(approval.status),
+      }))
+    : [];
 
   // Verificar se está aguardando triagem
   const isAwaitingTriage = ticket.status === "awaiting_triage";
@@ -260,22 +282,7 @@ export default async function SinistroDetailsPage({ params }: PageProps) {
       {hasApprovals && (
         <ClaimApprovals
           ticketId={ticketId}
-          approvals={
-            ticket.approvals as Array<{
-              id: string;
-              approval_level: number;
-              approval_role: string;
-              status: string;
-              notes: string | null;
-              decision_at: string | null;
-              created_at: string;
-              approver: {
-                id: string;
-                full_name: string;
-                avatar_url: string | null;
-              } | null;
-            }>
-          }
+          approvals={normalizedApprovals}
           ticketStatus={ticket.status}
           currentUserRole={currentUserRole}
           isAdmin={isAdmin}

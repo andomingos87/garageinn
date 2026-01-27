@@ -158,16 +158,17 @@ export function ClaimApprovals({
         notes || undefined
       );
 
-      if (result.error) {
+      if ("error" in result) {
         toast.error(result.error);
-      } else {
-        toast.success(
-          decision === APPROVAL_STATUS.approved
-            ? "Sinistro aprovado"
-            : "Sinistro rejeitado"
-        );
-        handleCloseDialog();
+        return;
       }
+
+      toast.success(
+        decision === APPROVAL_STATUS.approved
+          ? "Sinistro aprovado"
+          : "Sinistro rejeitado"
+      );
+      handleCloseDialog();
     });
   };
 

@@ -22,6 +22,7 @@ import {
   getApprovalContext,
   getTiTicketDetail,
 } from "../actions";
+import { normalizeApprovalStatus } from "@/lib/ticket-statuses";
 
 interface PageProps {
   params: Promise<{ ticketId: string }>;
@@ -40,6 +41,11 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
   if (!ticket) {
     notFound();
   }
+
+  const normalizedApprovals = (ticket.approvals ?? []).map((approval) => ({
+    ...approval,
+    status: normalizeApprovalStatus(approval.status),
+  }));
 
   const getInitials = (name: string | null) => {
     if (!name) return "??";
@@ -167,7 +173,7 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
 
       <TiTicketStatus
         ticketId={ticketId}
-        approvals={ticket.approvals}
+        approvals={normalizedApprovals}
         ticketStatus={ticket.status}
         currentUserRoles={approvalContext.roles}
         isAdmin={approvalContext.isAdmin}

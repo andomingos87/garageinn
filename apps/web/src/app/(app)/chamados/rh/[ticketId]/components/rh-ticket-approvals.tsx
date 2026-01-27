@@ -141,13 +141,15 @@ export function RHTicketApprovals({
         decision,
         notes || undefined
       );
-      if (result.error) toast.error(result.error);
-      else {
-        toast.success(
-          decision === APPROVAL_STATUS.approved ? "Aprovado" : "Rejeitado"
-        );
-        setSelectedApproval(null);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
       }
+
+      toast.success(
+        decision === APPROVAL_STATUS.approved ? "Aprovado" : "Rejeitado"
+      );
+      setSelectedApproval(null);
     });
   };
 

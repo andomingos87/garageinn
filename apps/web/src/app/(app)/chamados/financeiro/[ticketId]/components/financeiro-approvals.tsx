@@ -106,11 +106,12 @@ export function FinanceiroApprovals({
         approvalId,
         APPROVAL_STATUS.approved
       );
-      if (result.error) {
+      if ("error" in result) {
         toast.error(result.error);
-      } else {
-        toast.success("Chamado aprovado");
+        return;
       }
+
+      toast.success("Chamado aprovado");
     });
   };
 
@@ -124,14 +125,15 @@ export function FinanceiroApprovals({
         APPROVAL_STATUS.denied,
         denyReason
       );
-      if (result.error) {
+      if ("error" in result) {
         toast.error(result.error);
-      } else {
-        toast.success("Chamado negado");
-        setShowDenyDialog(false);
-        setDenyReason("");
-        setSelectedApprovalId(null);
+        return;
       }
+
+      toast.success("Chamado negado");
+      setShowDenyDialog(false);
+      setDenyReason("");
+      setSelectedApprovalId(null);
     });
   };
 
