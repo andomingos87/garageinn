@@ -1,0 +1,14 @@
+{
+  "active": [
+    {
+      "slug": "ai-context-setup",
+      "path": "plans/ai-context-setup.md",
+      "title": "Initialize ai-context scaffolding",
+      "summary": "Create and fill .context docs and agents for the repo",
+      "linkedAt": "2026-01-27T00:05:44.314Z",
+      "status": "active"
+    }
+  ],
+  "completed": [],
+  "primary": "ai-context-setup"
+}

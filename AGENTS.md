@@ -57,3 +57,7 @@
 - `npm run lint` e `npm run typecheck` passaram
 - Testes relevantes rodaram (web: `npm run test:e2e` quando mudar fluxo critico)
 - Sem secrets adicionados, `.env` intactos
+## AI Context References
+- Documentation index: `.context/docs/README.md`
+- Agent playbooks: `.context/agents/README.md`
+

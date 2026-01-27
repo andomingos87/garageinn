@@ -1,15 +1,9 @@
 import { Laptop } from "lucide-react";
 import { getUserUnits, getUserFixedUnit } from "@/lib/units";
-import { AccessDenied } from "@/components/auth/access-denied";
-import { createTiTicket, getTiAccessContext, getTiCategories } from "../actions";
+import { createTiTicket, getTiCategories } from "../actions";
 import { TiTicketForm } from "../components";
 
 export default async function NovoChamadoTiPage() {
-  const access = await getTiAccessContext();
-  if (!access.canAccess) {
-    return <AccessDenied />;
-  }
-
   const [categories, units, fixedUnit] = await Promise.all([
     getTiCategories(),
     getUserUnits(),

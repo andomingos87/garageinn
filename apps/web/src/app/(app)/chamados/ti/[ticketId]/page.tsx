@@ -17,19 +17,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AccessDenied } from "@/components/auth/access-denied";
 import { StatusBadge } from "../../components/status-badge";
 import { TiTicketStatus } from "../components";
-import { getApprovalContext, getTiAccessContext, getTiTicketDetail } from "../actions";
+import {
+  canAccessTiTicketDetail,
+  getApprovalContext,
+  getTiTicketDetail,
+} from "../actions";
 
 interface PageProps {
   params: Promise<{ ticketId: string }>;
 }
 
 export default async function TiTicketDetailsPage({ params }: PageProps) {
-  const access = await getTiAccessContext();
-  if (!access.canAccess) {
+  const { ticketId } = await params;
+  const canAccess = await canAccessTiTicketDetail(ticketId);
+  if (!canAccess) {
     return <AccessDenied />;
   }
 
-  const { ticketId } = await params;
   const ticket = await getTiTicketDetail(ticketId);
   const approvalContext = await getApprovalContext();
 

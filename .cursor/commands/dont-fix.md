@@ -1,0 +1,1 @@
+Não tente resolver nada ainda, apenas me responda no chat;
