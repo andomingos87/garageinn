@@ -41,11 +41,16 @@ interface Approval {
   } | null;
 }
 
+interface RoleWithDepartment {
+  name: string;
+  department: string | null;
+}
+
 interface TiTicketStatusProps {
   ticketId: string;
   approvals: Approval[];
   ticketStatus: string;
-  currentUserRoles: string[];
+  currentUserRoles: RoleWithDepartment[];
   isAdmin?: boolean;
 }
 
@@ -92,7 +97,14 @@ export function TiTicketStatus({
   const [notes, setNotes] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const roleNames = currentUserRoles.map((role) => role.toLowerCase());
+  // Get role names from departments that can approve (TI or Operações)
+  const approverDepartments = ["TI", "Operações"];
+  const approverRoleNames = currentUserRoles
+    .filter(
+      (role) =>
+        role.department === null || approverDepartments.includes(role.department)
+    )
+    .map((role) => role.name.toLowerCase());
 
   const getInitials = (name: string | null) => {
     if (!name) return "??";
@@ -124,7 +136,7 @@ export function TiTicketStatus({
       gerente: 3,
     };
 
-    return roleNames.some(
+    return approverRoleNames.some(
       (role) => roleToLevel[role] === approval.approval_level
     );
   };

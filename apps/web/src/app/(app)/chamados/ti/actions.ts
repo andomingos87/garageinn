@@ -10,7 +10,12 @@ import {
   isAdmin as isAdminPermission,
   type UserRole,
 } from "@/lib/auth/rbac";
-import { canAccessTiArea } from "@/lib/auth/ti-access";
+import {
+  canAccessTiArea,
+  isOperacoesApprover,
+  getOperacoesApproverRole,
+  getApprovalLevelForRole,
+} from "@/lib/auth/ti-access";
 import type { ApprovalDecision, ApprovalFlowStatus } from "@/lib/ticket-statuses";
 import { APPROVAL_FLOW_STATUS } from "@/lib/ticket-statuses";
 import type {
@@ -32,9 +37,14 @@ interface TiReadyListResult extends TiTicketListResult {
   canAccess: boolean;
 }
 
+interface TiApprovalContextRole {
+  name: string;
+  department: string | null;
+}
+
 interface TiApprovalContext {
   isAdmin: boolean;
-  roles: string[];
+  roles: TiApprovalContextRole[];
 }
 
 interface TiAccessContext {
@@ -216,7 +226,7 @@ export async function canAccessTiTicketDetail(
 
   const { data: ticket, error } = await supabase
     .from("tickets")
-    .select("created_by, department_id")
+    .select("created_by, department_id, status")
     .eq("id", ticketId)
     .single();
 
@@ -227,7 +237,28 @@ export async function canAccessTiTicketDetail(
 
   if (ticket.department_id !== dept.id) return false;
 
-  return ticket.created_by === user.id;
+  // Ticket creator can always access their own ticket
+  if (ticket.created_by === user.id) return true;
+
+  // Operations approvers can access TI tickets awaiting their approval level
+  if (isOperacoesApprover(access.roles)) {
+    const approverRole = getOperacoesApproverRole(access.roles);
+    if (approverRole) {
+      const approverLevel = getApprovalLevelForRole(approverRole);
+      const statusToLevel: Record<string, number> = {
+        awaiting_approval_encarregado: 1,
+        awaiting_approval_supervisor: 2,
+        awaiting_approval_gerente: 3,
+      };
+      const ticketLevel = statusToLevel[ticket.status];
+      // Allow access while ticket is in approval flow at or above user's level
+      if (ticketLevel && ticketLevel >= approverLevel) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 async function canAccessTiReadyList(): Promise<boolean> {
@@ -679,10 +710,17 @@ export async function handleApproval(
   decision: ApprovalDecision,
   notes?: string
 ): Promise<{ error?: string; success?: boolean }> {
-  const canAccess = await ensureTiAccess();
-  if (!canAccess) {
+  const access = await getTiAccessContext();
+  const roles = access.roles;
+
+  // Check if user can access: TI area access OR Operations approver
+  const canAccessTi = access.canAccess;
+  const isOpsApprover = isOperacoesApprover(roles);
+
+  if (!canAccessTi && !isOpsApprover) {
     return { error: "Acesso negado" };
   }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -699,6 +737,19 @@ export async function handleApproval(
 
   if (!approval) {
     return { error: "Aprovacao nao encontrada" };
+  }
+
+  // For Operations approvers, verify they have the correct role for this approval level
+  if (isOpsApprover && !canAccessTi) {
+    const approverRole = getOperacoesApproverRole(roles);
+    const requiredLevel = approval.approval_level;
+    const userLevel = approverRole ? getApprovalLevelForRole(approverRole) : 0;
+
+    if (userLevel < requiredLevel) {
+      return {
+        error: `Apenas ${approval.approval_role} pode aprovar neste nivel`,
+      };
+    }
   }
 
   const opsCheck = await ensureOperacoesGerenteApproval(
@@ -821,18 +872,35 @@ export async function getApprovalContext(): Promise<TiApprovalContext> {
     return { isAdmin: false, roles: [] };
   }
 
-  const roleNames = userRoles
+  interface RoleData {
+    name: string;
+    is_global: boolean;
+    department: { name: string } | { name: string }[] | null;
+  }
+
+  const rolesWithDepartment: TiApprovalContextRole[] = userRoles
     .map((ur) => {
       const roleData = ur.role as unknown;
-      const role = Array.isArray(roleData) ? roleData[0] : roleData;
-      return role?.name || null;
+      const role: RoleData | null = Array.isArray(roleData)
+        ? roleData[0]
+        : (roleData as RoleData | null);
+      if (!role?.name) return null;
+
+      const dept = Array.isArray(role.department)
+        ? role.department[0]
+        : role.department;
+
+      return {
+        name: role.name,
+        department: dept?.name || null,
+      };
     })
-    .filter((name): name is string => !!name);
+    .filter((role): role is TiApprovalContextRole => role !== null);
 
   const permissions = await getCurrentUserPermissions();
 
   return {
     isAdmin: isAdminPermission(permissions),
-    roles: Array.from(new Set(roleNames)),
+    roles: rolesWithDepartment,
   };
 }
