@@ -54,6 +54,29 @@ const UNITS_OF_MEASURE = [
   { value: "kit", label: "Kit(s)" },
 ];
 
+type PurchaseItemForm = {
+  id: string;
+  item_name: string;
+  quantity: string;
+  unit_of_measure: string;
+  estimated_price: string;
+};
+
+const createItemId = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const createEmptyItem = (): PurchaseItemForm => ({
+  id: createItemId(),
+  item_name: "",
+  quantity: "",
+  unit_of_measure: "un",
+  estimated_price: "",
+});
+
 export function TicketForm({
   categories,
   units,
@@ -73,17 +96,38 @@ export function TicketForm({
     title: "",
     category_id: "",
     unit_id: fixedUnit?.id || "", // Auto-preencher se tiver unidade fixa
-    item_name: "",
-    quantity: "",
-    unit_of_measure: "un",
-    estimated_price: "",
     description: "",
     perceived_urgency: "",
   });
+  const [items, setItems] = useState<PurchaseItemForm[]>([createEmptyItem()]);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setError(null);
+  };
+
+  const handleItemChange = (
+    itemId: string,
+    field: keyof PurchaseItemForm,
+    value: string
+  ) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId ? { ...item, [field]: value } : item
+      )
+    );
+    setError(null);
+  };
+
+  const handleAddItem = () => {
+    setItems((prev) => [...prev, createEmptyItem()]);
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    setItems((prev) => {
+      if (prev.length === 1) return prev;
+      return prev.filter((item) => item.id !== itemId);
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -94,13 +138,29 @@ export function TicketForm({
       setError("Título deve ter pelo menos 5 caracteres");
       return;
     }
-    if (!formData.item_name.trim() || formData.item_name.length < 3) {
-      setError("Nome do item deve ter pelo menos 3 caracteres");
+    if (items.length === 0) {
+      setError("Adicione pelo menos um item para compra");
       return;
     }
-    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
-      setError("Quantidade deve ser maior que zero");
-      return;
+    for (const [index, item] of items.entries()) {
+      if (!item.item_name.trim() || item.item_name.trim().length < 3) {
+        setError(`Nome do item ${index + 1} deve ter pelo menos 3 caracteres`);
+        return;
+      }
+      const quantity = parseInt(item.quantity);
+      if (!quantity || quantity <= 0) {
+        setError(`Quantidade do item ${index + 1} deve ser maior que zero`);
+        return;
+      }
+      if (item.estimated_price) {
+        const price = parseFloat(item.estimated_price);
+        if (Number.isNaN(price) || price <= 0) {
+          setError(
+            `Preço estimado do item ${index + 1} deve ser maior que zero`
+          );
+          return;
+        }
+      }
     }
     if (!formData.description.trim() || formData.description.length < 10) {
       setError("Justificativa deve ter pelo menos 10 caracteres");
@@ -117,12 +177,18 @@ export function TicketForm({
     data.set("title", formData.title);
     data.set("category_id", formData.category_id);
     data.set("unit_id", formData.unit_id);
-    data.set("item_name", formData.item_name);
-    data.set("quantity", formData.quantity);
-    data.set("unit_of_measure", formData.unit_of_measure);
-    data.set("estimated_price", formData.estimated_price);
     data.set("description", formData.description);
     data.set("perceived_urgency", formData.perceived_urgency);
+
+    const itemsPayload = items.map((item) => ({
+      item_name: item.item_name.trim(),
+      quantity: parseInt(item.quantity),
+      unit_of_measure: item.unit_of_measure || "un",
+      estimated_price: item.estimated_price
+        ? parseFloat(item.estimated_price)
+        : null,
+    }));
+    data.set("items", JSON.stringify(itemsPayload));
 
     startTransition(async () => {
       const result = await onSubmit(data);
@@ -147,11 +213,13 @@ export function TicketForm({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
-            Item para Compra
+            Itens para Compra
           </CardTitle>
-          <CardDescription>Descreva o que você precisa comprar</CardDescription>
+          <CardDescription>
+            Adicione todos os itens que precisam ser comprados
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">Título do Chamado *</Label>
             <Input
@@ -167,17 +235,7 @@ export function TicketForm({
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="item_name">Nome do Item *</Label>
-              <Input
-                id="item_name"
-                value={formData.item_name}
-                onChange={(e) => handleChange("item_name", e.target.value)}
-                placeholder="Ex: Detergente Neutro 5L"
-                disabled={isPending}
-              />
-            </div>
+          <div className="space-y-2">
             <div className="space-y-2">
               <Label htmlFor="category_id">Categoria</Label>
               <Select
@@ -199,54 +257,130 @@ export function TicketForm({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantidade *</Label>
-              <Input
-                id="quantity"
-                type="number"
-                min="1"
-                value={formData.quantity}
-                onChange={(e) => handleChange("quantity", e.target.value)}
-                placeholder="Ex: 10"
-                disabled={isPending}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="unit_of_measure">Unidade de Medida</Label>
-              <Select
-                value={formData.unit_of_measure}
-                onValueChange={(value) =>
-                  handleChange("unit_of_measure", value)
-                }
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base">Itens *</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddItem}
                 disabled={isPending}
               >
-                <SelectTrigger id="unit_of_measure">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {UNITS_OF_MEASURE.map((unit) => (
-                    <SelectItem key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                Adicionar item
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="estimated_price">Preço Estimado (R$)</Label>
-              <Input
-                id="estimated_price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.estimated_price}
-                onChange={(e) =>
-                  handleChange("estimated_price", e.target.value)
-                }
-                placeholder="Ex: 150.00"
-                disabled={isPending}
-              />
+
+            <div className="space-y-4">
+              {items.map((item, index) => (
+                <div key={item.id} className="rounded-lg border p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">
+                      Item {index + 1}
+                    </span>
+                    {items.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleRemoveItem(item.id)}
+                        disabled={isPending}
+                      >
+                        Remover
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor={`item_name_${item.id}`}>
+                        Nome do Item *
+                      </Label>
+                      <Input
+                        id={`item_name_${item.id}`}
+                        value={item.item_name}
+                        onChange={(e) =>
+                          handleItemChange(
+                            item.id,
+                            "item_name",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Ex: Detergente Neutro 5L"
+                        disabled={isPending}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor={`quantity_${item.id}`}>
+                        Quantidade *
+                      </Label>
+                      <Input
+                        id={`quantity_${item.id}`}
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleItemChange(
+                            item.id,
+                            "quantity",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Ex: 10"
+                        disabled={isPending}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`unit_${item.id}`}>
+                        Unidade de Medida
+                      </Label>
+                      <Select
+                        value={item.unit_of_measure}
+                        onValueChange={(value) =>
+                          handleItemChange(item.id, "unit_of_measure", value)
+                        }
+                        disabled={isPending}
+                      >
+                        <SelectTrigger id={`unit_${item.id}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {UNITS_OF_MEASURE.map((unit) => (
+                            <SelectItem key={unit.value} value={unit.value}>
+                              {unit.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`estimated_price_${item.id}`}>
+                        Preço Estimado (R$)
+                      </Label>
+                      <Input
+                        id={`estimated_price_${item.id}`}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.estimated_price}
+                        onChange={(e) =>
+                          handleItemChange(
+                            item.id,
+                            "estimated_price",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Ex: 150.00"
+                        disabled={isPending}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </CardContent>

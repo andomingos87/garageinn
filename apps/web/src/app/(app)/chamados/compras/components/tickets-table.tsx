@@ -28,9 +28,16 @@ interface Ticket {
   category_name: string | null;
   unit_name: string | null;
   unit_code: string | null;
-  item_name: string | null;
-  quantity: number | null;
-  unit_of_measure: string | null;
+  item_name?: string | null;
+  quantity?: number | null;
+  unit_of_measure?: string | null;
+  items?: Array<{
+    item_name: string;
+    quantity: number;
+    unit_of_measure: string | null;
+  }>;
+  items_summary?: string | null;
+  items_count?: number | null;
   created_by_id: string;
   created_by_name: string;
   created_by_avatar: string | null;
@@ -43,6 +50,24 @@ interface TicketsTableProps {
 }
 
 export function TicketsTable({ tickets }: TicketsTableProps) {
+  const buildItemsSummary = (ticket: Ticket) => {
+    if (ticket.items_summary) return ticket.items_summary;
+    if (ticket.items && ticket.items.length > 0) {
+      const first = ticket.items[0];
+      if (ticket.items.length === 1) {
+        return `${first.item_name} (${first.quantity} ${first.unit_of_measure || "un"})`;
+      }
+      return `${first.item_name} (${first.quantity} ${first.unit_of_measure || "un"}) + ${ticket.items.length - 1} itens`;
+    }
+    if (ticket.item_name) {
+      const quantityLabel = ticket.quantity
+        ? ` (${ticket.quantity} ${ticket.unit_of_measure || "un"})`
+        : "";
+      return `${ticket.item_name}${quantityLabel}`;
+    }
+    return null;
+  };
+
   if (tickets.length === 0) {
     return (
       <Card>
@@ -86,8 +111,10 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.map((ticket) => (
-                <TableRow key={ticket.id} className="group">
+              {tickets.map((ticket) => {
+                const itemsSummary = buildItemsSummary(ticket);
+                return (
+                  <TableRow key={ticket.id} className="group">
                   <TableCell className="font-mono text-muted-foreground">
                     <Link
                       href={`/chamados/compras/${ticket.id}`}
@@ -104,15 +131,9 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
                       <div className="font-medium line-clamp-1">
                         {ticket.title}
                       </div>
-                      {ticket.item_name && (
+                      {itemsSummary && (
                         <div className="text-sm text-muted-foreground line-clamp-1">
-                          {ticket.item_name}
-                          {ticket.quantity && (
-                            <span className="ml-1">
-                              ({ticket.quantity}{" "}
-                              {ticket.unit_of_measure || "un"})
-                            </span>
-                          )}
+                          {itemsSummary}
                         </div>
                       )}
                       <div className="flex items-center gap-3 mt-1 text-muted-foreground">
@@ -185,8 +206,9 @@ export function TicketsTable({ tickets }: TicketsTableProps) {
                       locale: ptBR,
                     })}
                   </TableCell>
-                </TableRow>
-              ))}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

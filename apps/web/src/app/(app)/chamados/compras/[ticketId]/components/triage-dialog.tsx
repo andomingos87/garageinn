@@ -51,8 +51,11 @@ interface TriageDialogProps {
   ticketTitle: string;
   perceivedUrgency?: string | null;
   departmentMembers: DepartmentMember[];
-  itemName?: string;
-  quantity?: number;
+  items?: Array<{
+    item_name: string;
+    quantity: number;
+    unit_of_measure: string | null;
+  }>;
   disabled?: boolean;
 }
 
@@ -122,8 +125,7 @@ export function TriageDialog({
   ticketTitle,
   perceivedUrgency,
   departmentMembers,
-  itemName,
-  quantity,
+  items = [],
   disabled = false,
 }: TriageDialogProps) {
   const [open, setOpen] = useState(false);
@@ -212,14 +214,21 @@ export function TriageDialog({
         </DialogHeader>
 
         {/* Resumo do Item */}
-        {(itemName || quantity) && (
+        {items.length > 0 && (
           <div className="bg-muted/50 rounded-lg p-3 text-sm">
             <div className="font-medium text-muted-foreground mb-1">
-              Item Solicitado:
+              Itens solicitados:
             </div>
-            <div className="text-foreground">
-              {quantity && <span className="font-medium">{quantity}x</span>}{" "}
-              {itemName}
+            <div className="space-y-1 text-foreground">
+              {items.map((item, index) => (
+                <div key={`${item.item_name}-${index}`}>
+                  <span className="font-medium">{item.quantity}x</span>{" "}
+                  {item.item_name}{" "}
+                  <span className="text-muted-foreground">
+                    ({item.unit_of_measure || "un"})
+                  </span>
+                </div>
+              ))}
             </div>
             {perceivedUrgency && (
               <div className="mt-2 flex items-center gap-2">

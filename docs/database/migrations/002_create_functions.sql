@@ -387,6 +387,11 @@ CREATE TRIGGER update_ticket_purchase_details_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_ticket_purchase_items_updated_at
+  BEFORE UPDATE ON public.ticket_purchase_items
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TRIGGER update_ticket_quotations_updated_at
   BEFORE UPDATE ON public.ticket_quotations
   FOR EACH ROW

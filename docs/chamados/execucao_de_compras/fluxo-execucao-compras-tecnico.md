@@ -52,7 +52,7 @@ Os labels exibidos na UI ficam em `statusLabels` no mesmo arquivo.
 
 ### 1) Criacao do chamado
 Server action: `createPurchaseTicket` em `actions.ts`.
-- Valida campos obrigatorios (titulo, item, quantidade, justificativa).
+- Valida campos obrigatorios (titulo, itens com nome/quantidade, justificativa).
 - Consulta a RPC `ticket_needs_approval` para decidir o status inicial:
   `awaiting_approval_encarregado` ou `awaiting_triage`.
 - Insere em `tickets` e em `ticket_purchase_details`.
@@ -116,8 +116,10 @@ renderiza botoes conforme transicoes permitidas.
 Fonte: `docs/database/schema.md`.
 
 - `tickets`: tabela principal de chamados.
-- `ticket_purchase_details`: item, quantidade, preco estimado, entrega e
+- `ticket_purchase_details`: resumo do item (compatibilidade), entrega e
   `approved_quotation_id`.
+- `ticket_purchase_items`: lista de itens do chamado (nome, quantidade, unidade,
+  preco estimado).
 - `ticket_quotations`: fornecedor, contato, preco, prazo, status
   (`pending`, `approved`, `rejected`) e `is_selected`.
 - `ticket_approvals`: nivel de aprovacao e cargo aprovador.

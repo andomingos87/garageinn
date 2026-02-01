@@ -1512,6 +1512,64 @@ export type Database = {
           },
         ];
       };
+      ticket_purchase_items: {
+        Row: {
+          created_at: string | null;
+          estimated_price: number | null;
+          id: string;
+          item_name: string;
+          quantity: number;
+          sort_order: number | null;
+          ticket_id: string;
+          unit_of_measure: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          estimated_price?: number | null;
+          id?: string;
+          item_name: string;
+          quantity?: number;
+          sort_order?: number | null;
+          ticket_id: string;
+          unit_of_measure?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          estimated_price?: number | null;
+          id?: string;
+          item_name?: string;
+          quantity?: number;
+          sort_order?: number | null;
+          ticket_id?: string;
+          unit_of_measure?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ticket_purchase_items_ticket_id_fkey";
+            columns: ["ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "tickets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ticket_purchase_items_ticket_id_fkey";
+            columns: ["ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "tickets_maintenance_with_details";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ticket_purchase_items_ticket_id_fkey";
+            columns: ["ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "tickets_with_details";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ticket_quotations: {
         Row: {
           created_at: string | null;

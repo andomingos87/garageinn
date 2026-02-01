@@ -291,7 +291,7 @@ Execuções de manutenção.
 ## 🛒 Chamados - Compras
 
 ### ticket_purchase_details
-Detalhes específicos de chamados de compras.
+Detalhes específicos de chamados de compras (entrega + resumo do item).
 
 | Coluna | Tipo | Obrigatório | Default | Descrição |
 |--------|------|-------------|---------|-----------|
@@ -307,6 +307,23 @@ Detalhes específicos de chamados de compras.
 | delivery_confirmed_at | timestamptz | ❌ | null | Confirmação de entrega |
 | delivery_rating | integer | ❌ | null | Avaliação da entrega (1-5) |
 | approved_quotation_id | uuid | ❌ | null | FK para ticket_quotations |
+| created_at | timestamptz | ❌ | now() | Data de criação |
+| updated_at | timestamptz | ❌ | now() | Data de atualização |
+
+---
+
+### ticket_purchase_items
+Itens do chamado de compras (lista).
+
+| Coluna | Tipo | Obrigatório | Default | Descrição |
+|--------|------|-------------|---------|-----------|
+| id | uuid | ✅ | gen_random_uuid() | PK |
+| ticket_id | uuid | ✅ | - | FK para tickets |
+| item_name | text | ✅ | - | Nome do item |
+| quantity | integer | ✅ | 1 | Quantidade |
+| unit_of_measure | text | ❌ | null | Unidade de medida |
+| estimated_price | numeric | ❌ | null | Preço estimado |
+| sort_order | integer | ❌ | 0 | Ordem de exibição |
 | created_at | timestamptz | ❌ | now() | Data de criação |
 | updated_at | timestamptz | ❌ | now() | Data de atualização |
 

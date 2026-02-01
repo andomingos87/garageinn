@@ -17,8 +17,11 @@ O chamado de compras pode ser aberto por usuarios autorizados, com os dados:
 - Titulo do chamado
 - Unidade(s), quando aplicavel
 - Categoria
-- Item para compra
-- Quantidade
+- Itens para compra (lista)
+  - Nome do item
+  - Quantidade
+  - Unidade de medida (opcional)
+  - Preco estimado (opcional)
 - Justificativa
 
 ## Aprovacao previa (quando vem de Operacoes)
@@ -80,7 +83,7 @@ A avaliacao da entrega encerra o processo antes do fechamento.
 
 ## Historia exemplo: manobrista abrindo chamado de compras
 Joao, manobrista da unidade X, precisa de cones de sinalizacao. Ele abre um
-chamado de compras informando titulo, unidade, categoria, item, quantidade e
+chamado de compras informando titulo, unidade, categoria, itens para compra e
 justificativa.
 
 Como ele e de Operacoes, o chamado entra na cadeia de aprovacao:

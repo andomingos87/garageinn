@@ -73,6 +73,11 @@ interface TicketQuotationsProps {
   canManage: boolean;
   ticketStatus: string;
   itemQuantity: number | null;
+  items?: Array<{
+    item_name: string;
+    quantity: number;
+    unit_of_measure: string | null;
+  }>;
 }
 
 export function TicketQuotations({
@@ -81,6 +86,7 @@ export function TicketQuotations({
   canManage,
   ticketStatus,
   itemQuantity,
+  items = [],
 }: TicketQuotationsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -165,6 +171,24 @@ export function TicketQuotations({
                     Preencha os dados do fornecedor e valores da cotação.
                   </DialogDescription>
                 </DialogHeader>
+
+                {items.length > 0 && (
+                  <div className="rounded-md bg-muted/40 p-3 text-xs">
+                    <p className="font-medium text-muted-foreground mb-2">
+                      Itens solicitados
+                    </p>
+                    <div className="space-y-1 text-foreground">
+                      {items.map((item, index) => (
+                        <div key={`${item.item_name}-${index}`}>
+                          {item.quantity}x {item.item_name}{" "}
+                          <span className="text-muted-foreground">
+                            ({item.unit_of_measure || "un"})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <form onSubmit={handleAddQuotation} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">

@@ -24,6 +24,7 @@ ALTER TABLE public.ticket_approvals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_maintenance_details ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_maintenance_executions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_purchase_details ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ticket_purchase_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_quotations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ticket_claim_details ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.claim_communications ENABLE ROW LEVEL SECURITY;
@@ -366,6 +367,17 @@ CREATE POLICY "ticket_purchase_details_select" ON public.ticket_purchase_details
   USING (EXISTS (SELECT 1 FROM tickets t WHERE t.id = ticket_id AND (t.created_by = auth.uid() OR t.assigned_to = auth.uid() OR is_admin())));
 
 CREATE POLICY "ticket_purchase_details_admin" ON public.ticket_purchase_details
+  FOR ALL TO authenticated USING (is_admin());
+
+CREATE POLICY "ticket_purchase_items_select" ON public.ticket_purchase_items
+  FOR SELECT TO authenticated
+  USING (can_view_ticket(ticket_id));
+
+CREATE POLICY "ticket_purchase_items_insert" ON public.ticket_purchase_items
+  FOR INSERT TO authenticated
+  WITH CHECK (EXISTS (SELECT 1 FROM tickets t WHERE t.id = ticket_id AND (t.created_by = auth.uid() OR is_admin())));
+
+CREATE POLICY "ticket_purchase_items_admin" ON public.ticket_purchase_items
   FOR ALL TO authenticated USING (is_admin());
 
 CREATE POLICY "ticket_quotations_select" ON public.ticket_quotations

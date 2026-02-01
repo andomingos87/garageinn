@@ -60,6 +60,23 @@ export interface UserUnit {
   code: string;
 }
 
+export interface PurchaseItemInput {
+  item_name: string;
+  quantity: number;
+  unit_of_measure?: string | null;
+  estimated_price?: number | null;
+}
+
+export interface PurchaseItem {
+  id?: string;
+  ticket_id?: string;
+  item_name: string;
+  quantity: number;
+  unit_of_measure: string | null;
+  estimated_price: number | null;
+  sort_order?: number | null;
+}
+
 interface RoleInfo {
   name: string;
   departmentName: string | null;
@@ -437,7 +454,76 @@ export async function getPurchaseTickets(filters?: TicketFilters) {
     return { data: [], count: 0, page, limit };
   }
 
-  return { data: data || [], count: count || 0, page, limit };
+  const tickets = data || [];
+  const ticketIds = tickets
+    .map((ticket) => ticket.id)
+    .filter((id): id is string => Boolean(id));
+
+  let itemsByTicketId = new Map<string, PurchaseItem[]>();
+  if (ticketIds.length > 0) {
+    const { data: items } = await supabase
+      .from("ticket_purchase_items")
+      .select(
+        "id, ticket_id, item_name, quantity, unit_of_measure, estimated_price, sort_order, created_at"
+      )
+      .in("ticket_id", ticketIds)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    (items || []).forEach((item) => {
+      if (!item.ticket_id) return;
+      const entry = itemsByTicketId.get(item.ticket_id) || [];
+      entry.push({
+        id: item.id ?? undefined,
+        ticket_id: item.ticket_id ?? undefined,
+        item_name: item.item_name,
+        quantity: item.quantity,
+        unit_of_measure: item.unit_of_measure ?? null,
+        estimated_price: item.estimated_price ?? null,
+        sort_order: item.sort_order ?? 0,
+      });
+      itemsByTicketId.set(item.ticket_id, entry);
+    });
+  }
+
+  const enrichedTickets = tickets.map((ticket) => {
+    const itemsFromTable = ticket.id
+      ? itemsByTicketId.get(ticket.id) || []
+      : [];
+    const fallbackItems =
+      itemsFromTable.length > 0 || !ticket.item_name
+        ? []
+        : [
+            {
+              item_name: ticket.item_name,
+              quantity: ticket.quantity || 0,
+              unit_of_measure: ticket.unit_of_measure || "un",
+              estimated_price: ticket.estimated_price ?? null,
+            },
+          ];
+    const items = itemsFromTable.length > 0 ? itemsFromTable : fallbackItems;
+    const itemsCount = items.length;
+    const itemsTotalQuantity = items.reduce(
+      (sum, item) => sum + (item.quantity || 0),
+      0
+    );
+    const summary =
+      items.length === 0
+        ? null
+        : items.length === 1
+          ? `${items[0].item_name} (${items[0].quantity} ${items[0].unit_of_measure || "un"})`
+          : `${items[0].item_name} (${items[0].quantity} ${items[0].unit_of_measure || "un"}) + ${items.length - 1} itens`;
+
+    return {
+      ...ticket,
+      items,
+      items_count: itemsCount,
+      items_total_quantity: itemsTotalQuantity,
+      items_summary: summary,
+    };
+  });
+
+  return { data: enrichedTickets, count: count || 0, page, limit };
 }
 
 /**
@@ -551,22 +637,72 @@ export async function createPurchaseTicket(formData: FormData) {
   const category_id = formData.get("category_id") as string | null;
   const unit_id = formData.get("unit_id") as string | null;
   const perceived_urgency = formData.get("perceived_urgency") as string | null;
-  const item_name = formData.get("item_name") as string;
-  const quantity = parseInt(formData.get("quantity") as string);
-  const unit_of_measure = (formData.get("unit_of_measure") as string) || "un";
-  const estimated_price = formData.get("estimated_price")
-    ? parseFloat(formData.get("estimated_price") as string)
-    : null;
+  const itemsRaw = formData.get("items");
+  let rawItems: PurchaseItemInput[] = [];
+  if (typeof itemsRaw === "string" && itemsRaw.trim()) {
+    try {
+      rawItems = JSON.parse(itemsRaw) as PurchaseItemInput[];
+    } catch (error) {
+      console.error("Error parsing items payload:", error);
+      return { error: "Lista de itens inválida. Recarregue a página e tente novamente." };
+    }
+  }
+
+  if (rawItems.length === 0) {
+    const fallbackItemName = formData.get("item_name") as string;
+    const fallbackQuantity = parseInt(formData.get("quantity") as string);
+    const fallbackUnitOfMeasure =
+      (formData.get("unit_of_measure") as string) || "un";
+    const fallbackEstimatedPrice = formData.get("estimated_price")
+      ? parseFloat(formData.get("estimated_price") as string)
+      : null;
+
+    rawItems = [
+      {
+        item_name: fallbackItemName,
+        quantity: fallbackQuantity,
+        unit_of_measure: fallbackUnitOfMeasure,
+        estimated_price: fallbackEstimatedPrice,
+      },
+    ];
+  }
+
+  const normalizedItems: PurchaseItem[] = rawItems.map((item, index) => ({
+    item_name: (item.item_name || "").trim(),
+    quantity: Number(item.quantity),
+    unit_of_measure: item.unit_of_measure
+      ? String(item.unit_of_measure)
+      : "un",
+    estimated_price:
+      item.estimated_price !== undefined && item.estimated_price !== null
+        ? Number(item.estimated_price)
+        : null,
+    sort_order: index,
+  }));
 
   // Validações
   if (!title || title.length < 5) {
     return { error: "Título deve ter pelo menos 5 caracteres" };
   }
-  if (!item_name || item_name.length < 3) {
-    return { error: "Nome do item deve ter pelo menos 3 caracteres" };
+  if (!normalizedItems.length) {
+    return { error: "Adicione pelo menos um item para compra" };
   }
-  if (!quantity || quantity <= 0) {
-    return { error: "Quantidade deve ser maior que zero" };
+  for (const [index, item] of normalizedItems.entries()) {
+    if (!item.item_name || item.item_name.length < 3) {
+      return {
+        error: `Nome do item ${index + 1} deve ter pelo menos 3 caracteres`,
+      };
+    }
+    if (!item.quantity || item.quantity <= 0) {
+      return { error: `Quantidade do item ${index + 1} deve ser maior que zero` };
+    }
+    if (item.estimated_price !== null) {
+      if (Number.isNaN(item.estimated_price) || item.estimated_price <= 0) {
+        return {
+          error: `Preço estimado do item ${index + 1} deve ser maior que zero`,
+        };
+      }
+    }
   }
   if (!description || description.length < 10) {
     return { error: "Justificativa deve ter pelo menos 10 caracteres" };
@@ -633,15 +769,17 @@ export async function createPurchaseTicket(formData: FormData) {
     return { error: ticketError.message };
   }
 
-  // Criar detalhes de compra
+  const summaryItem = normalizedItems[0];
+
+  // Criar detalhes de compra (mantido para compatibilidade)
   const { error: detailsError } = await supabase
     .from("ticket_purchase_details")
     .insert({
       ticket_id: ticket.id,
-      item_name,
-      quantity,
-      unit_of_measure,
-      estimated_price,
+      item_name: summaryItem.item_name,
+      quantity: summaryItem.quantity,
+      unit_of_measure: summaryItem.unit_of_measure,
+      estimated_price: summaryItem.estimated_price,
     });
 
   if (detailsError) {
@@ -649,6 +787,26 @@ export async function createPurchaseTicket(formData: FormData) {
     // Rollback: deletar ticket
     await supabase.from("tickets").delete().eq("id", ticket.id);
     return { error: detailsError.message };
+  }
+
+  // Criar itens de compra
+  const { error: itemsError } = await supabase
+    .from("ticket_purchase_items")
+    .insert(
+      normalizedItems.map((item) => ({
+        ticket_id: ticket.id,
+        item_name: item.item_name,
+        quantity: item.quantity,
+        unit_of_measure: item.unit_of_measure,
+        estimated_price: item.estimated_price,
+        sort_order: item.sort_order ?? 0,
+      }))
+    );
+
+  if (itemsError) {
+    console.error("Error creating purchase items:", itemsError);
+    await supabase.from("tickets").delete().eq("id", ticket.id);
+    return { error: itemsError.message };
   }
 
   // Se precisa aprovação, criar registros de aprovação
@@ -887,6 +1045,42 @@ export async function getTicketDetails(ticketId: string) {
     .eq("ticket_id", ticketId)
     .order("created_at", { ascending: false });
 
+  const { data: items } = await supabase
+    .from("ticket_purchase_items")
+    .select(
+      "id, ticket_id, item_name, quantity, unit_of_measure, estimated_price, sort_order, created_at"
+    )
+    .eq("ticket_id", ticketId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  const normalizedItems: PurchaseItem[] =
+    items && items.length > 0
+      ? items.map((item) => ({
+          id: item.id ?? undefined,
+          ticket_id: item.ticket_id ?? undefined,
+          item_name: item.item_name,
+          quantity: item.quantity,
+          unit_of_measure: item.unit_of_measure ?? null,
+          estimated_price: item.estimated_price ?? null,
+          sort_order: item.sort_order ?? 0,
+        }))
+      : ticket.item_name
+        ? [
+            {
+              item_name: ticket.item_name,
+              quantity: ticket.quantity || 0,
+              unit_of_measure: ticket.unit_of_measure || "un",
+              estimated_price: ticket.estimated_price ?? null,
+            },
+          ]
+        : [];
+
+  const itemsTotalQuantity = normalizedItems.reduce(
+    (sum, item) => sum + (item.quantity || 0),
+    0
+  );
+
   return {
     ...ticket,
     quotations: quotations || [],
@@ -894,6 +1088,9 @@ export async function getTicketDetails(ticketId: string) {
     comments: comments || [],
     history: history || [],
     attachments: attachments || [],
+    items: normalizedItems,
+    items_count: normalizedItems.length,
+    items_total_quantity: itemsTotalQuantity,
   };
 }
 

@@ -1,0 +1,1 @@
+Study the Epic and explain it back to me. Highlight the main goal, the expected deliverables, and any open questions or ambiguities you identify. Wait for my confirmation before moving forward.

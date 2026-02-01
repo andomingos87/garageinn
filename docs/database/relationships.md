@@ -209,6 +209,11 @@ Documentação dos relacionamentos entre as tabelas do sistema GarageInn.
 - **FK**: `ticket_purchase_details.ticket_id` → `tickets.id`
 - **Descrição**: Detalhes específicos de compras
 
+#### tickets ↔ ticket_purchase_items
+- **Tipo**: 1:N
+- **FK**: `ticket_purchase_items.ticket_id` → `tickets.id`
+- **Descrição**: Itens solicitados no chamado de compras
+
 #### tickets ↔ ticket_quotations
 - **Tipo**: 1:N
 - **FK**: `ticket_quotations.ticket_id` → `tickets.id`

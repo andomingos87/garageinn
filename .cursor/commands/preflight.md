@@ -1,0 +1,1 @@
+Review the implementation plan step by step. Summarize each phase and highlight any concerns, missing details, or potential blockers. Wait for my approval before starting.

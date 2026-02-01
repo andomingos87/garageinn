@@ -136,7 +136,8 @@ export default async function TicketDetailsPage({ params }: PageProps) {
             quotations={ticket.quotations}
             canManage={canManage}
             ticketStatus={ticket.status}
-            itemQuantity={ticket.quantity}
+            itemQuantity={ticket.items_total_quantity ?? ticket.quantity}
+            items={ticket.items}
           />
 
           {/* Comentários */}
@@ -160,8 +161,7 @@ export default async function TicketDetailsPage({ params }: PageProps) {
             departmentMembers={departmentMembers}
             allowedTransitions={allowedTransitions}
             perceivedUrgency={ticket.perceived_urgency}
-            itemName={ticket.item_name}
-            quantity={ticket.quantity}
+            items={ticket.items}
             isAdmin={isAdmin}
             userRole={currentUserRole}
             userPermissions={userPermissions}

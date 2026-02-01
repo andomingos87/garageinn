@@ -243,6 +243,19 @@ CREATE TABLE public.ticket_purchase_details (
   updated_at timestamptz DEFAULT now()
 );
 
+-- Itens do chamado de compras (lista)
+CREATE TABLE public.ticket_purchase_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_id uuid NOT NULL REFERENCES public.tickets(id) ON DELETE CASCADE,
+  item_name text NOT NULL,
+  quantity integer NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  unit_of_measure text,
+  estimated_price numeric(12,2),
+  sort_order integer DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
 -- Cotações de chamados
 CREATE TABLE public.ticket_quotations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

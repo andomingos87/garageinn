@@ -50,8 +50,11 @@ interface TicketActionsProps {
   departmentMembers: DepartmentMember[];
   allowedTransitions: string[];
   perceivedUrgency?: string | null;
-  itemName?: string;
-  quantity?: number;
+  items?: Array<{
+    item_name: string;
+    quantity: number;
+    unit_of_measure: string | null;
+  }>;
   isAdmin?: boolean;
   userRole?: string;
   userPermissions?: Permission[];
@@ -119,8 +122,7 @@ export function TicketActions({
   departmentMembers,
   allowedTransitions,
   perceivedUrgency,
-  itemName,
-  quantity,
+  items,
   isAdmin = false,
   userRole,
   userPermissions = [],
@@ -220,8 +222,7 @@ export function TicketActions({
               ticketTitle={ticketTitle}
               perceivedUrgency={perceivedUrgency}
               departmentMembers={departmentMembers}
-              itemName={itemName}
-              quantity={quantity}
+              items={items}
               disabled={isPending}
             />
           )}

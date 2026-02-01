@@ -6,10 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface TicketInfoProps {
   ticket: {
     description: string;
-    item_name: string | null;
-    quantity: number | null;
-    unit_of_measure: string | null;
-    estimated_price: number | null;
+    item_name?: string | null;
+    quantity?: number | null;
+    unit_of_measure?: string | null;
+    estimated_price?: number | null;
+    items?: Array<{
+      item_name: string;
+      quantity: number;
+      unit_of_measure: string | null;
+      estimated_price: number | null;
+    }>;
     denial_reason: string | null;
     status: string;
   };
@@ -24,52 +30,93 @@ export function TicketInfo({ ticket }: TicketInfoProps) {
     }).format(value);
   };
 
+  const items =
+    ticket.items && ticket.items.length > 0
+      ? ticket.items
+      : ticket.item_name
+        ? [
+            {
+              item_name: ticket.item_name,
+              quantity: ticket.quantity || 0,
+              unit_of_measure: ticket.unit_of_measure || "un",
+              estimated_price: ticket.estimated_price ?? null,
+            },
+          ]
+        : [];
+
+  const totalEstimated = items.reduce((sum, item) => {
+    if (!item.estimated_price) return sum;
+    return sum + item.estimated_price * item.quantity;
+  }, 0);
+
   return (
     <div className="space-y-4">
       {/* Detalhes do Item */}
-      {ticket.item_name && (
+      {items.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Package className="h-4 w-4" />
-              Detalhes do Item
+              Itens solicitados
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Item</p>
-                <p className="font-medium">{ticket.item_name}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Hash className="h-3 w-3" />
-                  Quantidade
-                </p>
-                <p className="font-medium">
-                  {ticket.quantity} {ticket.unit_of_measure || "un"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" />
-                  Preço Estimado
-                </p>
-                <p className="font-medium">
-                  {formatCurrency(ticket.estimated_price)}
-                </p>
-              </div>
-              {ticket.quantity && ticket.estimated_price && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Total Estimado
-                  </p>
-                  <p className="font-medium text-primary">
-                    {formatCurrency(ticket.quantity * ticket.estimated_price)}
-                  </p>
+            <div className="space-y-3">
+              {items.map((item, index) => (
+                <div
+                  key={`${item.item_name}-${index}`}
+                  className="grid grid-cols-2 md:grid-cols-4 gap-4 rounded-md border p-3"
+                >
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Item</p>
+                    <p className="font-medium">{item.item_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Hash className="h-3 w-3" />
+                      Quantidade
+                    </p>
+                    <p className="font-medium">
+                      {item.quantity} {item.unit_of_measure || "un"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      Preço Estimado
+                    </p>
+                    <p className="font-medium">
+                      {formatCurrency(item.estimated_price)}
+                    </p>
+                  </div>
+                  {item.estimated_price && item.quantity ? (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Total Estimado
+                      </p>
+                      <p className="font-medium text-primary">
+                        {formatCurrency(item.estimated_price * item.quantity)}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground">
+                      Total estimado não informado
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
+
+            {totalEstimated > 0 && (
+              <div className="flex justify-end pt-3 text-sm">
+                <span className="text-muted-foreground mr-2">
+                  Total estimado:
+                </span>
+                <span className="font-semibold text-primary">
+                  {formatCurrency(totalEstimated)}
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
