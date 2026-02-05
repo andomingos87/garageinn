@@ -54,6 +54,12 @@ interface TiAccessContext {
   roles: UserRole[];
 }
 
+type ActionResult = {
+  success?: boolean;
+  error?: string;
+  code?: "forbidden" | "conflict";
+};
+
 // ============================================
 // Helpers
 // ============================================
@@ -207,6 +213,27 @@ export async function getTiAccessContext(): Promise<TiAccessContext> {
 async function ensureTiAccess(): Promise<boolean> {
   const access = await getTiAccessContext();
   return access.canAccess;
+}
+
+async function ensureTiExecuteAccess(): Promise<ActionResult & { access?: TiAccessContext }> {
+  const access = await getTiAccessContext();
+  if (!access.canAccess) {
+    return { error: "Acesso negado", code: "forbidden" };
+  }
+  if (access.permissions.length === 0) {
+    return { error: "Acesso negado", code: "forbidden" };
+  }
+  const canExecute = hasAnyPermission(access.permissions, [
+    "tickets:execute",
+    "admin:all",
+  ]);
+  if (!canExecute) {
+    return {
+      error: "Você não tem permissão para executar ações neste chamado",
+      code: "forbidden",
+    };
+  }
+  return { success: true, access };
 }
 
 export async function canAccessTiTicketDetail(
@@ -676,16 +703,34 @@ export async function addComment(
   ticketId: string,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
-  const canAccess = await ensureTiAccess();
-  if (!canAccess) {
-    return { error: "Acesso negado" };
-  }
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
     return { error: "Nao autenticado" };
+  }
+
+  const execAccess = await ensureTiExecuteAccess();
+  if (execAccess.error) {
+    return { error: execAccess.error };
+  }
+
+  // Permitir comentários apenas quando o chamado estiver "em andamento"
+  const { data: ticket, error: ticketError } = await supabase
+    .from("tickets")
+    .select("status")
+    .eq("id", ticketId)
+    .single();
+  if (ticketError || !ticket) {
+    console.error("Error fetching TI ticket status:", ticketError);
+    return { error: "Nao foi possivel validar o status do chamado" };
+  }
+  if (ticket.status !== "in_progress") {
+    return {
+      error:
+        "Comentarios so podem ser adicionados quando o chamado estiver em andamento",
+    };
   }
 
   const content = formData.get("content") as string;
@@ -706,6 +751,226 @@ export async function addComment(
     console.error("Error adding comment:", error);
     return { error: error.message };
   }
+
+  revalidatePath(`/chamados/ti/${ticketId}`);
+  return { success: true };
+}
+
+// ============================================
+// Ticket Actions (TI)
+// ============================================
+
+export async function startTiTicket(ticketId: string): Promise<ActionResult> {
+  const execAccess = await ensureTiExecuteAccess();
+  if (execAccess.error) return execAccess;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Nao autenticado", code: "forbidden" };
+
+  const { data: ticket, error: ticketError } = await supabase
+    .from("tickets")
+    .select("status, assigned_to")
+    .eq("id", ticketId)
+    .single();
+
+  if (ticketError || !ticket) {
+    console.error("Error fetching TI ticket:", ticketError);
+    return { error: "Chamado nao encontrado" };
+  }
+
+  if (ticket.status !== "awaiting_triage") {
+    return {
+      error: "Este chamado nao esta aguardando triagem",
+      code: "conflict",
+    };
+  }
+
+  const updates: Record<string, unknown> = { status: "in_progress" };
+  if (!ticket.assigned_to) {
+    updates.assigned_to = user.id;
+  }
+
+  const { error: updateError } = await supabase
+    .from("tickets")
+    .update(updates)
+    .eq("id", ticketId);
+
+  if (updateError) {
+    console.error("Error starting TI ticket:", updateError);
+    return { error: updateError.message };
+  }
+
+  await supabase.from("ticket_history").insert({
+    ticket_id: ticketId,
+    user_id: user.id,
+    action: "started",
+    old_value: "awaiting_triage",
+    new_value: "in_progress",
+    metadata: {
+      assigned_to: updates.assigned_to ?? ticket.assigned_to ?? null,
+    },
+  });
+
+  revalidatePath(`/chamados/ti/${ticketId}`);
+  revalidatePath("/chamados/ti");
+  return { success: true };
+}
+
+export async function closeTiTicket(ticketId: string): Promise<ActionResult> {
+  const execAccess = await ensureTiExecuteAccess();
+  if (execAccess.error) return execAccess;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Nao autenticado", code: "forbidden" };
+
+  const { data: ticket, error: ticketError } = await supabase
+    .from("tickets")
+    .select("status")
+    .eq("id", ticketId)
+    .single();
+
+  if (ticketError || !ticket) {
+    console.error("Error fetching TI ticket:", ticketError);
+    return { error: "Chamado nao encontrado" };
+  }
+
+  if (ticket.status !== "in_progress") {
+    return {
+      error: "Apenas chamados em andamento podem ser concluidos",
+      code: "conflict",
+    };
+  }
+
+  const { error: updateError } = await supabase
+    .from("tickets")
+    .update({ status: "closed", closed_at: new Date().toISOString() })
+    .eq("id", ticketId);
+
+  if (updateError) {
+    console.error("Error closing TI ticket:", updateError);
+    return { error: updateError.message };
+  }
+
+  await supabase.from("ticket_history").insert({
+    ticket_id: ticketId,
+    user_id: user.id,
+    action: "closed",
+    old_value: "in_progress",
+    new_value: "closed",
+  });
+
+  revalidatePath(`/chamados/ti/${ticketId}`);
+  revalidatePath("/chamados/ti");
+  return { success: true };
+}
+
+export async function addTiAttachments(
+  ticketId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const execAccess = await ensureTiExecuteAccess();
+  if (execAccess.error) return execAccess;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Nao autenticado", code: "forbidden" };
+
+  // Permitir anexos apenas quando o chamado estiver "em andamento"
+  const { data: ticket, error: ticketError } = await supabase
+    .from("tickets")
+    .select("status")
+    .eq("id", ticketId)
+    .single();
+  if (ticketError || !ticket) {
+    console.error("Error fetching TI ticket status:", ticketError);
+    return { error: "Nao foi possivel validar o status do chamado" };
+  }
+  if (ticket.status !== "in_progress") {
+    return {
+      error: "Anexos so podem ser adicionados quando o chamado estiver em andamento",
+      code: "conflict",
+    };
+  }
+
+  const attachments = formData.getAll("attachments") as File[];
+  const validAttachments = attachments.filter(
+    (file) => file instanceof File && file.size > 0
+  );
+  if (validAttachments.length === 0) {
+    return { error: "Nenhum arquivo valido para envio" };
+  }
+
+  const uploadResults = await Promise.all(
+    validAttachments.map(async (file) => {
+      const extension = file.name.split(".").pop() || "bin";
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+      const filePath = `tickets/${ticketId}/${Date.now()}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("ticket-attachments")
+        .upload(filePath, file, {
+          upsert: false,
+          cacheControl: "3600",
+        });
+
+      if (uploadError) {
+        console.error("Error uploading attachment:", uploadError);
+        return null;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("ticket-attachments").getPublicUrl(filePath);
+
+      return {
+        ticket_id: ticketId,
+        file_name: file.name,
+        file_path: publicUrl,
+        file_type: file.type || `application/${extension}`,
+        file_size: file.size,
+        uploaded_by: user.id,
+      };
+    })
+  );
+
+  const attachmentsToInsert = uploadResults.filter(
+    (item): item is NonNullable<typeof item> => item !== null
+  );
+  if (attachmentsToInsert.length === 0) {
+    return { error: "Falha ao enviar anexos" };
+  }
+
+  const { error: attachmentError } = await supabase
+    .from("ticket_attachments")
+    .insert(attachmentsToInsert);
+
+  if (attachmentError) {
+    console.error("Error saving ticket attachments:", attachmentError);
+    return { error: attachmentError.message };
+  }
+
+  await supabase.from("ticket_history").insert({
+    ticket_id: ticketId,
+    user_id: user.id,
+    action: "attachment_added",
+    new_value: `${attachmentsToInsert.length} anexo(s) adicionado(s)`,
+    metadata: {
+      count: attachmentsToInsert.length,
+      files: attachmentsToInsert.map((a) => ({
+        name: a.file_name,
+        size: a.file_size,
+        type: a.file_type,
+      })),
+    },
+  });
 
   revalidatePath(`/chamados/ti/${ticketId}`);
   return { success: true };

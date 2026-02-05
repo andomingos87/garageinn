@@ -7,7 +7,6 @@ import {
   Calendar,
   CheckCircle2,
   MessageSquare,
-  Paperclip,
   User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,10 +18,14 @@ import { StatusBadge } from "../../components/status-badge";
 import { TiTicketStatus } from "../components";
 import {
   canAccessTiTicketDetail,
+  getTiAccessContext,
   getApprovalContext,
   getTiTicketDetail,
 } from "../actions";
 import { normalizeApprovalStatus } from "@/lib/ticket-statuses";
+import { TiTicketActions } from "./components/ti-ticket-actions";
+import { TiTicketComments } from "./components/ti-ticket-comments";
+import { TiTicketAttachments } from "./components/ti-ticket-attachments";
 
 interface PageProps {
   params: Promise<{ ticketId: string }>;
@@ -35,8 +38,11 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
     return <AccessDenied />;
   }
 
-  const ticket = await getTiTicketDetail(ticketId);
-  const approvalContext = await getApprovalContext();
+  const [ticket, approvalContext, tiAccess] = await Promise.all([
+    getTiTicketDetail(ticketId),
+    getApprovalContext(),
+    getTiAccessContext(),
+  ]);
 
   if (!ticket) {
     notFound();
@@ -46,6 +52,11 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
     ...approval,
     status: normalizeApprovalStatus(approval.status),
   }));
+
+  const canExecute = tiAccess.canAccess
+    ? tiAccess.permissions.includes("tickets:execute") ||
+      tiAccess.permissions.includes("admin:all")
+    : false;
 
   const getInitials = (name: string | null) => {
     if (!name) return "??";
@@ -179,40 +190,18 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
         isAdmin={approvalContext.isAdmin}
       />
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Comentarios
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {ticket.comments?.length ? (
-            ticket.comments.map((comment) => (
-              <div key={comment.id} className="border rounded-md p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    {comment.author?.full_name || "Desconhecido"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(comment.created_at), {
-                      addSuffix: true,
-                      locale: ptBR,
-                    })}
-                  </span>
-                </div>
-                <p className="text-sm mt-2 whitespace-pre-wrap">
-                  {comment.content}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Nenhum comentario ainda.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <TiTicketActions
+        ticketId={ticketId}
+        ticketStatus={ticket.status}
+        canExecute={canExecute}
+      />
+
+      <TiTicketComments
+        ticketId={ticketId}
+        ticketStatus={ticket.status}
+        canExecute={canExecute}
+        comments={ticket.comments ?? []}
+      />
 
       <Card>
         <CardHeader className="pb-3">
@@ -249,29 +238,12 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Paperclip className="h-4 w-4" />
-            Anexos
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {ticket.attachments?.length ? (
-            ticket.attachments.map((attachment) => (
-              <div key={attachment.id} className="border rounded-md p-3">
-                <p className="text-sm font-medium">
-                  {attachment.file_name}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Nenhum anexo disponível.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <TiTicketAttachments
+        ticketId={ticketId}
+        ticketStatus={ticket.status}
+        canExecute={canExecute}
+        attachments={ticket.attachments ?? []}
+      />
     </div>
   );
 }

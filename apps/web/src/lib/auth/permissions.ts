@@ -150,7 +150,10 @@ export const DEPARTMENT_ROLE_PERMISSIONS: Record<
   // Nota: Desenvolvedor é cargo global (definido em GLOBAL_ROLE_PERMISSIONS)
   TI: {
     Analista: ["tickets:read", "tickets:execute", "settings:read", "reports:read"],
-    Gerente: ["admin:all"],
+    // Importante: Gerente TI NÃO é admin global. Mantemos permissões mínimas
+    // para executar o fluxo do chamado (Iniciar/Concluir) e acessar Configurações,
+    // sem expor menus como Usuários/Unidades/Relatórios.
+    Gerente: ["tickets:read", "tickets:execute", "settings:read"],
   },
 
   // ===== RH =====
