@@ -255,6 +255,13 @@ export async function canAccessTiTicketDetail(
       if (ticketLevel && ticketLevel >= approverLevel) {
         return true;
       }
+      // After Gerente approves, status becomes awaiting_triage; allow Gerente to keep viewing
+      if (
+        ticket.status === "awaiting_triage" &&
+        approverLevel === 3
+      ) {
+        return true;
+      }
     }
   }
 
