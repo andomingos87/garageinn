@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/lib/action-result";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Permission } from "@/lib/auth/permissions";
@@ -18,6 +19,12 @@ import {
 } from "@/lib/auth/ti-access";
 import type { ApprovalDecision, ApprovalFlowStatus } from "@/lib/ticket-statuses";
 import { APPROVAL_FLOW_STATUS } from "@/lib/ticket-statuses";
+import { hasPermission } from "@/lib/auth/rbac";
+import {
+  statusTransitions,
+  statusLabels,
+  getTransitionPermission,
+} from "./constants";
 import type {
   TiCategory,
   TiFilters,
@@ -156,7 +163,7 @@ async function ensureOperacoesGerenteApproval(
 
   if (ticketError || !ticket) {
     console.error("Error fetching ticket creator:", ticketError);
-    return { error: "Nao foi possivel validar o criador do chamado" };
+    return { error: "Nao foi possivel validar o criador do chamado", code: "conflict" };
   }
 
   const { data: isOpsCreator, error: creatorError } = await supabase.rpc(
@@ -168,7 +175,7 @@ async function ensureOperacoesGerenteApproval(
 
   if (creatorError) {
     console.error("Error checking operations creator:", creatorError);
-    return { error: "Nao foi possivel validar permissoes de aprovacao" };
+    return { error: "Nao foi possivel validar permissoes de aprovacao", code: "conflict" };
   }
 
   if (!isOpsCreator) {
@@ -181,14 +188,46 @@ async function ensureOperacoesGerenteApproval(
 
   if (managerError) {
     console.error("Error checking operations manager:", managerError);
-    return { error: "Nao foi possivel validar permissoes de aprovacao" };
+    return { error: "Nao foi possivel validar permissoes de aprovacao", code: "conflict" };
   }
 
   if (!isOpsManager) {
-    return { error: "Apenas o gerente de operacoes pode aprovar este chamado" };
+    return { error: "Apenas o gerente de operacoes pode aprovar este chamado", code: "forbidden" };
   }
 
   return null;
+}
+
+async function checkIsGerente(): Promise<boolean> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data: userRoles } = await supabase
+    .from("user_roles")
+    .select(
+      `
+      role:roles!role_id(name)
+    `
+    )
+    .eq("user_id", user.id);
+
+  interface RoleQueryData {
+    role:
+      | { name: string }
+      | { name: string }[]
+      | null;
+  }
+
+  const hasGerenteRole = (userRoles as RoleQueryData[] | null)?.some((ur) => {
+    const role = Array.isArray(ur.role) ? ur.role[0] : ur.role;
+    return role?.name === "Gerente";
+  });
+
+  return hasGerenteRole || false;
 }
 
 export async function getTiAccessContext(): Promise<TiAccessContext> {
@@ -443,21 +482,124 @@ export async function getTiStats(): Promise<TiStats> {
 // Mutation Functions
 // ============================================
 
+/**
+ * Muda status do chamado de TI
+ */
+export async function changeTicketStatus(
+  ticketId: string,
+  newStatus: string,
+  reason?: string
+) {
+  const supabase = await createClient();
+
+  const { data: ticket } = await supabase
+    .from("tickets")
+    .select("status, department_id")
+    .eq("id", ticketId)
+    .single();
+
+  if (!ticket) {
+    return { error: "Chamado nao encontrado", code: "not_found" as const };
+  }
+
+  const dept = await getTiDepartment();
+  if (!dept || ticket.department_id !== dept.id) {
+    return { error: "Chamado nao encontrado", code: "not_found" as const };
+  }
+
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  const isGerente = await checkIsGerente();
+  const adminOverrideStatuses = ["closed", "cancelled"];
+  const finalStatuses = ["closed", "cancelled", "denied"];
+
+  if (
+    (isAdmin || isGerente) &&
+    adminOverrideStatuses.includes(newStatus) &&
+    !finalStatuses.includes(ticket.status)
+  ) {
+    // Permitir transição (admin/Gerente override)
+  } else {
+    const allowedTransitions = statusTransitions[ticket.status] || [];
+    if (!allowedTransitions.includes(newStatus)) {
+      return {
+        error: `Transicao de ${statusLabels[ticket.status]} para ${statusLabels[newStatus]} nao permitida`,
+        code: "validation" as const,
+      };
+    }
+  }
+
+  const trimmedReason = reason?.trim();
+  if (newStatus === "denied" && !trimmedReason) {
+    return {
+      error: "Informe o motivo da negacao",
+      code: "validation" as const,
+    };
+  }
+
+  const requiredPermission = getTransitionPermission(newStatus);
+  if (requiredPermission !== null) {
+    const userPermissions = await getCurrentUserPermissions();
+    if (!hasPermission(userPermissions, requiredPermission as Permission)) {
+      return {
+        error: `Voce nao tem permissao para realizar esta acao. A transicao para "${statusLabels[newStatus]}" requer permissao de execucao.`,
+        code: "forbidden" as const,
+      };
+    }
+  }
+
+  const updates: Record<string, unknown> = { status: newStatus };
+
+  if (newStatus === "denied" && trimmedReason) {
+    updates.denial_reason = trimmedReason;
+  }
+
+  if (newStatus === "closed") {
+    updates.closed_at = new Date().toISOString();
+  }
+
+  if (newStatus === "resolved") {
+    updates.resolved_at = new Date().toISOString();
+  }
+
+  const { data: updatedTickets, error } = await supabase
+    .from("tickets")
+    .update(updates)
+    .eq("id", ticketId)
+    .select("id, status");
+
+  if (error) {
+    console.error("Error changing ticket status:", error);
+    return { error: error.message, code: "conflict" as const };
+  }
+
+  if (!updatedTickets || updatedTickets.length === 0) {
+    return {
+      error:
+        "Nao foi possivel atualizar o status. O chamado pode ter sido alterado por outro usuario.",
+      code: "conflict" as const,
+    };
+  }
+
+  revalidatePath(`/chamados/ti/${ticketId}`);
+  revalidatePath("/chamados/ti");
+  return { success: true };
+}
+
 export async function createTiTicket(
   formData: FormData
-): Promise<{ error?: string } | void> {
+): Promise<{ error?: string; code?: "forbidden" | "not_found" | "validation" | "conflict" } | void> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: "Nao autenticado" };
+    return { error: "Nao autenticado", code: "forbidden" };
   }
 
   const dept = await getTiDepartment();
   if (!dept) {
-    return { error: "Departamento de TI nao encontrado" };
+    return { error: "Departamento de TI nao encontrado", code: "not_found" };
   }
 
   const title = formData.get("title") as string;
@@ -468,16 +610,16 @@ export async function createTiTicket(
   const equipment_type = formData.get("equipment_type") as string | null;
 
   if (!title || title.trim().length < 5) {
-    return { error: "Titulo deve ter pelo menos 5 caracteres" };
+    return { error: "Titulo deve ter pelo menos 5 caracteres", code: "validation" };
   }
   if (!description || description.trim().length < 10) {
-    return { error: "Descricao deve ter pelo menos 10 caracteres" };
+    return { error: "Descricao deve ter pelo menos 10 caracteres", code: "validation" };
   }
   if (!category_id) {
-    return { error: "Categoria e obrigatoria" };
+    return { error: "Categoria e obrigatoria", code: "validation" };
   }
   if (!equipment_type || equipment_type.trim().length === 0) {
-    return { error: "Tipo de equipamento e obrigatorio" };
+    return { error: "Tipo de equipamento e obrigatorio", code: "validation" };
   }
 
   // Verificar se precisa de aprovação e obter status inicial baseado no cargo
@@ -513,7 +655,7 @@ export async function createTiTicket(
 
   if (ticketError) {
     console.error("Error creating TI ticket:", ticketError);
-    return { error: ticketError.message };
+    return { error: ticketError.message, code: "conflict" };
   }
 
   const { error: detailsError } = await supabase
@@ -526,7 +668,7 @@ export async function createTiTicket(
   if (detailsError) {
     console.error("Error creating TI ticket details:", detailsError);
     await supabase.from("tickets").delete().eq("id", ticket.id);
-    return { error: detailsError.message };
+    return { error: detailsError.message, code: "conflict" };
   }
 
   if (needsApproval) {
@@ -713,24 +855,24 @@ export async function getTiTicketDetail(
 export async function addComment(
   ticketId: string,
   formData: FormData
-): Promise<{ error?: string; success?: boolean }> {
+): Promise<{ error?: string; code?: "forbidden" | "validation" | "conflict"; success?: boolean }> {
   const canAccess = await ensureTiAccess();
   if (!canAccess) {
-    return { error: "Acesso negado" };
+    return { error: "Acesso negado", code: "forbidden" };
   }
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Nao autenticado" };
+    return { error: "Nao autenticado", code: "forbidden" };
   }
 
   const content = formData.get("content") as string;
   const is_internal = formData.get("is_internal") === "true";
 
   if (!content || content.trim().length < 1) {
-    return { error: "Comentario nao pode ser vazio" };
+    return { error: "Comentario nao pode ser vazio", code: "validation" };
   }
 
   const { error } = await supabase.from("ticket_comments").insert({
@@ -742,7 +884,7 @@ export async function addComment(
 
   if (error) {
     console.error("Error adding comment:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   revalidatePath(`/chamados/ti/${ticketId}`);
@@ -754,7 +896,7 @@ export async function handleApproval(
   approvalId: string,
   decision: ApprovalDecision,
   notes?: string
-): Promise<{ error?: string; success?: boolean }> {
+): Promise<{ error?: string; code?: "forbidden" | "not_found" | "conflict"; success?: boolean }> {
   const access = await getTiAccessContext();
   const roles = access.roles;
 
@@ -763,7 +905,7 @@ export async function handleApproval(
   const isOpsApprover = isOperacoesApprover(roles);
 
   if (!canAccessTi && !isOpsApprover) {
-    return { error: "Acesso negado" };
+    return { error: "Acesso negado", code: "forbidden" as const };
   }
 
   const supabase = await createClient();
@@ -771,7 +913,7 @@ export async function handleApproval(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Nao autenticado" };
+    return { error: "Nao autenticado", code: "forbidden" as const };
   }
 
   const { data: approval } = await supabase
@@ -781,7 +923,7 @@ export async function handleApproval(
     .single();
 
   if (!approval) {
-    return { error: "Aprovacao nao encontrada" };
+    return { error: "Aprovacao nao encontrada", code: "not_found" as const };
   }
 
   // For Operations approvers, verify they have the correct role for this approval level
@@ -793,6 +935,7 @@ export async function handleApproval(
     if (userLevel < requiredLevel) {
       return {
         error: `Apenas ${approval.approval_role} pode aprovar neste nivel`,
+        code: "forbidden" as const,
       };
     }
   }
@@ -804,10 +947,10 @@ export async function handleApproval(
     approval.approval_role
   );
   if (opsCheck?.error) {
-    return opsCheck;
+    return { ...opsCheck, code: "forbidden" as const };
   }
 
-  const { error } = await supabase
+  const { data: approvalUpdate, error } = await supabase
     .from("ticket_approvals")
     .update({
       approved_by: user.id,
@@ -815,26 +958,43 @@ export async function handleApproval(
       decision_at: new Date().toISOString(),
       notes: notes || null,
     })
-    .eq("id", approvalId);
+    .eq("id", approvalId)
+    .select();
 
   if (error) {
     console.error("Error handling approval:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" as const };
+  }
+
+  if (!approvalUpdate || approvalUpdate.length === 0) {
+    return {
+      error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+      code: "conflict" as const,
+    };
   }
 
   if (decision === APPROVAL_FLOW_STATUS.denied) {
-    const { error: ticketError } = await supabase
+    const { data: ticketUpdate, error: ticketError } = await supabase
       .from("tickets")
       .update({
         status: APPROVAL_FLOW_STATUS.denied,
         denial_reason: notes || "Negado na aprovacao",
       })
-      .eq("id", ticketId);
+      .eq("id", ticketId)
+      .select();
 
     if (ticketError) {
       console.error("Error updating ticket status (denied):", ticketError);
       return {
         error: "Aprovacao registrada, mas falha ao atualizar status do chamado",
+        code: "conflict" as const,
+      };
+    }
+
+    if (!ticketUpdate || ticketUpdate.length === 0) {
+      return {
+        error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+        code: "conflict" as const,
       };
     }
   } else {
@@ -844,15 +1004,24 @@ export async function handleApproval(
       3: APPROVAL_FLOW_STATUS.awaitingTriage,
     };
 
-    const { error: ticketError } = await supabase
+    const { data: ticketUpdate, error: ticketError } = await supabase
       .from("tickets")
       .update({ status: nextStatusMap[approval.approval_level] })
-      .eq("id", ticketId);
+      .eq("id", ticketId)
+      .select();
 
     if (ticketError) {
       console.error("Error updating ticket status (approved):", ticketError);
       return {
         error: "Aprovacao registrada, mas falha ao atualizar status do chamado",
+        code: "conflict" as const,
+      };
+    }
+
+    if (!ticketUpdate || ticketUpdate.length === 0) {
+      return {
+        error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+        code: "conflict" as const,
       };
     }
   }

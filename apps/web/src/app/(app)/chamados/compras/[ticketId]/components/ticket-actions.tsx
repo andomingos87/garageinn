@@ -215,6 +215,11 @@ export function TicketActions({
       const result = await sendToApproval(ticketId);
 
       if (result.error) {
+        if (result.code === "conflict") {
+          toast.warning(result.error);
+          router.refresh();
+          return;
+        }
         toast.error(result.error);
         return;
       }

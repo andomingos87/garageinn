@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -88,6 +89,7 @@ export function TiTicketStatus({
   currentUserRoles,
   isAdmin = false,
 }: TiTicketStatusProps) {
+  const router = useRouter();
   const [selectedApproval, setSelectedApproval] = useState<Approval | null>(
     null
   );
@@ -168,7 +170,12 @@ export function TiTicketStatus({
       );
 
       if (result.error) {
-        toast.error(result.error);
+        if (result.code === "conflict") {
+          toast.warning(result.error);
+          router.refresh();
+        } else {
+          toast.error(result.error);
+        }
       } else {
         toast.success(
           decision === APPROVAL_STATUS.approved
@@ -176,6 +183,7 @@ export function TiTicketStatus({
             : "Chamado rejeitado"
         );
         handleCloseDialog();
+        router.refresh();
       }
     });
   };

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { ActionResult } from "@/lib/action-result";
 import type { ApprovalDecision, ApprovalFlowStatus } from "@/lib/ticket-statuses";
 import { APPROVAL_FLOW_STATUS } from "@/lib/ticket-statuses";
 
@@ -120,7 +121,7 @@ async function ensureOperacoesGerenteApproval(
 
   if (ticketError || !ticket) {
     console.error("Error fetching ticket creator:", ticketError);
-    return { error: "Nao foi possivel validar o criador do chamado" };
+    return { error: "Nao foi possivel validar o criador do chamado", code: "conflict" };
   }
 
   const { data: isOpsCreator, error: creatorError } = await supabase.rpc(
@@ -132,7 +133,7 @@ async function ensureOperacoesGerenteApproval(
 
   if (creatorError) {
     console.error("Error checking operations creator:", creatorError);
-    return { error: "Nao foi possivel validar permissoes de aprovacao" };
+    return { error: "Nao foi possivel validar permissoes de aprovacao", code: "conflict" };
   }
 
   if (!isOpsCreator) {
@@ -145,11 +146,11 @@ async function ensureOperacoesGerenteApproval(
 
   if (managerError) {
     console.error("Error checking operations manager:", managerError);
-    return { error: "Nao foi possivel validar permissoes de aprovacao" };
+    return { error: "Nao foi possivel validar permissoes de aprovacao", code: "conflict" };
   }
 
   if (!isOpsManager) {
-    return { error: "Apenas o gerente de operacoes pode aprovar este chamado" };
+    return { error: "Apenas o gerente de operacoes pode aprovar este chamado", code: "forbidden" };
   }
 
   return null;
@@ -352,13 +353,13 @@ export async function createMaintenanceTicket(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   // Obter departamento de Manutenção
   const manutencaoDept = await getManutencaoDepartment();
   if (!manutencaoDept) {
-    return { error: "Departamento de Manutenção não encontrado" };
+    return { error: "Departamento de Manutenção não encontrado", code: "not_found" };
   }
 
   // Extrair dados do formulário
@@ -377,13 +378,13 @@ export async function createMaintenanceTicket(formData: FormData) {
 
   // Validações
   if (!title || title.length < 5) {
-    return { error: "Título deve ter pelo menos 5 caracteres" };
+    return { error: "Título deve ter pelo menos 5 caracteres", code: "validation" };
   }
   if (!description || description.length < 10) {
-    return { error: "Descrição deve ter pelo menos 10 caracteres" };
+    return { error: "Descrição deve ter pelo menos 10 caracteres", code: "validation" };
   }
   if (!category_id) {
-    return { error: "Selecione um assunto para a manutenção" };
+    return { error: "Selecione um assunto para a manutenção", code: "validation" };
   }
 
   // Verificar se precisa de aprovação e obter status inicial baseado no cargo
@@ -420,7 +421,7 @@ export async function createMaintenanceTicket(formData: FormData) {
 
   if (ticketError) {
     console.error("Error creating maintenance ticket:", ticketError);
-    return { error: ticketError.message };
+    return { error: ticketError.message, code: "conflict" };
   }
 
   // Criar detalhes de manutenção
@@ -438,7 +439,7 @@ export async function createMaintenanceTicket(formData: FormData) {
     console.error("Error creating maintenance details:", detailsError);
     // Rollback: deletar ticket
     await supabase.from("tickets").delete().eq("id", ticket.id);
-    return { error: detailsError.message };
+    return { error: detailsError.message, code: "conflict" };
   }
 
   // Se precisa aprovação, criar registros de aprovação
@@ -805,13 +806,13 @@ export async function triageTicket(ticketId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   // Verificar permissão de triagem
   const canTriage = await canTriageTicket();
   if (!canTriage) {
-    return { error: "Você não tem permissão para fazer triagem de chamados" };
+    return { error: "Você não tem permissão para fazer triagem de chamados", code: "forbidden" };
   }
 
   // Verificar se o chamado existe e está aguardando triagem
@@ -822,11 +823,11 @@ export async function triageTicket(ticketId: string, formData: FormData) {
     .single();
 
   if (!ticket) {
-    return { error: "Chamado não encontrado" };
+    return { error: "Chamado não encontrado", code: "not_found" };
   }
 
   if (ticket.status !== "awaiting_triage") {
-    return { error: "Este chamado não está aguardando triagem" };
+    return { error: "Este chamado não está aguardando triagem", code: "conflict" };
   }
 
   const priority = formData.get("priority") as string;
@@ -835,16 +836,16 @@ export async function triageTicket(ticketId: string, formData: FormData) {
 
   // Validações
   if (!priority) {
-    return { error: "Prioridade é obrigatória" };
+    return { error: "Prioridade é obrigatória", code: "validation" };
   }
   if (!assigned_to) {
-    return { error: "Responsável é obrigatório" };
+    return { error: "Responsável é obrigatório", code: "validation" };
   }
 
   // Validar se a prioridade é válida
   const validPriorities = ["low", "medium", "high", "urgent"];
   if (!validPriorities.includes(priority)) {
-    return { error: "Prioridade inválida" };
+    return { error: "Prioridade inválida", code: "validation" };
   }
 
   // Atualizar o chamado
@@ -860,7 +861,7 @@ export async function triageTicket(ticketId: string, formData: FormData) {
 
   if (updateError) {
     console.error("Error triaging ticket:", updateError);
-    return { error: updateError.message };
+    return { error: updateError.message, code: "conflict" };
   }
 
   // Registrar histórico de triagem
@@ -912,7 +913,7 @@ export async function changeTicketStatus(
     .single();
 
   if (!ticket) {
-    return { error: "Chamado não encontrado" };
+    return { error: "Chamado não encontrado", code: "not_found" };
   }
 
   // Verificar se é admin ou Gerente (podem fechar/cancelar de qualquer status)
@@ -934,13 +935,14 @@ export async function changeTicketStatus(
     if (!allowedTransitions.includes(newStatus)) {
       return {
         error: `Transição de ${statusLabels[ticket.status]} para ${statusLabels[newStatus]} não permitida`,
+        code: "validation",
       };
     }
   }
 
   const trimmedReason = reason?.trim();
   if (newStatus === "denied" && !trimmedReason) {
-    return { error: "Informe o motivo da negação" };
+    return { error: "Informe o motivo da negação", code: "validation" };
   }
 
   // Validar permissão para a transição solicitada
@@ -977,7 +979,7 @@ export async function changeTicketStatus(
 
   if (error) {
     console.error("Error changing ticket status:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   if (!updatedTickets || updatedTickets.length === 0) {
@@ -1007,14 +1009,14 @@ export async function addComment(ticketId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const content = formData.get("content") as string;
   const is_internal = formData.get("is_internal") === "true";
 
   if (!content || content.trim().length < 1) {
-    return { error: "Comentário não pode ser vazio" };
+    return { error: "Comentário não pode ser vazio", code: "validation" };
   }
 
   const { error } = await supabase.from("ticket_comments").insert({
@@ -1026,7 +1028,7 @@ export async function addComment(ticketId: string, formData: FormData) {
 
   if (error) {
     console.error("Error adding comment:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   revalidatePath(`/chamados/manutencao/${ticketId}`);
@@ -1052,7 +1054,7 @@ export async function handleApproval(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const { data: approval } = await supabase
@@ -1062,7 +1064,7 @@ export async function handleApproval(
     .single();
 
   if (!approval) {
-    return { error: "Aprovação não encontrada" };
+    return { error: "Aprovação não encontrada", code: "not_found" };
   }
 
   const opsCheck = await ensureOperacoesGerenteApproval(
@@ -1072,11 +1074,11 @@ export async function handleApproval(
     approval.approval_role
   );
   if (opsCheck?.error) {
-    return opsCheck;
+    return { ...opsCheck, code: "forbidden" as const };
   }
 
   // Atualizar aprovação
-  const { error } = await supabase
+  const { data: approvalUpdate, error } = await supabase
     .from("ticket_approvals")
     .update({
       approved_by: user.id,
@@ -1084,27 +1086,44 @@ export async function handleApproval(
       decision_at: new Date().toISOString(),
       notes: notes || null,
     })
-    .eq("id", approvalId);
+    .eq("id", approvalId)
+    .select();
 
   if (error) {
     console.error("Error handling approval:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
+  }
+
+  if (!approvalUpdate || approvalUpdate.length === 0) {
+    return {
+      error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+      code: "conflict",
+    };
   }
 
   // Atualizar status do ticket
   if (decision === APPROVAL_FLOW_STATUS.denied) {
-    const { error: ticketError } = await supabase
+    const { data: ticketUpdate, error: ticketError } = await supabase
       .from("tickets")
       .update({
         status: APPROVAL_FLOW_STATUS.denied,
         denial_reason: notes || "Negado na aprovação",
       })
-      .eq("id", ticketId);
+      .eq("id", ticketId)
+      .select();
 
     if (ticketError) {
       console.error("Error updating ticket status (denied):", ticketError);
       return {
         error: "Aprovação registrada, mas falha ao atualizar status do chamado",
+        code: "conflict",
+      };
+    }
+
+    if (!ticketUpdate || ticketUpdate.length === 0) {
+      return {
+        error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+        code: "conflict",
       };
     }
   } else {
@@ -1115,15 +1134,24 @@ export async function handleApproval(
       3: APPROVAL_FLOW_STATUS.awaitingTriage,
     };
 
-    const { error: ticketError } = await supabase
+    const { data: ticketUpdate, error: ticketError } = await supabase
       .from("tickets")
       .update({ status: nextStatusMap[approval.approval_level] })
-      .eq("id", ticketId);
+      .eq("id", ticketId)
+      .select();
 
     if (ticketError) {
       console.error("Error updating ticket status (approved):", ticketError);
       return {
         error: "Aprovação registrada, mas falha ao atualizar status do chamado",
+        code: "conflict",
+      };
+    }
+
+    if (!ticketUpdate || ticketUpdate.length === 0) {
+      return {
+        error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+        code: "conflict",
       };
     }
   }
@@ -1147,7 +1175,7 @@ export async function addExecution(ticketId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const unit_id = formData.get("unit_id") as string | null;
@@ -1167,7 +1195,7 @@ export async function addExecution(ticketId: string, formData: FormData) {
 
   // Validações
   if (!description || description.trim().length < 5) {
-    return { error: "Descrição deve ter pelo menos 5 caracteres" };
+    return { error: "Descrição deve ter pelo menos 5 caracteres", code: "validation" };
   }
 
   const { error } = await supabase
@@ -1190,7 +1218,7 @@ export async function addExecution(ticketId: string, formData: FormData) {
 
   if (error) {
     console.error("Error adding execution:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   // Atualizar status do ticket para "executando" se ainda não estiver
@@ -1236,7 +1264,7 @@ export async function updateExecution(executionId: string, formData: FormData) {
 
   if (error) {
     console.error("Error updating execution:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   // Se execução concluída, verificar se todas as execuções foram concluídas
@@ -1281,7 +1309,7 @@ export async function setWaitingParts(ticketId: string, executionId: string) {
 
   if (execError) {
     console.error("Error updating execution:", execError);
-    return { error: execError.message };
+    return { error: execError.message, code: "conflict" };
   }
 
   // Atualizar ticket
@@ -1292,7 +1320,7 @@ export async function setWaitingParts(ticketId: string, executionId: string) {
 
   if (ticketError) {
     console.error("Error updating ticket:", ticketError);
-    return { error: ticketError.message };
+    return { error: ticketError.message, code: "conflict" };
   }
 
   revalidatePath(`/chamados/manutencao/${ticketId}`);
@@ -1317,7 +1345,7 @@ export async function startExecution(executionId: string) {
 
   if (error) {
     console.error("Error starting execution:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   // Garantir que o ticket esteja em "executando"
@@ -1362,7 +1390,7 @@ export async function completeExecution(
 
   if (error) {
     console.error("Error completing execution:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   // Verificar se todas as execuções foram concluídas
@@ -1551,14 +1579,14 @@ export async function evaluateTicket(ticketId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const rating = parseInt(formData.get("rating") as string);
   const notes = formData.get("notes") as string | null;
 
   if (!rating || rating < 1 || rating > 5) {
-    return { error: "Avaliação deve ser entre 1 e 5" };
+    return { error: "Avaliação deve ser entre 1 e 5", code: "validation" };
   }
 
   // Atualizar detalhes de manutenção com avaliação
@@ -1572,7 +1600,7 @@ export async function evaluateTicket(ticketId: string, formData: FormData) {
 
   if (detailsError) {
     console.error("Error evaluating ticket:", detailsError);
-    return { error: detailsError.message };
+    return { error: detailsError.message, code: "conflict" };
   }
 
   // Mudar status para fechado
@@ -1586,7 +1614,7 @@ export async function evaluateTicket(ticketId: string, formData: FormData) {
 
   if (ticketError) {
     console.error("Error closing ticket:", ticketError);
-    return { error: ticketError.message };
+    return { error: ticketError.message, code: "conflict" };
   }
 
   revalidatePath(`/chamados/manutencao/${ticketId}`);
@@ -1612,7 +1640,7 @@ export async function createLinkedTicket(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   // Verificar se o chamado pai existe
@@ -1623,27 +1651,27 @@ export async function createLinkedTicket(
     .single();
 
   if (!parentTicket) {
-    return { error: "Chamado pai não encontrado" };
+    return { error: "Chamado pai não encontrado", code: "not_found" };
   }
 
   const manutencaoDept = await getManutencaoDepartment();
   if (!manutencaoDept) {
-    return { error: "Departamento de Manutenção não encontrado" };
+    return { error: "Departamento de Manutenção não encontrado", code: "not_found" };
   }
   if (parentTicket.department_id !== manutencaoDept.id) {
-    return { error: "Chamado pai não pertence ao departamento de Manutenção" };
+    return { error: "Chamado pai não pertence ao departamento de Manutenção", code: "validation" };
   }
 
   if (
     parentTicket.status !== "executing" &&
     parentTicket.status !== "waiting_parts"
   ) {
-    return { error: "Chamado pai não está em execução" };
+    return { error: "Chamado pai não está em execução", code: "conflict" };
   }
 
   const canManage = await canManageTicket(parentTicketId);
   if (!canManage) {
-    return { error: "Sem permissão" };
+    return { error: "Sem permissão", code: "forbidden" };
   }
 
   const title = formData.get("title") as string;
@@ -1653,10 +1681,10 @@ export async function createLinkedTicket(
   const perceived_urgency = formData.get("perceived_urgency") as string | null;
 
   if (!title || title.length < 5) {
-    return { error: "Título deve ter pelo menos 5 caracteres" };
+    return { error: "Título deve ter pelo menos 5 caracteres", code: "validation" };
   }
   if (!description || description.length < 10) {
-    return { error: "Descrição deve ter pelo menos 10 caracteres" };
+    return { error: "Descrição deve ter pelo menos 10 caracteres", code: "validation" };
   }
 
   const deptName = type === "compras" ? "Compras e Manutenção" : "TI";
@@ -1667,7 +1695,7 @@ export async function createLinkedTicket(
     .single();
 
   if (!targetDept) {
-    return { error: `Departamento ${deptName} não encontrado` };
+    return { error: `Departamento ${deptName} não encontrado`, code: "not_found" };
   }
 
   const { data: initialStatusData } = await supabase.rpc(
@@ -1703,7 +1731,7 @@ export async function createLinkedTicket(
 
   if (ticketError) {
     console.error("Error creating linked ticket:", ticketError);
-    return { error: ticketError.message };
+    return { error: ticketError.message, code: "conflict" };
   }
 
   if (type === "compras") {
@@ -1727,7 +1755,7 @@ export async function createLinkedTicket(
     if (detailsError) {
       console.error("Error creating purchase details:", detailsError);
       await supabase.from("tickets").delete().eq("id", ticket.id);
-      return { error: detailsError.message };
+      return { error: detailsError.message, code: "conflict" };
     }
 
     const { error: itemsError } = await supabase
@@ -1744,7 +1772,7 @@ export async function createLinkedTicket(
     if (itemsError) {
       console.error("Error creating purchase items:", itemsError);
       await supabase.from("tickets").delete().eq("id", ticket.id);
-      return { error: itemsError.message };
+      return { error: itemsError.message, code: "conflict" };
     }
   } else {
     const equipment_type = (formData.get("equipment_type") as string) || "";
@@ -1759,7 +1787,7 @@ export async function createLinkedTicket(
     if (detailsError) {
       console.error("Error creating IT details:", detailsError);
       await supabase.from("tickets").delete().eq("id", ticket.id);
-      return { error: detailsError.message };
+      return { error: detailsError.message, code: "conflict" };
     }
   }
 

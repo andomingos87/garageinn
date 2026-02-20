@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { ActionResult } from "@/lib/action-result";
 import {
   GERENTE_APPROVAL_STATUS,
   statusLabels,
@@ -130,7 +131,7 @@ async function ensureOperacoesGerenteApproval(
 
   if (ticketError || !ticket) {
     console.error("Error fetching ticket creator:", ticketError);
-    return { error: "Nao foi possivel validar o criador do chamado" };
+    return { error: "Nao foi possivel validar o criador do chamado", code: "conflict" };
   }
 
   const { data: isOpsCreator, error: creatorError } = await supabase.rpc(
@@ -142,7 +143,7 @@ async function ensureOperacoesGerenteApproval(
 
   if (creatorError) {
     console.error("Error checking operations creator:", creatorError);
-    return { error: "Nao foi possivel validar permissoes de aprovacao" };
+    return { error: "Nao foi possivel validar permissoes de aprovacao", code: "conflict" };
   }
 
   if (!isOpsCreator) {
@@ -155,11 +156,11 @@ async function ensureOperacoesGerenteApproval(
 
   if (managerError) {
     console.error("Error checking operations manager:", managerError);
-    return { error: "Nao foi possivel validar permissoes de aprovacao" };
+    return { error: "Nao foi possivel validar permissoes de aprovacao", code: "conflict" };
   }
 
   if (!isOpsManager) {
-    return { error: "Apenas o gerente de operacoes pode aprovar este chamado" };
+    return { error: "Apenas o gerente de operacoes pode aprovar este chamado", code: "forbidden" };
   }
 
   return null;
@@ -182,7 +183,7 @@ async function ensureComprasPurchaseApproval(
 
   if (ticketError || !ticket) {
     console.error("Error fetching ticket creator:", ticketError);
-    return { error: "Não foi possível validar o criador do chamado" };
+    return { error: "Não foi possível validar o criador do chamado", code: "conflict" };
   }
 
   const { data: requiredApprover, error: approverError } = await supabase.rpc(
@@ -192,7 +193,7 @@ async function ensureComprasPurchaseApproval(
 
   if (approverError) {
     console.error("Error checking purchase approver:", approverError);
-    return { error: "Não foi possível validar permissões de aprovação" };
+    return { error: "Não foi possível validar permissões de aprovação", code: "conflict" };
   }
 
   if (requiredApprover !== "Diretor") {
@@ -204,7 +205,7 @@ async function ensureComprasPurchaseApproval(
     return null;
   }
 
-  return { error: "Chamados de Gerentes devem ser aprovados pelo Diretor" };
+  return { error: "Chamados de Gerentes devem ser aprovados pelo Diretor", code: "forbidden" };
 }
 
 // ============================================
@@ -690,13 +691,13 @@ export async function createPurchaseTicket(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   // Obter departamento de Compras
   const comprasDept = await getComprasDepartment();
   if (!comprasDept) {
-    return { error: "Departamento de Compras não encontrado" };
+    return { error: "Departamento de Compras não encontrado", code: "not_found" };
   }
 
   // Extrair dados do formulário
@@ -712,7 +713,7 @@ export async function createPurchaseTicket(formData: FormData) {
       rawItems = JSON.parse(itemsRaw) as PurchaseItemInput[];
     } catch (error) {
       console.error("Error parsing items payload:", error);
-      return { error: "Lista de itens inválida. Recarregue a página e tente novamente." };
+      return { error: "Lista de itens inválida. Recarregue a página e tente novamente.", code: "validation" };
     }
   }
 
@@ -750,30 +751,32 @@ export async function createPurchaseTicket(formData: FormData) {
 
   // Validações
   if (!title || title.length < 5) {
-    return { error: "Título deve ter pelo menos 5 caracteres" };
+    return { error: "Título deve ter pelo menos 5 caracteres", code: "validation" };
   }
   if (!normalizedItems.length) {
-    return { error: "Adicione pelo menos um item para compra" };
+    return { error: "Adicione pelo menos um item para compra", code: "validation" };
   }
   for (const [index, item] of normalizedItems.entries()) {
     if (!item.item_name || item.item_name.length < 3) {
       return {
         error: `Nome do item ${index + 1} deve ter pelo menos 3 caracteres`,
+        code: "validation",
       };
     }
     if (!item.quantity || item.quantity <= 0) {
-      return { error: `Quantidade do item ${index + 1} deve ser maior que zero` };
+      return { error: `Quantidade do item ${index + 1} deve ser maior que zero`, code: "validation" };
     }
     if (item.estimated_price !== null) {
       if (Number.isNaN(item.estimated_price) || item.estimated_price <= 0) {
         return {
           error: `Preço estimado do item ${index + 1} deve ser maior que zero`,
+          code: "validation",
         };
       }
     }
   }
   if (!description || description.length < 10) {
-    return { error: "Justificativa deve ter pelo menos 10 caracteres" };
+    return { error: "Justificativa deve ter pelo menos 10 caracteres", code: "validation" };
   }
 
   // Verificar se precisa de aprovação e obter status inicial baseado no cargo
@@ -798,7 +801,7 @@ export async function createPurchaseTicket(formData: FormData) {
   if (statusError) {
     console.error("Error getting initial approval status:", statusError);
     // Fallback seguro: exigir cadeia completa de aprovação
-    return { error: "Falha ao determinar status de aprovação. Tente novamente." };
+    return { error: "Falha ao determinar status de aprovação. Tente novamente.", code: "conflict" };
   }
 
   // Log para debug - pode ser removido após validação
@@ -834,7 +837,7 @@ export async function createPurchaseTicket(formData: FormData) {
 
   if (ticketError) {
     console.error("Error creating ticket:", ticketError);
-    return { error: ticketError.message };
+    return { error: ticketError.message, code: "conflict" };
   }
 
   const summaryItem = normalizedItems[0];
@@ -854,7 +857,7 @@ export async function createPurchaseTicket(formData: FormData) {
     console.error("Error creating purchase details:", detailsError);
     // Rollback: deletar ticket
     await supabase.from("tickets").delete().eq("id", ticket.id);
-    return { error: detailsError.message };
+    return { error: detailsError.message, code: "conflict" };
   }
 
   // Criar itens de compra
@@ -874,7 +877,7 @@ export async function createPurchaseTicket(formData: FormData) {
   if (itemsError) {
     console.error("Error creating purchase items:", itemsError);
     await supabase.from("tickets").delete().eq("id", ticket.id);
-    return { error: itemsError.message };
+    return { error: itemsError.message, code: "conflict" };
   }
 
   // Se precisa aprovação, criar registros de aprovação
@@ -1222,12 +1225,12 @@ export async function registerDelivery(ticketId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const canManage = await canManageTicket(ticketId);
   if (!canManage) {
-    return { error: "Apenas membros de Compras podem registrar entregas" };
+    return { error: "Apenas membros de Compras podem registrar entregas", code: "forbidden" };
   }
 
   const { data: ticket } = await supabase
@@ -1237,7 +1240,7 @@ export async function registerDelivery(ticketId: string, formData: FormData) {
     .single();
 
   if (!ticket) {
-    return { error: "Chamado não encontrado" };
+    return { error: "Chamado não encontrado", code: "not_found" };
   }
 
   if (ticket.status !== "purchasing") {
@@ -1252,7 +1255,7 @@ export async function registerDelivery(ticketId: string, formData: FormData) {
   const delivery_notes = formData.get("delivery_notes") as string | null;
 
   if (!delivery_date) {
-    return { error: "Data prevista de entrega é obrigatória" };
+    return { error: "Data prevista de entrega é obrigatória", code: "validation" };
   }
 
   const { error: upsertError } = await supabase
@@ -1269,7 +1272,7 @@ export async function registerDelivery(ticketId: string, formData: FormData) {
 
   if (upsertError) {
     console.error("Error upserting delivery details:", upsertError);
-    return { error: upsertError.message };
+    return { error: upsertError.message, code: "conflict" };
   }
 
   const { error: statusError } = await supabase
@@ -1279,7 +1282,7 @@ export async function registerDelivery(ticketId: string, formData: FormData) {
 
   if (statusError) {
     console.error("Error updating ticket status to in_delivery:", statusError);
-    return { error: statusError.message };
+    return { error: statusError.message, code: "conflict" };
   }
 
   await supabase.from("ticket_history").insert({
@@ -1309,7 +1312,7 @@ export async function evaluateDelivery(ticketId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const { data: ticket } = await supabase
@@ -1319,7 +1322,7 @@ export async function evaluateDelivery(ticketId: string, formData: FormData) {
     .single();
 
   if (!ticket) {
-    return { error: "Chamado não encontrado" };
+    return { error: "Chamado não encontrado", code: "not_found" };
   }
 
   if (ticket.status !== "delivered") {
@@ -1344,7 +1347,7 @@ export async function evaluateDelivery(ticketId: string, formData: FormData) {
     : null;
 
   if (!delivery_rating || delivery_rating < 1 || delivery_rating > 5) {
-    return { error: "Avaliação deve ser entre 1 e 5 estrelas" };
+    return { error: "Avaliação deve ser entre 1 e 5 estrelas", code: "validation" };
   }
 
   const { data: existing } = await supabase
@@ -1378,11 +1381,11 @@ export async function evaluateDelivery(ticketId: string, formData: FormData) {
 
     if (updateError) {
       console.error("Error updating delivery evaluation:", updateError);
-      return { error: updateError.message };
+      return { error: updateError.message, code: "conflict" };
     }
 
     if (!updated || updated.length === 0) {
-      return { error: "Falha ao salvar avaliação. Nenhum registro foi atualizado." };
+      return { error: "Falha ao salvar avaliação. Nenhum registro foi atualizado.", code: "conflict" };
     }
   } else {
     const { data: items } = await supabase
@@ -1410,11 +1413,11 @@ export async function evaluateDelivery(ticketId: string, formData: FormData) {
 
     if (insertError) {
       console.error("Error inserting delivery evaluation for legacy ticket:", insertError);
-      return { error: insertError.message };
+      return { error: insertError.message, code: "conflict" };
     }
 
     if (!inserted || inserted.length === 0) {
-      return { error: "Falha ao salvar avaliação. Nenhum registro foi criado." };
+      return { error: "Falha ao salvar avaliação. Nenhum registro foi criado.", code: "conflict" };
     }
   }
 
@@ -1425,7 +1428,7 @@ export async function evaluateDelivery(ticketId: string, formData: FormData) {
 
   if (statusError) {
     console.error("Error updating ticket status to evaluating:", statusError);
-    return { error: statusError.message };
+    return { error: statusError.message, code: "conflict" };
   }
 
   await supabase.from("ticket_history").insert({
@@ -1497,13 +1500,13 @@ export async function addQuotation(ticketId: string, formData: FormData) {
 
   // Validações
   if (!supplier_name || supplier_name.length < 2) {
-    return { error: "Nome do fornecedor é obrigatório" };
+    return { error: "Nome do fornecedor é obrigatório", code: "validation" };
   }
   if (!unit_price || unit_price <= 0) {
-    return { error: "Preço unitário deve ser maior que zero" };
+    return { error: "Preço unitário deve ser maior que zero", code: "validation" };
   }
   if (!quantity || quantity <= 0) {
-    return { error: "Quantidade deve ser maior que zero" };
+    return { error: "Quantidade deve ser maior que zero", code: "validation" };
   }
 
   const { error } = await supabase.from("ticket_quotations").insert({
@@ -1523,7 +1526,7 @@ export async function addQuotation(ticketId: string, formData: FormData) {
 
   if (error) {
     console.error("Error adding quotation:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   // Atualizar status se ainda não estiver em cotação
@@ -1547,14 +1550,22 @@ export async function selectQuotation(ticketId: string, quotationId: string) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
-  // Desmarcar outras cotações
-  await supabase
+  // Desmarcar outras cotações (check result to surface RLS errors)
+  const { error: unselectError } = await supabase
     .from("ticket_quotations")
     .update({ is_selected: false, status: "pending" })
     .eq("ticket_id", ticketId);
+
+  if (unselectError) {
+    console.error("Error unselecting quotations:", unselectError);
+    const code = unselectError.code === "42501" || unselectError.message?.includes("row-level security")
+      ? "forbidden"
+      : "conflict";
+    return { error: unselectError.message, code };
+  }
 
   // Marcar cotação selecionada
   const { error } = await supabase
@@ -1564,7 +1575,7 @@ export async function selectQuotation(ticketId: string, quotationId: string) {
 
   if (error) {
     console.error("Error selecting quotation:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   // Vincular aos detalhes de compra
@@ -1589,7 +1600,7 @@ export async function sendToApproval(ticketId: string) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const { data: ticket } = await supabase
@@ -1599,16 +1610,16 @@ export async function sendToApproval(ticketId: string) {
     .single();
 
   if (!ticket) {
-    return { error: "Chamado não encontrado" };
+    return { error: "Chamado não encontrado", code: "not_found" };
   }
 
   if (ticket.status !== "quoting") {
-    return { error: "Chamado não está em cotação" };
+    return { error: "Chamado não está em cotação", code: "conflict" };
   }
 
   const canManage = await canManageTicket(ticketId);
   if (!canManage) {
-    return { error: "Apenas membros de Compras podem enviar para aprovação" };
+    return { error: "Apenas membros de Compras podem enviar para aprovação", code: "forbidden" };
   }
 
   const { data: selectedQuotations } = await supabase
@@ -1619,17 +1630,26 @@ export async function sendToApproval(ticketId: string) {
     .limit(1);
 
   if (!selectedQuotations || selectedQuotations.length === 0) {
-    return { error: "Selecione uma cotação antes de enviar para aprovação" };
+    return { error: "Selecione uma cotação antes de enviar para aprovação", code: "validation" };
   }
 
-  const { error: updateError } = await supabase
+  const { data: updatedTickets, error: updateError } = await supabase
     .from("tickets")
     .update({ status: "awaiting_approval" })
-    .eq("id", ticketId);
+    .eq("id", ticketId)
+    .select("id");
 
   if (updateError) {
     console.error("Error sending to approval:", updateError);
-    return { error: updateError.message };
+    return { error: updateError.message, code: "conflict" };
+  }
+
+  if (!updatedTickets || updatedTickets.length === 0) {
+    return {
+      error:
+        "Não foi possível enviar para aprovação. O chamado pode ter sido alterado por outro usuário.",
+      code: "conflict",
+    };
   }
 
   await supabase.from("ticket_history").insert({
@@ -1659,7 +1679,7 @@ export async function deleteQuotation(ticketId: string, quotationId: string) {
 
   if (error) {
     console.error("Error deleting quotation:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   revalidatePath(`/chamados/compras/${ticketId}`);
@@ -1687,7 +1707,7 @@ export async function changeTicketStatus(
     .single();
 
   if (!ticket) {
-    return { error: "Chamado não encontrado" };
+    return { error: "Chamado não encontrado", code: "not_found" };
   }
 
   // Verificar se é admin ou Gerente (podem fechar/cancelar de qualquer status)
@@ -1709,13 +1729,14 @@ export async function changeTicketStatus(
     if (!allowedTransitions.includes(newStatus)) {
       return {
         error: `Transição de ${statusLabels[ticket.status]} para ${statusLabels[newStatus]} não permitida`,
+        code: "validation",
       };
     }
   }
 
   const trimmedReason = reason?.trim();
   if (newStatus === "denied" && !trimmedReason) {
-    return { error: "Informe o motivo da negação" };
+    return { error: "Informe o motivo da negação", code: "validation" };
   }
 
   // Validar permissão para a transição solicitada
@@ -1748,7 +1769,7 @@ export async function changeTicketStatus(
 
   if (error) {
     console.error("Error changing ticket status:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   if (!updatedTickets || updatedTickets.length === 0) {
@@ -1906,13 +1927,13 @@ export async function triageTicket(ticketId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   // Verificar permissão de triagem
   const canTriage = await canTriageTicket();
   if (!canTriage) {
-    return { error: "Você não tem permissão para fazer triagem de chamados" };
+    return { error: "Você não tem permissão para fazer triagem de chamados", code: "forbidden" };
   }
 
   // Verificar se o chamado existe e está aguardando triagem
@@ -1923,11 +1944,11 @@ export async function triageTicket(ticketId: string, formData: FormData) {
     .single();
 
   if (!ticket) {
-    return { error: "Chamado não encontrado" };
+    return { error: "Chamado não encontrado", code: "not_found" };
   }
 
   if (ticket.status !== "awaiting_triage") {
-    return { error: "Este chamado não está aguardando triagem" };
+    return { error: "Este chamado não está aguardando triagem", code: "conflict" };
   }
 
   const priority = formData.get("priority") as string;
@@ -1936,16 +1957,16 @@ export async function triageTicket(ticketId: string, formData: FormData) {
 
   // Validações
   if (!priority) {
-    return { error: "Prioridade é obrigatória" };
+    return { error: "Prioridade é obrigatória", code: "validation" };
   }
   if (!assigned_to) {
-    return { error: "Responsável é obrigatório" };
+    return { error: "Responsável é obrigatório", code: "validation" };
   }
 
   // Validar se a prioridade é válida
   const validPriorities = ["low", "medium", "high", "urgent"];
   if (!validPriorities.includes(priority)) {
-    return { error: "Prioridade inválida" };
+    return { error: "Prioridade inválida", code: "validation" };
   }
 
   // Atualizar o chamado
@@ -1961,7 +1982,7 @@ export async function triageTicket(ticketId: string, formData: FormData) {
 
   if (updateError) {
     console.error("Error triaging ticket:", updateError);
-    return { error: updateError.message };
+    return { error: updateError.message, code: "conflict" };
   }
 
   // Registrar histórico de triagem manualmente (além do trigger automático)
@@ -1999,14 +2020,14 @@ export async function addComment(ticketId: string, formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const content = formData.get("content") as string;
   const is_internal = formData.get("is_internal") === "true";
 
   if (!content || content.trim().length < 1) {
-    return { error: "Comentário não pode ser vazio" };
+    return { error: "Comentário não pode ser vazio", code: "validation" };
   }
 
   const { error } = await supabase.from("ticket_comments").insert({
@@ -2018,7 +2039,7 @@ export async function addComment(ticketId: string, formData: FormData) {
 
   if (error) {
     console.error("Error adding comment:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   revalidatePath(`/chamados/compras/${ticketId}`);
@@ -2044,7 +2065,7 @@ export async function handleApproval(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Não autenticado" };
+    return { error: "Não autenticado", code: "forbidden" };
   }
 
   const { data: approval } = await supabase
@@ -2054,7 +2075,7 @@ export async function handleApproval(
     .single();
 
   if (!approval) {
-    return { error: "Aprovação não encontrada" };
+    return { error: "Aprovação não encontrada", code: "not_found" };
   }
 
   const opsCheck = await ensureOperacoesGerenteApproval(
@@ -2064,7 +2085,7 @@ export async function handleApproval(
     approval.approval_role
   );
   if (opsCheck?.error) {
-    return opsCheck;
+    return { ...opsCheck, code: "forbidden" as const };
   }
 
   const comprasCheck = await ensureComprasPurchaseApproval(
@@ -2073,7 +2094,7 @@ export async function handleApproval(
     approval.approval_role
   );
   if (comprasCheck?.error) {
-    return comprasCheck;
+    return { ...comprasCheck, code: "forbidden" as const };
   }
 
   // Atualizar aprovação
@@ -2090,7 +2111,7 @@ export async function handleApproval(
 
   if (error) {
     console.error("Error handling approval:", error);
-    return { error: error.message };
+    return { error: error.message, code: "conflict" };
   }
 
   // Verify the update actually affected a row (RLS may silently block)
@@ -2098,6 +2119,7 @@ export async function handleApproval(
     console.error("Approval update affected 0 rows - RLS may have blocked");
     return {
       error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+      code: "conflict",
     };
   }
 
@@ -2116,6 +2138,7 @@ export async function handleApproval(
       console.error("Error updating ticket status (denied):", ticketError);
       return {
         error: "Aprovação registrada, mas falha ao atualizar status do chamado",
+        code: "conflict",
       };
     }
 
@@ -2124,6 +2147,7 @@ export async function handleApproval(
       console.error("Ticket update (denied) affected 0 rows - RLS may have blocked");
       return {
         error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+        code: "conflict",
       };
     }
   } else {
@@ -2138,7 +2162,7 @@ export async function handleApproval(
     const nextStatus = nextStatusByRole[approval.approval_role];
     if (!nextStatus) {
       console.error("Unknown approval role:", approval.approval_role);
-      return { error: "Cargo de aprovação desconhecido" };
+      return { error: "Cargo de aprovação desconhecido", code: "validation" };
     }
 
     const { data: ticketUpdate, error: ticketError } = await supabase
@@ -2151,6 +2175,7 @@ export async function handleApproval(
       console.error("Error updating ticket status (approved):", ticketError);
       return {
         error: "Aprovação registrada, mas falha ao atualizar status do chamado",
+        code: "conflict",
       };
     }
 
@@ -2159,6 +2184,7 @@ export async function handleApproval(
       console.error("Ticket update (approved) affected 0 rows - RLS may have blocked");
       return {
         error: "Não foi possível processar a aprovação. Verifique suas permissões.",
+        code: "conflict",
       };
     }
   }
