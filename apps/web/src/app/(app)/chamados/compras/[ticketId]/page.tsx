@@ -21,6 +21,7 @@ import {
   TicketQuotations,
   TicketApprovals,
   TicketActions,
+  QuotationSelectionDialog,
 } from "./components";
 import { DeleteTicketButton } from "../../components";
 
@@ -92,6 +93,10 @@ export default async function TicketDetailsPage({ params }: PageProps) {
     ? await getUserRole(currentUser.id)
     : undefined;
 
+  const isRequester = currentUser?.id === ticket.created_by;
+  const isComprasMember = canManage;
+  const hasSelectedQuotation = ticket.quotations?.some((q: { is_selected?: boolean }) => q.is_selected) ?? false;
+
   // Obter transições permitidas para o status atual
   const allAllowedTransitions = getAllowedTransitions(ticket.status);
   
@@ -118,6 +123,14 @@ export default async function TicketDetailsPage({ params }: PageProps) {
         <div className="lg:col-span-2 space-y-6">
           {/* Informações do Item e Justificativa */}
           <TicketInfo ticket={ticket} />
+
+          {/* Seleção de cotação pelo solicitante */}
+          {isRequester && ticket.status === "quoting" && ticket.quotations?.length > 0 && (
+            <QuotationSelectionDialog
+              ticketId={ticketId}
+              quotations={ticket.quotations}
+            />
+          )}
 
           {/* Aprovações (se existirem) */}
           {hasApprovals && (
@@ -165,6 +178,8 @@ export default async function TicketDetailsPage({ params }: PageProps) {
             isAdmin={isAdmin}
             userRole={currentUserRole}
             userPermissions={userPermissions}
+            hasSelectedQuotation={hasSelectedQuotation}
+            isComprasMember={isComprasMember}
           />
 
           {/* Timeline / Histórico */}

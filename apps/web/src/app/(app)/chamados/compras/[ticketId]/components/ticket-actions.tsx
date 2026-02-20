@@ -26,7 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { changeTicketStatus } from "../../actions";
+import { changeTicketStatus, sendToApproval } from "../../actions";
 import { TriageDialog } from "./triage-dialog";
 import { getTransitionPermission } from "../../constants";
 import { hasPermission } from "@/lib/auth/rbac";
@@ -58,6 +58,8 @@ interface TicketActionsProps {
   isAdmin?: boolean;
   userRole?: string;
   userPermissions?: Permission[];
+  hasSelectedQuotation?: boolean;
+  isComprasMember?: boolean;
 }
 
 // Labels para status
@@ -126,6 +128,8 @@ export function TicketActions({
   isAdmin = false,
   userRole,
   userPermissions = [],
+  hasSelectedQuotation = false,
+  isComprasMember = false,
 }: TicketActionsProps) {
   const router = useRouter();
   const [isDenyDialogOpen, setIsDenyDialogOpen] = useState(false);
@@ -134,6 +138,11 @@ export function TicketActions({
 
   // Mostrar botão de triagem apenas se status é awaiting_triage e usuário pode triar
   const showTriageButton = currentStatus === "awaiting_triage" && canTriage;
+
+  const showSendToApprovalButton =
+    currentStatus === "quoting" &&
+    isComprasMember &&
+    hasSelectedQuotation;
 
   // Status finais que não podem ser fechados
   const finalStatuses = ["closed", "cancelled", "denied"];
@@ -195,12 +204,26 @@ export function TicketActions({
     });
   };
 
+  const handleSendToApproval = () => {
+    startTransition(async () => {
+      const result = await sendToApproval(ticketId);
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success("Chamado enviado para aprovação");
+      router.refresh();
+    });
+  };
+
   // Verificar se há ações de gerenciamento disponíveis
   const hasManageActions = canManage && allowedTransitions.length > 0;
 
   // Não mostrar card se não há NENHUMA ação disponível
   // CORREÇÃO BUG-012: Usar && ao invés de || para permitir triagem mesmo sem canManage
-  if (!showTriageButton && !hasManageActions && !showCloseButton) {
+  if (!showTriageButton && !hasManageActions && !showCloseButton && !showSendToApprovalButton) {
     return null;
   }
 
@@ -225,6 +248,19 @@ export function TicketActions({
               items={items}
               disabled={isPending}
             />
+          )}
+
+          {/* Botão "Enviar para Aprovação" manual (Compras, status quoting, cotação selecionada) */}
+          {showSendToApprovalButton && (
+            <Button
+              variant="default"
+              className="w-full gap-2"
+              onClick={handleSendToApproval}
+              disabled={isPending}
+            >
+              <ArrowRight className="h-4 w-4" />
+              Enviar para Aprovação
+            </Button>
           )}
 
           {/* Botões de Transição de Status - só para quem pode gerenciar */}

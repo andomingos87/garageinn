@@ -7,7 +7,7 @@ export const statusTransitions: Record<string, string[]> = {
   awaiting_approval_gerente: ["awaiting_triage", "denied"],
   awaiting_triage: ["in_progress", "quoting", "denied"],
   in_progress: ["quoting", "denied", "cancelled"],
-  quoting: ["awaiting_approval", "approved", "denied"],
+  quoting: ["approved", "denied"],
   awaiting_approval: ["approved", "denied"],
   approved: ["purchasing"],
   purchasing: ["in_delivery"],

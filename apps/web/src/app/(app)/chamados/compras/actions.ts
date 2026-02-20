@@ -164,6 +164,48 @@ async function ensureOperacoesGerenteApproval(
   return null;
 }
 
+async function ensureComprasPurchaseApproval(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  ticketId: string,
+  approvalRole?: string | null
+) {
+  if (approvalRole !== "Gerente") {
+    return null;
+  }
+
+  const { data: ticket, error: ticketError } = await supabase
+    .from("tickets")
+    .select("created_by")
+    .eq("id", ticketId)
+    .single();
+
+  if (ticketError || !ticket) {
+    console.error("Error fetching ticket creator:", ticketError);
+    return { error: "Não foi possível validar o criador do chamado" };
+  }
+
+  const { data: requiredApprover, error: approverError } = await supabase.rpc(
+    "get_purchase_approver",
+    { p_created_by: ticket.created_by }
+  );
+
+  if (approverError) {
+    console.error("Error checking purchase approver:", approverError);
+    return { error: "Não foi possível validar permissões de aprovação" };
+  }
+
+  if (requiredApprover !== "Diretor") {
+    return null;
+  }
+
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (isAdmin) {
+    return null;
+  }
+
+  return { error: "Chamados de Gerentes devem ser aprovados pelo Diretor" };
+}
+
 // ============================================
 // Query Functions
 // ============================================
@@ -1190,7 +1232,7 @@ export async function addQuotation(ticketId: string, formData: FormData) {
 }
 
 /**
- * Seleciona cotação vencedora
+ * Seleciona cotação vencedora (não altera o status do ticket)
  */
 export async function selectQuotation(ticketId: string, quotationId: string) {
   const supabase = await createClient();
@@ -1225,13 +1267,75 @@ export async function selectQuotation(ticketId: string, quotationId: string) {
     .update({ approved_quotation_id: quotationId })
     .eq("ticket_id", ticketId);
 
-  // Atualizar status do ticket
-  await supabase
+  revalidatePath(`/chamados/compras/${ticketId}`);
+  return { success: true };
+}
+
+/**
+ * Envia chamado em cotação para aprovação.
+ * Requer que o status seja 'quoting', o usuário seja membro de Compras,
+ * e que exista ao menos uma cotação selecionada.
+ */
+export async function sendToApproval(ticketId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Não autenticado" };
+  }
+
+  const { data: ticket } = await supabase
     .from("tickets")
-    .update({ status: "approved" })
+    .select("status")
+    .eq("id", ticketId)
+    .single();
+
+  if (!ticket) {
+    return { error: "Chamado não encontrado" };
+  }
+
+  if (ticket.status !== "quoting") {
+    return { error: "Chamado não está em cotação" };
+  }
+
+  const canManage = await canManageTicket(ticketId);
+  if (!canManage) {
+    return { error: "Apenas membros de Compras podem enviar para aprovação" };
+  }
+
+  const { data: selectedQuotations } = await supabase
+    .from("ticket_quotations")
+    .select("id")
+    .eq("ticket_id", ticketId)
+    .eq("is_selected", true)
+    .limit(1);
+
+  if (!selectedQuotations || selectedQuotations.length === 0) {
+    return { error: "Selecione uma cotação antes de enviar para aprovação" };
+  }
+
+  const { error: updateError } = await supabase
+    .from("tickets")
+    .update({ status: "awaiting_approval" })
     .eq("id", ticketId);
 
+  if (updateError) {
+    console.error("Error sending to approval:", updateError);
+    return { error: updateError.message };
+  }
+
+  await supabase.from("ticket_history").insert({
+    ticket_id: ticketId,
+    user_id: user.id,
+    action: "sent_to_approval",
+    old_value: "quoting",
+    new_value: "awaiting_approval",
+  });
+
   revalidatePath(`/chamados/compras/${ticketId}`);
+  revalidatePath("/chamados/compras");
   return { success: true };
 }
 
@@ -1655,6 +1759,15 @@ export async function handleApproval(
   );
   if (opsCheck?.error) {
     return opsCheck;
+  }
+
+  const comprasCheck = await ensureComprasPurchaseApproval(
+    supabase,
+    ticketId,
+    approval.approval_role
+  );
+  if (comprasCheck?.error) {
+    return comprasCheck;
   }
 
   // Atualizar aprovação
