@@ -528,7 +528,7 @@ export async function getPurchaseTickets(filters?: TicketFilters) {
     .map((ticket) => ticket.id)
     .filter((id): id is string => Boolean(id));
 
-  let itemsByTicketId = new Map<string, PurchaseItem[]>();
+  const itemsByTicketId = new Map<string, PurchaseItem[]>();
   if (ticketIds.length > 0) {
     const { data: items } = await supabase
       .from("ticket_purchase_items")

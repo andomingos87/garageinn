@@ -319,7 +319,12 @@ describe("getUserPermissions", () => {
         global: false,
         expectedPerms: ["tickets:read", "tickets:execute"],
       },
-      { role: "Gerente", dept: "TI", global: false, expectAdmin: true },
+      {
+        role: "Gerente",
+        dept: "TI",
+        global: false,
+        expectedPerms: ["tickets:read", "tickets:execute", "settings:read"],
+      },
       // RH
       {
         role: "Auxiliar",

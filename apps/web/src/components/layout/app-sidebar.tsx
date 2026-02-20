@@ -255,6 +255,9 @@ export function AppSidebar() {
   };
 
   const renderChecklistsMenu = () => (
+    // Checklists é uma sessão exclusiva do departamento de Operações.
+    // Admins também podem visualizar.
+    hasDepartmentAccess("Operações") ? (
     <SidebarMenuItem>
       <SidebarMenuButton
         asChild
@@ -270,6 +273,7 @@ export function AppSidebar() {
         {checklistSubItems.map((item) => renderChecklistSubItem(item))}
       </SidebarMenuSub>
     </SidebarMenuItem>
+    ) : null
   );
 
   return (
