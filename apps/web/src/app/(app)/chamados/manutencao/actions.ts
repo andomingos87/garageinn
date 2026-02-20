@@ -1633,7 +1633,7 @@ export async function createLinkedTicket(
   parentTicketId: string,
   type: "compras" | "ti",
   formData: FormData
-): Promise<{ error?: string; ticketId?: string }> {
+): Promise<ActionResult & { ticketId?: string }> {
   const supabase = await createClient();
 
   const {

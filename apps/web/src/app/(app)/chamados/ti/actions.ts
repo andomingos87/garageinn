@@ -61,12 +61,6 @@ interface TiAccessContext {
   roles: UserRole[];
 }
 
-type ActionResult = {
-  success?: boolean;
-  error?: string;
-  code?: "forbidden" | "conflict";
-};
-
 // ============================================
 // Helpers
 // ============================================
