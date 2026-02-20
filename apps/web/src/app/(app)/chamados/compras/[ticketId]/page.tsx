@@ -23,7 +23,7 @@ import {
   TicketActions,
   QuotationSelectionDialog,
 } from "./components";
-import { DeleteTicketButton } from "../../components";
+import { DeleteTicketButton, ParentTicketBanner } from "../../components";
 
 interface PageProps {
   params: Promise<{ ticketId: string }>;
@@ -117,6 +117,9 @@ export default async function TicketDetailsPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {ticket.parent_ticket && (
+        <ParentTicketBanner parentTicket={ticket.parent_ticket} />
+      )}
       {/* Header */}
       <TicketHeader ticket={ticket} />
 

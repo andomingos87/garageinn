@@ -33,6 +33,7 @@ export interface TicketFilters {
   category_id?: string;
   unit_id?: string;
   assigned_to?: string;
+  parent_ticket_id?: string;
   search?: string;
   startDate?: string;
   endDate?: string;
@@ -452,6 +453,31 @@ export async function getPurchaseTickets(filters?: TicketFilters) {
 
   if (filters?.assigned_to && filters.assigned_to !== "all") {
     query = query.eq("assigned_to_id", filters.assigned_to);
+  }
+
+  if (filters?.parent_ticket_id) {
+    const raw = filters.parent_ticket_id.trim();
+    let parentId: string | null = raw;
+
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(raw)) {
+      const ticketNumber = parseInt(raw.replace(/^#/, ""), 10);
+      if (!isNaN(ticketNumber)) {
+        const { data: parentTicket } = await supabase
+          .from("tickets")
+          .select("id")
+          .eq("ticket_number", ticketNumber)
+          .limit(1)
+          .maybeSingle();
+        parentId = parentTicket?.id ?? null;
+      }
+    }
+
+    query = query.eq(
+      "parent_ticket_id",
+      parentId ?? "00000000-0000-0000-0000-000000000000"
+    );
   }
 
   if (filters?.search) {
@@ -1027,74 +1053,109 @@ export async function getTicketDetails(ticketId: string) {
     return { accessDenied: true as const };
   }
 
-  // Buscar cotações
-  const { data: quotations } = await supabase
-    .from("ticket_quotations")
-    .select(
-      `
-      *,
-      creator:profiles!created_by(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("created_at", { ascending: false });
+  // Buscar dados em paralelo (cotações, aprovações, comentários, histórico, anexos, parent ticket)
+  const parentTicketQuery =
+    (ticket as { parent_ticket_id?: string | null }).parent_ticket_id
+      ? supabase
+          .from("tickets")
+          .select(
+            "id, ticket_number, title, status, department:departments!department_id(name)"
+          )
+          .eq(
+            "id",
+            (ticket as { parent_ticket_id: string }).parent_ticket_id
+          )
+          .single()
+      : Promise.resolve({ data: null });
 
-  // Buscar aprovações
-  const { data: approvals } = await supabase
-    .from("ticket_approvals")
-    .select(
+  const [
+    { data: quotations },
+    { data: approvals },
+    { data: comments },
+    { data: history },
+    { data: attachments },
+    { data: items },
+    { data: parentTicketRow },
+  ] = await Promise.all([
+    supabase
+      .from("ticket_quotations")
+      .select(
+        `
+        *,
+        creator:profiles!created_by(id, full_name, avatar_url)
       `
-      *,
-      approver:profiles!approved_by(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("approval_level", { ascending: true });
-
-  // Buscar comentários
-  const { data: comments } = await supabase
-    .from("ticket_comments")
-    .select(
+      )
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("ticket_approvals")
+      .select(
+        `
+        *,
+        approver:profiles!approved_by(id, full_name, avatar_url)
       `
-      *,
-      author:profiles!user_id(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("created_at", { ascending: true });
-
-  // Buscar histórico
-  const { data: history } = await supabase
-    .from("ticket_history")
-    .select(
+      )
+      .eq("ticket_id", ticketId)
+      .order("approval_level", { ascending: true }),
+    supabase
+      .from("ticket_comments")
+      .select(
+        `
+        *,
+        author:profiles!user_id(id, full_name, avatar_url)
       `
-      *,
-      user:profiles!user_id(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("created_at", { ascending: false });
-
-  // Buscar anexos
-  const { data: attachments } = await supabase
-    .from("ticket_attachments")
-    .select(
+      )
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("ticket_history")
+      .select(
+        `
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
       `
-      *,
-      uploader:profiles!uploaded_by(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("created_at", { ascending: false });
+      )
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("ticket_attachments")
+      .select(
+        `
+        *,
+        uploader:profiles!uploaded_by(id, full_name, avatar_url)
+      `
+      )
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("ticket_purchase_items")
+      .select(
+        "id, ticket_id, item_name, quantity, unit_of_measure, estimated_price, sort_order, created_at"
+      )
+      .eq("ticket_id", ticketId)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    parentTicketQuery,
+  ]);
 
-  const { data: items } = await supabase
-    .from("ticket_purchase_items")
-    .select(
-      "id, ticket_id, item_name, quantity, unit_of_measure, estimated_price, sort_order, created_at"
-    )
-    .eq("ticket_id", ticketId)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  // Normalizar parent_ticket
+  const parentTicket =
+    parentTicketRow &&
+    typeof parentTicketRow === "object" &&
+    "id" in parentTicketRow &&
+    "ticket_number" in parentTicketRow
+      ? {
+          id: parentTicketRow.id,
+          ticket_number: parentTicketRow.ticket_number,
+          title: parentTicketRow.title,
+          status: parentTicketRow.status,
+          department_name: (() => {
+            const dept = (parentTicketRow as { department?: { name?: string } | { name?: string }[] }).department;
+            if (Array.isArray(dept)) return dept[0]?.name ?? "";
+            return dept?.name ?? "";
+          })(),
+        }
+      : null;
 
   const normalizedItems: PurchaseItem[] =
     items && items.length > 0
@@ -1143,6 +1204,7 @@ export async function getTicketDetails(ticketId: string) {
     items_count: normalizedItems.length,
     items_total_quantity: itemsTotalQuantity,
     purchase_details: purchaseDetails ?? null,
+    parent_ticket: parentTicket,
   };
 }
 

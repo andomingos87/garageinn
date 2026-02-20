@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +58,13 @@ export function TiFilters({ categories, units }: TiFiltersProps) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [parentTicketId, setParentTicketId] = useState(
+    searchParams.get("parent_ticket_id") || ""
+  );
+
+  useEffect(() => {
+    setParentTicketId(searchParams.get("parent_ticket_id") || "");
+  }, [searchParams]);
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
@@ -88,9 +95,14 @@ export function TiFilters({ categories, units }: TiFiltersProps) {
     [handleSearch]
   );
 
+  const handleParentTicketIdApply = useCallback(() => {
+    updateFilter("parent_ticket_id", parentTicketId.trim());
+  }, [parentTicketId, updateFilter]);
+
   const clearFilters = useCallback(() => {
     startTransition(() => {
       setSearch("");
+      setParentTicketId("");
       router.push("/chamados/ti");
     });
   }, [router]);
@@ -100,7 +112,8 @@ export function TiFilters({ categories, units }: TiFiltersProps) {
     searchParams.get("status") ||
     searchParams.get("priority") ||
     searchParams.get("category_id") ||
-    searchParams.get("unit_id");
+    searchParams.get("unit_id") ||
+    searchParams.get("parent_ticket_id");
 
   return (
     <div className="space-y-4">
@@ -186,6 +199,29 @@ export function TiFilters({ categories, units }: TiFiltersProps) {
             ))}
           </SelectContent>
         </Select>
+
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Chamado pai (ID ou número)"
+            value={parentTicketId}
+            onChange={(e) => setParentTicketId(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleParentTicketIdApply();
+              }
+            }}
+            className="w-[200px]"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleParentTicketIdApply}
+            disabled={isPending}
+          >
+            Filtrar
+          </Button>
+        </div>
 
         {hasFilters && (
           <Button variant="ghost" onClick={clearFilters} disabled={isPending}>

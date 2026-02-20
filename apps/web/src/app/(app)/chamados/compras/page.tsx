@@ -24,6 +24,7 @@ interface PageProps {
     priority?: string;
     category_id?: string;
     unit_id?: string;
+    parent_ticket_id?: string;
     page?: string;
   }>;
 }
@@ -81,6 +82,7 @@ export default async function ChamadosComprasPage({ searchParams }: PageProps) {
     priority: params.priority,
     category_id: params.category_id,
     unit_id: params.unit_id,
+    parent_ticket_id: params.parent_ticket_id,
     page: params.page ? parseInt(params.page) : 1,
     limit: 20,
   };

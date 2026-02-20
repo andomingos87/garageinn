@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AccessDenied } from "@/components/auth/access-denied";
-import { StatusBadge } from "../../components/status-badge";
+import { StatusBadge, ParentTicketBanner } from "../../components";
 import { TiTicketStatus } from "../components";
 import {
   canAccessTiTicketDetail,
@@ -59,6 +59,9 @@ export default async function TiTicketDetailsPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {ticket.parent_ticket && (
+        <ParentTicketBanner parentTicket={ticket.parent_ticket} />
+      )}
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild className="gap-2">

@@ -3,6 +3,7 @@ export interface TiFilters {
   priority?: string;
   category_id?: string;
   unit_id?: string;
+  parent_ticket_id?: string;
   search?: string;
   page?: number;
   limit?: number;
@@ -38,6 +39,16 @@ export interface TiTicketListItem {
   created_by_avatar: string | null;
   assigned_to_name: string | null;
   assigned_to_avatar: string | null;
+  parent_ticket_id?: string | null;
+  origin_ticket_type?: string | null;
+}
+
+export interface ParentTicketInfo {
+  id: string;
+  ticket_number: number;
+  title: string;
+  status: string;
+  department_name: string;
 }
 
 export interface TiApproval {
@@ -91,6 +102,9 @@ export interface TiAttachment {
 
 export interface TiTicketDetail extends TiTicketListItem {
   description: string;
+  parent_ticket_id?: string | null;
+  origin_ticket_type?: string | null;
+  parent_ticket?: ParentTicketInfo | null;
   approvals: TiApproval[];
   comments: TiComment[];
   history: TiHistory[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition, useCallback } from "react";
+import { useState, useTransition, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { Search, X, SlidersHorizontal, Filter } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -77,8 +77,15 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
   const priority = searchParams.get("priority") || "all";
   const category_id = searchParams.get("category_id") || "all";
   const unit_id = searchParams.get("unit_id") || "all";
+  const parent_ticket_id = searchParams.get("parent_ticket_id") || "";
 
   const [localSearch, setLocalSearch] = useState(search);
+  const [localParentTicketId, setLocalParentTicketId] =
+    useState(parent_ticket_id);
+
+  useEffect(() => {
+    setLocalParentTicketId(parent_ticket_id);
+  }, [parent_ticket_id]);
 
   const updateFilters = useCallback(
     (updates: Record<string, string>) => {
@@ -114,9 +121,14 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
 
   const clearFilters = () => {
     setLocalSearch("");
+    setLocalParentTicketId("");
     startTransition(() => {
       router.push("/chamados/compras");
     });
+  };
+
+  const applyParentTicketFilter = () => {
+    updateFilters({ parent_ticket_id: localParentTicketId.trim() });
   };
 
   const hasActiveFilters =
@@ -124,13 +136,15 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
     status !== "all" ||
     priority !== "all" ||
     category_id !== "all" ||
-    unit_id !== "all";
+    unit_id !== "all" ||
+    !!parent_ticket_id;
   const activeFilterCount = [
     search,
     status !== "all",
     priority !== "all",
     category_id !== "all",
     unit_id !== "all",
+    !!parent_ticket_id,
   ].filter(Boolean).length;
 
   return (
@@ -157,6 +171,31 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
       <div className="flex items-center gap-2">
         {/* Desktop Filters */}
         <div className="hidden lg:flex items-center gap-2">
+          <div className="flex items-center gap-1 w-[200px]">
+            <Input
+              placeholder="Chamado pai (#nº ou ID)"
+              value={localParentTicketId}
+              onChange={(e) => setLocalParentTicketId(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  applyParentTicketFilter();
+                }
+              }}
+              disabled={isPending}
+              className="h-9"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0"
+              onClick={applyParentTicketFilter}
+              disabled={isPending}
+              title="Filtrar por chamado pai"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
           <Select
             value={status}
             onValueChange={(value) => updateFilters({ status: value })}
@@ -211,6 +250,34 @@ export function TicketsFilters({ categories, units }: TicketsFiltersProps) {
               <SheetDescription>Refine a listagem de chamados</SheetDescription>
             </SheetHeader>
             <div className="space-y-4 mt-6">
+              <div className="space-y-2">
+                <Label>Chamado pai (#número ou ID)</Label>
+                <Input
+                  placeholder="Ex: 123 ou #123 ou UUID"
+                  value={localParentTicketId}
+                  onChange={(e) => setLocalParentTicketId(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      applyParentTicketFilter();
+                      setIsOpen(false);
+                    }
+                  }}
+                  disabled={isPending}
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    applyParentTicketFilter();
+                    setIsOpen(false);
+                  }}
+                  disabled={isPending}
+                >
+                  Aplicar
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select

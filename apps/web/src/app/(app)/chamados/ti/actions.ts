@@ -335,6 +335,10 @@ export async function getTiTickets(
     query = query.eq("unit_id", filters.unit_id);
   }
 
+  if (filters?.parent_ticket_id) {
+    query = query.eq("parent_ticket_id", filters.parent_ticket_id);
+  }
+
   if (filters?.search) {
     const searchTerm = filters.search.trim();
     const ticketNumber = parseInt(searchTerm.replace(/\D/g, ""));
@@ -615,49 +619,82 @@ export async function getTiTicketDetail(
     return null;
   }
 
-  const { data: approvals } = await supabase
-    .from("ticket_approvals")
-    .select(
-      `
-      *,
-      approver:profiles!approved_by(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("approval_level", { ascending: true });
+  const ticketWithParent = ticket as TiTicketDetail & {
+    parent_ticket_id?: string | null;
+  };
 
-  const { data: comments } = await supabase
-    .from("ticket_comments")
-    .select(
-      `
-      *,
-      author:profiles!user_id(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("created_at", { ascending: true });
+  const parentTicketQuery = ticketWithParent.parent_ticket_id
+    ? supabase
+        .from("tickets")
+        .select(
+          "id, ticket_number, title, status, department:departments!department_id(name)"
+        )
+        .eq("id", ticketWithParent.parent_ticket_id)
+        .single()
+    : Promise.resolve({ data: null });
 
-  const { data: history } = await supabase
-    .from("ticket_history")
-    .select(
-      `
-      *,
-      user:profiles!user_id(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("created_at", { ascending: false });
+  const [{ data: approvals }, { data: comments }, { data: history }, { data: attachments }, { data: parentTicketRow }] =
+    await Promise.all([
+      supabase
+        .from("ticket_approvals")
+        .select(
+          `
+          *,
+          approver:profiles!approved_by(id, full_name, avatar_url)
+        `
+        )
+        .eq("ticket_id", ticketId)
+        .order("approval_level", { ascending: true }),
+      supabase
+        .from("ticket_comments")
+        .select(
+          `
+          *,
+          author:profiles!user_id(id, full_name, avatar_url)
+        `
+        )
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("ticket_history")
+        .select(
+          `
+          *,
+          user:profiles!user_id(id, full_name, avatar_url)
+        `
+        )
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("ticket_attachments")
+        .select(
+          `
+          *,
+          uploader:profiles!uploaded_by(id, full_name, avatar_url)
+        `
+        )
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: false }),
+      parentTicketQuery,
+    ]);
 
-  const { data: attachments } = await supabase
-    .from("ticket_attachments")
-    .select(
-      `
-      *,
-      uploader:profiles!uploaded_by(id, full_name, avatar_url)
-    `
-    )
-    .eq("ticket_id", ticketId)
-    .order("created_at", { ascending: false });
+  const parentTicket =
+    parentTicketRow &&
+    typeof parentTicketRow === "object" &&
+    "id" in parentTicketRow &&
+    "ticket_number" in parentTicketRow
+      ? {
+          id: parentTicketRow.id,
+          ticket_number: parentTicketRow.ticket_number,
+          title: parentTicketRow.title,
+          status: parentTicketRow.status,
+          department_name: (() => {
+            const dept = (parentTicketRow as { department?: { name?: string } | { name?: string }[] }).department;
+            if (Array.isArray(dept)) return dept[0]?.name ?? "";
+            return dept?.name ?? "";
+          })(),
+        }
+      : null;
 
   return {
     ...(ticket as TiTicketDetail),
@@ -665,6 +702,7 @@ export async function getTiTicketDetail(
     comments: comments || [],
     history: history || [],
     attachments: attachments || [],
+    parent_ticket: parentTicket,
   };
 }
 

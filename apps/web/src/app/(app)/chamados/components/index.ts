@@ -11,3 +11,4 @@ export { HubTable } from "./hub-table";
 export { HubPagination } from "./hub-pagination";
 export { NewTicketDialog } from "./new-ticket-dialog";
 export { DeleteTicketButton } from "./delete-ticket-button";
+export { ParentTicketBanner } from "./parent-ticket-banner";
