@@ -98,17 +98,19 @@ export default async function TicketDetailsPage({ params }: PageProps) {
   const hasSelectedQuotation = ticket.quotations?.some((q: { is_selected?: boolean }) => q.is_selected) ?? false;
 
   // Obter transições permitidas para o status atual
-  const allAllowedTransitions = getAllowedTransitions(ticket.status);
+  const rawTransitions = getAllowedTransitions(ticket.status);
   
   // Filtrar transições baseado em permissões do usuário
-  const allowedTransitions = allAllowedTransitions.filter((transition) => {
+  const allowedTransitions = rawTransitions.filter((transition) => {
     const requiredPermission = getTransitionPermission(transition);
     if (requiredPermission === null) {
-      // Sem restrição específica, herda de canManage
       return true;
     }
     return hasPermission(userPermissions, requiredPermission as Permission);
   });
+
+  // O solicitante pode avaliar quando o status permite "evaluating", independente das permissões de execução
+  const canEvaluateDelivery = isRequester && rawTransitions.includes("evaluating");
 
   // Verificar se tem aprovações pendentes (para mostrar a seção de aprovações)
   const hasApprovals = ticket.approvals && ticket.approvals.length > 0;
@@ -180,6 +182,8 @@ export default async function TicketDetailsPage({ params }: PageProps) {
             userPermissions={userPermissions}
             hasSelectedQuotation={hasSelectedQuotation}
             isComprasMember={isComprasMember}
+            isRequester={isRequester}
+            canEvaluateDelivery={canEvaluateDelivery}
           />
 
           {/* Timeline / Histórico */}

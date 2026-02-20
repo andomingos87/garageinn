@@ -1123,6 +1123,15 @@ export async function getTicketDetails(ticketId: string) {
     0
   );
 
+  // Buscar detalhes de entrega
+  const { data: purchaseDetails } = await supabase
+    .from("ticket_purchase_details")
+    .select(
+      "delivery_date, delivery_address, delivery_notes, delivery_confirmed_at, delivery_rating"
+    )
+    .eq("ticket_id", ticketId)
+    .single();
+
   return {
     ...ticket,
     quotations: quotations || [],
@@ -1133,7 +1142,242 @@ export async function getTicketDetails(ticketId: string) {
     items: normalizedItems,
     items_count: normalizedItems.length,
     items_total_quantity: itemsTotalQuantity,
+    purchase_details: purchaseDetails ?? null,
   };
+}
+
+// ============================================
+// Delivery Functions
+// ============================================
+
+/**
+ * Registra informações de entrega e muda status para 'in_delivery'
+ */
+export async function registerDelivery(ticketId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Não autenticado" };
+  }
+
+  const canManage = await canManageTicket(ticketId);
+  if (!canManage) {
+    return { error: "Apenas membros de Compras podem registrar entregas" };
+  }
+
+  const { data: ticket } = await supabase
+    .from("tickets")
+    .select("status")
+    .eq("id", ticketId)
+    .single();
+
+  if (!ticket) {
+    return { error: "Chamado não encontrado" };
+  }
+
+  if (ticket.status !== "purchasing") {
+    return {
+      error: "Chamado não está no status 'Executando Compra'",
+      code: "conflict",
+    };
+  }
+
+  const delivery_date = formData.get("delivery_date") as string | null;
+  const delivery_address = formData.get("delivery_address") as string | null;
+  const delivery_notes = formData.get("delivery_notes") as string | null;
+
+  if (!delivery_date) {
+    return { error: "Data prevista de entrega é obrigatória" };
+  }
+
+  const { error: upsertError } = await supabase
+    .from("ticket_purchase_details")
+    .upsert(
+      {
+        ticket_id: ticketId,
+        delivery_date,
+        delivery_address: delivery_address || null,
+        delivery_notes: delivery_notes || null,
+      },
+      { onConflict: "ticket_id" }
+    );
+
+  if (upsertError) {
+    console.error("Error upserting delivery details:", upsertError);
+    return { error: upsertError.message };
+  }
+
+  const { error: statusError } = await supabase
+    .from("tickets")
+    .update({ status: "in_delivery" })
+    .eq("id", ticketId);
+
+  if (statusError) {
+    console.error("Error updating ticket status to in_delivery:", statusError);
+    return { error: statusError.message };
+  }
+
+  await supabase.from("ticket_history").insert({
+    ticket_id: ticketId,
+    user_id: user.id,
+    action: "delivery_registered",
+    old_value: "purchasing",
+    new_value: "in_delivery",
+    metadata: {
+      delivery_date,
+      delivery_address: delivery_address || null,
+    },
+  });
+
+  revalidatePath(`/chamados/compras/${ticketId}`);
+  revalidatePath("/chamados/compras");
+  return { success: true };
+}
+
+/**
+ * Registra avaliação da entrega e muda status para 'evaluating'
+ */
+export async function evaluateDelivery(ticketId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Não autenticado" };
+  }
+
+  const { data: ticket } = await supabase
+    .from("tickets")
+    .select("status, created_by")
+    .eq("id", ticketId)
+    .single();
+
+  if (!ticket) {
+    return { error: "Chamado não encontrado" };
+  }
+
+  if (ticket.status !== "delivered") {
+    return {
+      error: "Chamado não está no status 'Entrega Realizada'",
+      code: "conflict",
+    };
+  }
+
+  if (user.id !== ticket.created_by) {
+    return {
+      error: "Apenas o solicitante pode avaliar a entrega",
+      code: "forbidden",
+    };
+  }
+
+  const delivery_rating_raw = formData.get("delivery_rating");
+  const delivery_feedback = formData.get("delivery_feedback") as string | null;
+
+  const delivery_rating = delivery_rating_raw
+    ? parseInt(delivery_rating_raw as string)
+    : null;
+
+  if (!delivery_rating || delivery_rating < 1 || delivery_rating > 5) {
+    return { error: "Avaliação deve ser entre 1 e 5 estrelas" };
+  }
+
+  const { data: existing } = await supabase
+    .from("ticket_purchase_details")
+    .select("delivery_notes, item_name, quantity")
+    .eq("ticket_id", ticketId)
+    .maybeSingle();
+
+  let deliveryNotes: string | null = null;
+  if (delivery_feedback) {
+    const originalNotes = existing?.delivery_notes?.trim();
+    deliveryNotes = originalNotes
+      ? `${originalNotes}\n\n--- Avaliação do solicitante ---\n${delivery_feedback}`
+      : delivery_feedback;
+  }
+
+  if (existing) {
+    const updatePayload: Record<string, unknown> = {
+      delivery_confirmed_at: new Date().toISOString(),
+      delivery_rating,
+    };
+    if (deliveryNotes !== null) {
+      updatePayload.delivery_notes = deliveryNotes;
+    }
+
+    const { data: updated, error: updateError } = await supabase
+      .from("ticket_purchase_details")
+      .update(updatePayload)
+      .eq("ticket_id", ticketId)
+      .select("ticket_id");
+
+    if (updateError) {
+      console.error("Error updating delivery evaluation:", updateError);
+      return { error: updateError.message };
+    }
+
+    if (!updated || updated.length === 0) {
+      return { error: "Falha ao salvar avaliação. Nenhum registro foi atualizado." };
+    }
+  } else {
+    const { data: items } = await supabase
+      .from("ticket_purchase_items")
+      .select("item_name, quantity, unit_of_measure, estimated_price")
+      .eq("ticket_id", ticketId)
+      .order("sort_order", { ascending: true })
+      .limit(1);
+
+    const fallbackItem = items?.[0];
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("ticket_purchase_details")
+      .insert({
+        ticket_id: ticketId,
+        item_name: fallbackItem?.item_name ?? "Item não especificado",
+        quantity: fallbackItem?.quantity ?? 1,
+        unit_of_measure: fallbackItem?.unit_of_measure ?? "un",
+        estimated_price: fallbackItem?.estimated_price ?? null,
+        delivery_confirmed_at: new Date().toISOString(),
+        delivery_rating,
+        delivery_notes: deliveryNotes,
+      })
+      .select("ticket_id");
+
+    if (insertError) {
+      console.error("Error inserting delivery evaluation for legacy ticket:", insertError);
+      return { error: insertError.message };
+    }
+
+    if (!inserted || inserted.length === 0) {
+      return { error: "Falha ao salvar avaliação. Nenhum registro foi criado." };
+    }
+  }
+
+  const { error: statusError } = await supabase
+    .from("tickets")
+    .update({ status: "evaluating" })
+    .eq("id", ticketId);
+
+  if (statusError) {
+    console.error("Error updating ticket status to evaluating:", statusError);
+    return { error: statusError.message };
+  }
+
+  await supabase.from("ticket_history").insert({
+    ticket_id: ticketId,
+    user_id: user.id,
+    action: "delivery_evaluated",
+    old_value: "delivered",
+    new_value: "evaluating",
+    metadata: { rating: delivery_rating },
+  });
+
+  revalidatePath(`/chamados/compras/${ticketId}`);
+  revalidatePath("/chamados/compras");
+  return { success: true };
 }
 
 /**

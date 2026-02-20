@@ -28,6 +28,8 @@ import {
 import { toast } from "sonner";
 import { changeTicketStatus, sendToApproval } from "../../actions";
 import { TriageDialog } from "./triage-dialog";
+import { DeliveryRegistrationDialog } from "./delivery-registration-dialog";
+import { DeliveryEvaluationDialog } from "./delivery-evaluation-dialog";
 import { getTransitionPermission } from "../../constants";
 import { hasPermission } from "@/lib/auth/rbac";
 import type { Permission } from "@/lib/auth/permissions";
@@ -60,6 +62,8 @@ interface TicketActionsProps {
   userPermissions?: Permission[];
   hasSelectedQuotation?: boolean;
   isComprasMember?: boolean;
+  isRequester?: boolean;
+  canEvaluateDelivery?: boolean;
 }
 
 // Labels para status
@@ -130,6 +134,8 @@ export function TicketActions({
   userPermissions = [],
   hasSelectedQuotation = false,
   isComprasMember = false,
+  isRequester = false,
+  canEvaluateDelivery = false,
 }: TicketActionsProps) {
   const router = useRouter();
   const [isDenyDialogOpen, setIsDenyDialogOpen] = useState(false);
@@ -223,7 +229,7 @@ export function TicketActions({
 
   // Não mostrar card se não há NENHUMA ação disponível
   // CORREÇÃO BUG-012: Usar && ao invés de || para permitir triagem mesmo sem canManage
-  if (!showTriageButton && !hasManageActions && !showCloseButton && !showSendToApprovalButton) {
+  if (!showTriageButton && !hasManageActions && !showCloseButton && !showSendToApprovalButton && !canEvaluateDelivery) {
     return null;
   }
 
@@ -267,6 +273,8 @@ export function TicketActions({
           {canManage &&
             allowedTransitions
               .filter((status) => {
+                // Excluir transições com dialogs dedicados do loop genérico
+                if (status === "evaluating") return false;
                 // Filtrar transições baseado em permissões (dupla validação: server + client)
                 const requiredPermission = getTransitionPermission(status);
                 if (requiredPermission === null) {
@@ -275,6 +283,17 @@ export function TicketActions({
                 return hasPermission(userPermissions, requiredPermission as Permission);
               })
               .map((status) => {
+                // Interceptar transição in_delivery com dialog dedicado
+                if (status === "in_delivery") {
+                  return (
+                    <DeliveryRegistrationDialog
+                      key={status}
+                      ticketId={ticketId}
+                      disabled={isPending}
+                    />
+                  );
+                }
+
                 const action = statusActions[status];
                 if (!action) return null;
 
@@ -293,6 +312,14 @@ export function TicketActions({
                   </Button>
                 );
               })}
+
+          {/* Botão "Avaliar Entrega" — apenas o solicitante, baseado no status bruto (sem filtro de permissão) */}
+          {canEvaluateDelivery && (
+            <DeliveryEvaluationDialog
+              ticketId={ticketId}
+              disabled={isPending}
+            />
+          )}
 
           {/* Botão de Fechar para Admin/Gerente (quando não está nas transições normais) */}
           {showCloseButton && (

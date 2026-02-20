@@ -2,6 +2,15 @@
 
 import { Package, Hash, DollarSign, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeliverySection } from "./delivery-section";
+
+interface PurchaseDetails {
+  delivery_date?: string | null;
+  delivery_address?: string | null;
+  delivery_notes?: string | null;
+  delivery_confirmed_at?: string | null;
+  delivery_rating?: number | null;
+}
 
 interface TicketInfoProps {
   ticket: {
@@ -18,6 +27,7 @@ interface TicketInfoProps {
     }>;
     denial_reason: string | null;
     status: string;
+    purchase_details?: PurchaseDetails | null;
   };
 }
 
@@ -133,6 +143,12 @@ export function TicketInfo({ ticket }: TicketInfoProps) {
           <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
         </CardContent>
       </Card>
+
+      {/* Seção de Entrega */}
+      <DeliverySection
+        purchaseDetails={ticket.purchase_details ?? null}
+        ticketStatus={ticket.status}
+      />
 
       {/* Motivo da Negação (se negado) */}
       {ticket.status === "denied" && ticket.denial_reason && (

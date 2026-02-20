@@ -7,3 +7,6 @@ export { TicketApprovals } from "./ticket-approvals";
 export { TicketActions } from "./ticket-actions";
 export { TriageDialog } from "./triage-dialog";
 export { QuotationSelectionDialog } from "./quotation-selection-dialog";
+export { DeliveryRegistrationDialog } from "./delivery-registration-dialog";
+export { DeliveryEvaluationDialog } from "./delivery-evaluation-dialog";
+export { DeliverySection } from "./delivery-section";
