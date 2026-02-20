@@ -141,6 +141,8 @@ Tabela principal de chamados.
 | unit_id | uuid | ❌ | null | FK para units |
 | created_by | uuid | ✅ | - | FK para profiles (solicitante) |
 | assigned_to | uuid | ❌ | null | FK para profiles (responsável) |
+| parent_ticket_id | uuid | ❌ | null | FK para tickets (chamado pai, auto-referência) |
+| origin_ticket_type | text | ❌ | null | Tipo do chamado pai (ex: `'manutencao'`) |
 | due_date | date | ❌ | null | Data prevista de conclusão |
 | denial_reason | text | ❌ | null | Motivo da negação |
 | resolved_at | timestamptz | ❌ | null | Data de resolução |

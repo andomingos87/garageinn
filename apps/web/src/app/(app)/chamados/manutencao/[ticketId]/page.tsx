@@ -9,6 +9,9 @@ import {
   getUserUnits,
   checkIsAdmin,
   getCurrentUserPermissions,
+  getLinkedTickets,
+  getComprasCategoriesForLinkedTicket,
+  getTiCategoriesForLinkedTicket,
 } from "../actions";
 import { getAllowedTransitions, getTransitionPermission } from "../constants";
 import { hasPermission } from "@/lib/auth/rbac";
@@ -21,6 +24,7 @@ import {
   TicketApprovals,
   TicketActions,
   TicketExecutions,
+  LinkedTicketsList,
 } from "./components";
 import { DeleteTicketButton } from "../../components";
 
@@ -59,6 +63,9 @@ export default async function MaintenanceTicketDetailsPage({
     units,
     isAdmin,
     userPermissions,
+    linkedTickets,
+    comprasCategories,
+    tiCategories,
   ] = await Promise.all([
     getTicketDetails(ticketId),
     canManageTicket(ticketId),
@@ -68,6 +75,9 @@ export default async function MaintenanceTicketDetailsPage({
     getUserUnits(),
     checkIsAdmin(),
     getCurrentUserPermissions(),
+    getLinkedTickets(ticketId),
+    getComprasCategoriesForLinkedTicket(),
+    getTiCategoriesForLinkedTicket(),
   ]);
 
   if (!ticket) {
@@ -117,6 +127,9 @@ export default async function MaintenanceTicketDetailsPage({
             ticketStatus={ticket.status}
           />
 
+          {/* Chamados Vinculados */}
+          <LinkedTicketsList linkedTickets={linkedTickets} />
+
           {/* Comentários */}
           <TicketComments
             ticketId={ticketId}
@@ -143,6 +156,9 @@ export default async function MaintenanceTicketDetailsPage({
             isAdmin={isAdmin}
             userRole={currentUserRole}
             userPermissions={userPermissions}
+            comprasCategories={comprasCategories}
+            tiCategories={tiCategories}
+            units={units}
           />
 
           {/* Timeline / Histórico */}

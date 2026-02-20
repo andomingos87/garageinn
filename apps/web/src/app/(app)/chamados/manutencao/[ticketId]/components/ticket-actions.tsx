@@ -29,6 +29,7 @@ import {
 import { toast } from "sonner";
 import { changeTicketStatus } from "../../actions";
 import { TriageDialog } from "./triage-dialog";
+import { LinkedTicketDialog } from "./linked-ticket-dialog";
 import { getTransitionPermission } from "../../constants";
 import { hasPermission } from "@/lib/auth/rbac";
 import type { Permission } from "@/lib/auth/permissions";
@@ -56,6 +57,9 @@ interface TicketActionsProps {
   isAdmin?: boolean;
   userRole?: string;
   userPermissions?: Permission[];
+  comprasCategories?: { id: string; name: string }[];
+  tiCategories?: { id: string; name: string }[];
+  units?: { id: string; name: string; code: string }[];
 }
 
 // Labels para status
@@ -138,6 +142,9 @@ export function TicketActions({
   isAdmin = false,
   userRole,
   userPermissions = [],
+  comprasCategories = [],
+  tiCategories = [],
+  units = [],
 }: TicketActionsProps) {
   const router = useRouter();
   const [isDenyDialogOpen, setIsDenyDialogOpen] = useState(false);
@@ -156,6 +163,10 @@ export function TicketActions({
     (isAdmin || userRole === "Gerente") &&
     !finalStatuses.includes(currentStatus) &&
     !allowedTransitions.includes("closed");
+
+  const showLinkedTicketButton =
+    canManage &&
+    (currentStatus === "executing" || currentStatus === "waiting_parts");
 
   const handleStatusChange = (newStatus: string) => {
     if (newStatus === "denied") {
@@ -212,7 +223,7 @@ export function TicketActions({
 
   // Não mostrar card se não há NENHUMA ação disponível
   // CORREÇÃO BUG-012: Usar && ao invés de || para permitir triagem mesmo sem canManage
-  if (!showTriageButton && !hasManageActions && !showCloseButton) {
+  if (!showTriageButton && !hasManageActions && !showCloseButton && !showLinkedTicketButton) {
     return null;
   }
 
@@ -282,6 +293,17 @@ export function TicketActions({
               <CheckCircle className="h-4 w-4" />
               Fechar Chamado
             </Button>
+          )}
+
+          {/* Botão de Chamado Vinculado */}
+          {showLinkedTicketButton && (
+            <LinkedTicketDialog
+              parentTicketId={ticketId}
+              comprasCategories={comprasCategories}
+              tiCategories={tiCategories}
+              units={units}
+              disabled={isPending}
+            />
           )}
         </CardContent>
       </Card>

@@ -7,3 +7,5 @@ export { TicketActions } from "./ticket-actions";
 export { TicketExecutions } from "./ticket-executions";
 export { TriageDialog } from "./triage-dialog";
 export { ExecutionDialog } from "./execution-dialog";
+export { LinkedTicketDialog } from "./linked-ticket-dialog";
+export { LinkedTicketsList } from "./linked-tickets-list";

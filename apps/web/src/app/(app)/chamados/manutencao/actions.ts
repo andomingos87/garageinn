@@ -1441,6 +1441,106 @@ export async function canManageTicket(_ticketId: string) {
   return isManutencaoMember || false;
 }
 
+// ============================================
+// Linked Ticket Functions
+// ============================================
+
+/**
+ * Busca chamados vinculados a um chamado pai
+ */
+export async function getLinkedTickets(parentTicketId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("tickets")
+    .select(
+      `
+      id,
+      ticket_number,
+      title,
+      status,
+      created_at,
+      department_id,
+      departments:department_id(name)
+    `
+    )
+    .eq("parent_ticket_id", parentTicketId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching linked tickets:", error);
+    return [];
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data || []).map((t: any) => ({
+    id: t.id,
+    ticket_number: t.ticket_number,
+    title: t.title,
+    status: t.status,
+    created_at: t.created_at,
+    department_name: t.departments?.name ?? "",
+  }));
+}
+
+/**
+ * Busca categorias do departamento de Compras para chamados vinculados
+ */
+export async function getComprasCategoriesForLinkedTicket() {
+  const supabase = await createClient();
+
+  const { data: dept } = await supabase
+    .from("departments")
+    .select("id")
+    .eq("name", "Compras e Manutenção")
+    .single();
+
+  if (!dept) return [];
+
+  const { data, error } = await supabase
+    .from("ticket_categories")
+    .select("id, name")
+    .eq("department_id", dept.id)
+    .eq("status", "active")
+    .order("name");
+
+  if (error) {
+    console.error("Error fetching compras categories:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Busca categorias do departamento de TI para chamados vinculados
+ */
+export async function getTiCategoriesForLinkedTicket() {
+  const supabase = await createClient();
+
+  const { data: dept } = await supabase
+    .from("departments")
+    .select("id")
+    .eq("name", "TI")
+    .single();
+
+  if (!dept) return [];
+
+  const { data, error } = await supabase
+    .from("ticket_categories")
+    .select("id, name")
+    .eq("department_id", dept.id)
+    .eq("status", "active")
+    .order("name");
+
+  if (error) {
+    console.error("Error fetching TI categories:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 /**
  * Avaliar execução do chamado (pelo solicitante)
  */
@@ -1492,4 +1592,249 @@ export async function evaluateTicket(ticketId: string, formData: FormData) {
   revalidatePath(`/chamados/manutencao/${ticketId}`);
   revalidatePath("/chamados/manutencao");
   return { success: true };
+}
+
+// ============================================
+// Create Linked Ticket
+// ============================================
+
+/**
+ * Cria um chamado vinculado (Compras ou TI) a partir de um chamado de Manutenção
+ */
+export async function createLinkedTicket(
+  parentTicketId: string,
+  type: "compras" | "ti",
+  formData: FormData
+): Promise<{ error?: string; ticketId?: string }> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Não autenticado" };
+  }
+
+  // Verificar se o chamado pai existe
+  const { data: parentTicket } = await supabase
+    .from("tickets")
+    .select("id, status, department_id")
+    .eq("id", parentTicketId)
+    .single();
+
+  if (!parentTicket) {
+    return { error: "Chamado pai não encontrado" };
+  }
+
+  const manutencaoDept = await getManutencaoDepartment();
+  if (!manutencaoDept) {
+    return { error: "Departamento de Manutenção não encontrado" };
+  }
+  if (parentTicket.department_id !== manutencaoDept.id) {
+    return { error: "Chamado pai não pertence ao departamento de Manutenção" };
+  }
+
+  if (
+    parentTicket.status !== "executing" &&
+    parentTicket.status !== "waiting_parts"
+  ) {
+    return { error: "Chamado pai não está em execução" };
+  }
+
+  const canManage = await canManageTicket(parentTicketId);
+  if (!canManage) {
+    return { error: "Sem permissão" };
+  }
+
+  const title = formData.get("title") as string;
+  const description = formData.get("description") as string;
+  const category_id = formData.get("category_id") as string | null;
+  const unit_id = formData.get("unit_id") as string | null;
+  const perceived_urgency = formData.get("perceived_urgency") as string | null;
+
+  if (!title || title.length < 5) {
+    return { error: "Título deve ter pelo menos 5 caracteres" };
+  }
+  if (!description || description.length < 10) {
+    return { error: "Descrição deve ter pelo menos 10 caracteres" };
+  }
+
+  const deptName = type === "compras" ? "Compras e Manutenção" : "TI";
+  const { data: targetDept } = await supabase
+    .from("departments")
+    .select("id")
+    .eq("name", deptName)
+    .single();
+
+  if (!targetDept) {
+    return { error: `Departamento ${deptName} não encontrado` };
+  }
+
+  const { data: initialStatusData } = await supabase.rpc(
+    "get_initial_approval_status",
+    { p_created_by: user.id }
+  );
+  const initialStatus = initialStatusData || "awaiting_triage";
+
+  const { data: needsApproval } = await supabase.rpc("ticket_needs_approval", {
+    p_created_by: user.id,
+    p_department_id: targetDept.id,
+  });
+
+  const { data: ticket, error: ticketError } = await supabase
+    .from("tickets")
+    .insert({
+      title,
+      description,
+      department_id: targetDept.id,
+      category_id: category_id && category_id !== "" ? category_id : null,
+      unit_id: unit_id && unit_id !== "" ? unit_id : null,
+      created_by: user.id,
+      status: initialStatus,
+      perceived_urgency:
+        perceived_urgency && perceived_urgency !== ""
+          ? perceived_urgency
+          : null,
+      parent_ticket_id: parentTicketId,
+      origin_ticket_type: "manutencao",
+    })
+    .select()
+    .single();
+
+  if (ticketError) {
+    console.error("Error creating linked ticket:", ticketError);
+    return { error: ticketError.message };
+  }
+
+  if (type === "compras") {
+    const item_name = formData.get("item_name") as string;
+    const quantity = parseFloat(formData.get("quantity") as string) || 1;
+    const unit_of_measure =
+      (formData.get("unit_of_measure") as string) || "un";
+    const estimated_price =
+      parseFloat(formData.get("estimated_price") as string) || 0;
+
+    const { error: detailsError } = await supabase
+      .from("ticket_purchase_details")
+      .insert({
+        ticket_id: ticket.id,
+        item_name: item_name || title,
+        quantity,
+        unit_of_measure,
+        estimated_price: estimated_price || null,
+      });
+
+    if (detailsError) {
+      console.error("Error creating purchase details:", detailsError);
+      await supabase.from("tickets").delete().eq("id", ticket.id);
+      return { error: detailsError.message };
+    }
+
+    const { error: itemsError } = await supabase
+      .from("ticket_purchase_items")
+      .insert({
+        ticket_id: ticket.id,
+        item_name: item_name || title,
+        quantity,
+        unit_of_measure,
+        estimated_price: estimated_price || null,
+        sort_order: 0,
+      });
+
+    if (itemsError) {
+      console.error("Error creating purchase items:", itemsError);
+      await supabase.from("tickets").delete().eq("id", ticket.id);
+      return { error: itemsError.message };
+    }
+  } else {
+    const equipment_type = (formData.get("equipment_type") as string) || "";
+
+    const { error: detailsError } = await supabase
+      .from("ticket_it_details")
+      .insert({
+        ticket_id: ticket.id,
+        equipment_type: equipment_type.trim() || "Geral",
+      });
+
+    if (detailsError) {
+      console.error("Error creating IT details:", detailsError);
+      await supabase.from("tickets").delete().eq("id", ticket.id);
+      return { error: detailsError.message };
+    }
+  }
+
+  if (needsApproval) {
+    await supabase.rpc("create_ticket_approvals", { p_ticket_id: ticket.id });
+  }
+
+  // Processar anexos
+  const attachments = formData.getAll("attachments") as File[];
+  const validAttachments = attachments.filter(
+    (file) => file instanceof File && file.size > 0
+  );
+  if (validAttachments.length > 0) {
+    const uploadResults = await Promise.all(
+      validAttachments.map(async (file) => {
+        const extension = file.name.split(".").pop() || "bin";
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+        const filePath = `tickets/${ticket.id}/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("ticket-attachments")
+          .upload(filePath, file, {
+            upsert: false,
+            cacheControl: "3600",
+          });
+
+        if (uploadError) {
+          console.error("Error uploading attachment:", uploadError);
+          return null;
+        }
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("ticket-attachments").getPublicUrl(filePath);
+
+        return {
+          ticket_id: ticket.id,
+          file_name: file.name,
+          file_path: publicUrl,
+          file_type: file.type || `application/${extension}`,
+          file_size: file.size,
+          uploaded_by: user.id,
+        };
+      })
+    );
+
+    const attachmentsToInsert = uploadResults.filter(
+      (item): item is NonNullable<typeof item> => item !== null
+    );
+
+    if (attachmentsToInsert.length > 0) {
+      const { error: attachmentError } = await supabase
+        .from("ticket_attachments")
+        .insert(attachmentsToInsert);
+
+      if (attachmentError) {
+        console.error("Error saving ticket attachments:", attachmentError);
+      }
+    }
+  }
+
+  await supabase.from("ticket_history").insert({
+    ticket_id: ticket.id,
+    user_id: user.id,
+    action: "created",
+    new_value: "Chamado vinculado criado",
+  });
+
+  revalidatePath("/chamados/manutencao");
+  revalidatePath(`/chamados/manutencao/${parentTicketId}`);
+  if (type === "compras") {
+    revalidatePath("/chamados/compras");
+  } else {
+    revalidatePath("/chamados/ti");
+  }
+
+  return { ticketId: ticket.id };
 }

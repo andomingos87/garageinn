@@ -18,6 +18,8 @@ Documentação das funções e stored procedures do sistema GarageInn.
 | `ticket_needs_approval(p_created_by, p_department_id)` | Verifica se chamado precisa aprovação | boolean |
 | `create_ticket_approvals(p_ticket_id)` | Cria registros de aprovação | void |
 | `advance_ticket_approval(...)` | Avança aprovação do chamado | text |
+| `can_view_ticket(p_ticket_id)` | Verifica se o usuário pode visualizar um chamado | boolean |
+| `get_purchase_approver(p_created_by)` | Retorna o role aprovador para chamados de compras | text |
 
 ---
 
@@ -512,6 +514,144 @@ SELECT advance_ticket_approval('uuid-chamado', 1, true, 'Aprovado pelo encarrega
 
 -- Negar
 SELECT advance_ticket_approval('uuid-chamado', 2, false, 'Valor acima do orçamento');
+```
+
+---
+
+## 👁️ Funções de Visibilidade e Aprovação de Compras
+
+### can_view_ticket(p_ticket_id)
+
+Verifica se o usuário autenticado pode visualizar um chamado específico. Consolida todas as políticas de visibilidade (criador, responsável, admin, departamento, unidade e Gerente de Operações) em uma única função.
+
+```sql
+CREATE OR REPLACE FUNCTION public.can_view_ticket(p_ticket_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+DECLARE
+  v_ticket RECORD;
+BEGIN
+  SELECT created_by, assigned_to, department_id, unit_id
+    INTO v_ticket
+    FROM tickets
+   WHERE id = p_ticket_id;
+
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+
+  -- Creator or assignee
+  IF v_ticket.created_by = auth.uid() OR v_ticket.assigned_to = auth.uid() THEN
+    RETURN true;
+  END IF;
+
+  -- Admin (includes Diretor)
+  IF is_admin() THEN
+    RETURN true;
+  END IF;
+
+  -- User has a role in the same department as the ticket
+  IF EXISTS (
+    SELECT 1
+      FROM user_roles ur
+      JOIN roles r ON r.id = ur.role_id
+     WHERE ur.user_id = auth.uid()
+       AND r.department_id = v_ticket.department_id
+  ) THEN
+    RETURN true;
+  END IF;
+
+  -- User is linked to the ticket's unit
+  IF v_ticket.unit_id IS NOT NULL AND EXISTS (
+    SELECT 1
+      FROM user_units uu
+     WHERE uu.user_id = auth.uid()
+       AND uu.unit_id = v_ticket.unit_id
+  ) THEN
+    RETURN true;
+  END IF;
+
+  -- Gerente de Operações can see tickets created by Operações line staff
+  IF is_operacoes_gerente() AND is_operacoes_creator(v_ticket.created_by) THEN
+    RETURN true;
+  END IF;
+
+  RETURN false;
+END;
+$$;
+```
+
+**Parâmetros:**
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| p_ticket_id | uuid | ID do chamado a verificar |
+
+**Retorno:** `boolean` — `true` se o usuário pode ver o chamado.
+
+**Regras de visibilidade:**
+1. Criador do chamado (`created_by`)
+2. Responsável pelo chamado (`assigned_to`)
+3. Admin (Administrador, Desenvolvedor ou Diretor)
+4. Usuário tem role no mesmo departamento do chamado
+5. Usuário está vinculado à mesma unidade do chamado
+6. Gerente de Operações vendo chamado de colaborador de Operações
+
+**Uso:**
+```sql
+SELECT can_view_ticket('uuid-do-chamado'); -- Retorna true/false
+```
+
+---
+
+### get_purchase_approver(p_created_by)
+
+Determina qual role deve aprovar um chamado de compras, baseado no cargo do criador.
+
+```sql
+CREATE OR REPLACE FUNCTION public.get_purchase_approver(p_created_by uuid)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+DECLARE
+  v_is_gerente boolean;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1
+      FROM user_roles ur
+      JOIN roles r ON r.id = ur.role_id
+     WHERE ur.user_id = p_created_by
+       AND r.name = 'Gerente'
+       AND r.is_global = false
+  ) INTO v_is_gerente;
+
+  IF v_is_gerente THEN
+    RETURN 'Diretor';
+  ELSE
+    RETURN 'Gerente';
+  END IF;
+END;
+$$;
+```
+
+**Parâmetros:**
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| p_created_by | uuid | ID do criador do chamado de compras |
+
+**Retorno:** `text` — `'Diretor'` se o criador é Gerente de departamento, `'Gerente'` caso contrário.
+
+**Regra de negócio:** Gerente de departamento não pode aprovar o próprio chamado de compras, então o aprovador sobe para Diretor. Essa restrição será enforçada na camada de aplicação; a função apenas fornece o dado.
+
+**Uso:**
+```sql
+SELECT get_purchase_approver('uuid-do-criador'); -- 'Gerente' ou 'Diretor'
 ```
 
 ---
